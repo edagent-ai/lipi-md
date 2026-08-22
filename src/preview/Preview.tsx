@@ -9,6 +9,8 @@ import {
 import type { Segment } from '../markdown';
 import { SandboxHost, type SandboxDeps } from './SandboxHost';
 import { collectAnchors, lineForOffset, offsetForLine, type Anchor } from './scrollSync';
+import { FindBar } from './FindBar';
+import { clearPaint } from './find';
 
 /**
  * Narrowest pane that can carry a text column and a sidenote column side by
@@ -125,6 +127,8 @@ class SegmentRenderer {
 }
 
 export interface PreviewHandle {
+  /** Opens the find bar over the rendered page. */
+  openFind(): void;
   scrollToLine(line: number): void;
   topLine(): number;
   scroller(): HTMLElement | null;
@@ -140,10 +144,12 @@ interface PreviewProps {
   docStyle: Record<string, string>;
   /** Reports the heading currently at the top, to drive the outline. */
   onActiveHeading?: (id: string) => void;
+  /** Roman scheme the author types in, used when searching native text. */
+  sourceScheme: string;
 }
 
 export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
-  { segments, autoRun, onInstallP5, onScroll, docStyle, onActiveHeading },
+  { segments, autoRun, onInstallP5, onScroll, docStyle, onActiveHeading, sourceScheme },
   ref,
 ) {
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -153,6 +159,10 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
   // re-runs against the new instance — StrictMode remounts it without the
   // segments themselves ever changing.
   const [rendererEpoch, setRendererEpoch] = useState(0);
+  const [findOpen, setFindOpen] = useState(false);
+  // Every render replaces DOM the match ranges point into, so the find bar has
+  // to recompute rather than hold on to ranges that would throw when used.
+  const [revision, setRevision] = useState(0);
 
   // Deps are read through refs so the renderer never has to be rebuilt when a
   // setting changes — rebuilding would drop every running sketch.
@@ -225,6 +235,7 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
   useEffect(() => {
     rendererRef.current?.update(segments);
     syncActiveHeading();
+    setRevision((n) => n + 1);
   }, [segments, rendererEpoch, syncActiveHeading]);
 
   // Sandboxes resize themselves after load, which shifts every anchor below.
@@ -250,6 +261,9 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
   }, []);
 
   useImperativeHandle(ref, () => ({
+    openFind() {
+      setFindOpen(true);
+    },
     scrollToLine(line: number) {
       const scroller = scrollerRef.current;
       const renderer = rendererRef.current;
@@ -311,6 +325,18 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
       onScroll={handleScroll}
       style={docStyle as React.CSSProperties}
     >
+      {findOpen ? (
+        <FindBar
+          bodyRef={bodyRef}
+          scrollerRef={scrollerRef}
+          sourceScheme={sourceScheme}
+          revision={revision}
+          onClose={() => {
+            clearPaint();
+            setFindOpen(false);
+          }}
+        />
+      ) : null}
       <div className="preview-body markdown" ref={bodyRef} />
     </div>
   );

@@ -26,6 +26,8 @@ interface ToolbarProps {
   onExportHtml(): void;
   onExportPdf(): void;
   onOpenSettings(): void;
+  /** Opens the find bar over the rendered page. */
+  onFind(): void;
   onOpenHelp(): void;
   canUndo: boolean;
   canRedo: boolean;
@@ -46,6 +48,7 @@ export function Toolbar({
   onExportHtml,
   onExportPdf,
   onOpenSettings,
+  onFind,
   onOpenHelp,
   canUndo,
   canRedo,
@@ -233,6 +236,16 @@ export function Toolbar({
       </button>
 
       <span className="toolbar-spacer" />
+
+      <button
+        type="button"
+        className="icon-btn"
+        title={`Find in the rendered page (${MOD}F)`}
+        aria-label="Find in the rendered page"
+        onClick={onFind}
+      >
+        ⌕
+      </button>
 
       <div className="segmented" role="group" aria-label="View mode">
         {(['editor', 'split', 'preview'] as ViewMode[]).map((mode) => (

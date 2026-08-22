@@ -360,6 +360,24 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     };
   }, [importFiles]);
 
+  /* ⌘F opens the page search, except while the editor has focus — CodeMirror
+     owns the shortcut there, and taking it would break searching the source. */
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() !== 'f' || !(event.metaKey || event.ctrlKey) || event.altKey) {
+        return;
+      }
+      const target = event.target;
+      const inEditor =
+        target instanceof Node && document.querySelector('.editor')?.contains(target);
+      if (inEditor || settings.viewMode === 'editor') return;
+      event.preventDefault();
+      previewRef.current?.openFind();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [settings.viewMode]);
+
   /* -------------------------------- render ------------------------------- */
 
   if (docs.loading) {
@@ -394,6 +412,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       onScroll={onPreviewScroll}
       docStyle={docStyle}
       onActiveHeading={setActiveHeading}
+      sourceScheme={translitEnv.sourceScheme}
     />
   );
 
@@ -410,7 +429,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             draggable={false}
           />
           <p className="brand-tagline">
-            A Markdown editor that runs entirely in your browser.
+            Write Markdown in many scripts — fully private, entirely in your browser.
           </p>
         </div>
         <button
@@ -439,6 +458,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
         onExportHtml={() => void doExportHtml()}
         onExportPdf={() => void doExportPdf()}
         onOpenSettings={() => setPanel('settings')}
+        onFind={() => previewRef.current?.openFind()}
         onOpenHelp={() => setPanel('help')}
         canUndo={history.canUndo}
         canRedo={history.canRedo}

@@ -150,7 +150,13 @@ math { font-size: 1.05em; }
 }
 
 /* Chrome does render @page margin boxes, so the running header and footer can
-   be described here rather than faked with fixed elements. */
+   be described here rather than faked with fixed elements.
+
+   The margin area itself cannot be coloured: Chrome paints neither the root
+   background nor a fixed element into it, and only a zero page margin fills the
+   sheet -- which would take the page counter with it, since counter(page)
+   resolves nowhere else. So the margin stays the paper's own white on every
+   theme, and the running text is kept a fixed grey to stay legible against it. */
 @page {
   margin: 20mm 16mm;
   @top-left { content: var(--pdf-title); font: 9pt ui-sans-serif, system-ui, sans-serif; color: #555; }
@@ -158,13 +164,24 @@ math { font-size: 1.05em; }
   @bottom-left { content: var(--pdf-author); font: 9pt ui-sans-serif, system-ui, sans-serif; color: #555; }
 }
 @media print {
-  /* Printers get the light palette; a dark page would flood the paper with ink. */
+  /* A document that chose a theme is printed as it was designed. Only a
+     document that chose nothing falls back to the light palette below, so
+     plain notes still print as dark text on white rather than as whatever
+     the reader's screen happened to be set to. */
   :root {
     --fg: #111; --fg-muted: #555; --bg: #fff; --border: #ccc;
     --accent: #14459c; --code-bg: #f4f4f4;
   }
-  body { max-width: none; padding: 0; background: #fff; color: #111; }
-  a { color: inherit; text-decoration: none; }
+  /* The page colour goes on the root, not just the body: the body box stops at
+     the @page margins, so colouring only that leaves a dark page sitting in a
+     white frame, with the running header stranded illegibly in it. */
+  html { background: var(--doc-bg, #fff); }
+  body { max-width: none; padding: 0; background: transparent; color: var(--doc-fg, #111); }
+  /* Without this Chrome drops every background unless the reader thinks to
+     tick "Background graphics", which would flatten a themed page to white
+     text on white paper. */
+  html, body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  a { color: var(--doc-accent, inherit); text-decoration: none; }
 
   /* Keep sections intact across page boundaries. A section longer than a page
      must still split, but a heading never strands at the foot of one, and no
@@ -178,7 +195,7 @@ math { font-size: 1.05em; }
   .sidenote, .sidenote-toggle:checked + .sidenote {
     display: block; float: none; width: auto;
     margin: .5em 0 .8em 1.5em; padding: 0 0 0 .8em;
-    border-left: 2px solid #bbb; background: none;
+    border-left: 2px solid var(--doc-border, #bbb); background: none;
   }
   .media-embed { display: none; }
   table { min-width: 0; }
@@ -189,7 +206,13 @@ math { font-size: 1.05em; }
   figure.sketch img { width: 100%; }
   img, canvas, svg, video { max-width: 100%; height: auto; }
   .math-block, .table-scroll, .media { overflow: visible; }
-  .tok-keyword, .tok-string, .tok-number, .tok-function, .tok-comment { color: #333 !important; }
+  /* Grey is the right default on paper, but a themed page keeps the palette
+     it was given -- its code block is not white. */
+  .tok-keyword, .tok-modifier { color: var(--doc-syn-keyword, #333) !important; }
+  .tok-string, .tok-string2 { color: var(--doc-syn-string, #333) !important; }
+  .tok-number, .tok-bool { color: var(--doc-syn-number, #333) !important; }
+  .tok-function { color: var(--doc-syn-fn, #333) !important; }
+  .tok-comment { color: var(--doc-syn-comment, #333) !important; }
 }
 `.trim();
 

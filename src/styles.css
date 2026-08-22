@@ -981,6 +981,65 @@ body.is-resizing iframe {
   opacity: 0.85;
 }
 
+/* find in page */
+
+/* Painted with the Custom Highlight API, so matches never touch the DOM: any
+   iframe inside a rewritten subtree would reload and restart its sketch. */
+::highlight(lipi-find) {
+  background: color-mix(in srgb, var(--doc-accent, var(--accent)) 30%, transparent);
+  color: inherit;
+}
+
+::highlight(lipi-find-current) {
+  background: var(--doc-accent, var(--accent));
+  color: var(--doc-bg, var(--bg-preview));
+}
+
+.findbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow);
+}
+
+.findbar-input {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-size: 13px;
+}
+
+.findbar-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.findbar-count {
+  flex: none;
+  min-width: 4.5em;
+  text-align: right;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-muted);
+}
+
+.findbar-note {
+  flex-basis: 100%;
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
 /* transliterated text */
 
 .lipi-tl,
