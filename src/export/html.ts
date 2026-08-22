@@ -91,6 +91,7 @@ p.doc-byline {
   margin: -.4em 0 1.6em; font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: .9em; color: var(--doc-muted, var(--fg-muted));
 }
+.doc-version { font-size: .82em; font-variant-numeric: tabular-nums; letter-spacing: .02em; opacity: .85; }
 figure.sketch figcaption {
   margin-top: .5em; font: 12px/1.4 ui-sans-serif, system-ui, sans-serif; color: var(--fg-muted);
 }
@@ -152,7 +153,14 @@ math { font-size: 1.05em; }
   }
   body { max-width: none; padding: 0; background: #fff; color: #111; }
   a { color: inherit; text-decoration: none; }
-  h1, h2, h3, h4 { break-after: avoid; }
+
+  /* Keep sections intact across page boundaries. A section longer than a page
+     must still split, but a heading never strands at the foot of one, and no
+     block is torn in half. */
+  h1, h2, h3, h4, h5, h6 { break-after: avoid; break-inside: avoid; }
+  h1 + *, h2 + *, h3 + *, h4 + * { break-before: avoid; }
+  p, li, blockquote { orphans: 3; widows: 3; }
+  li, .table-scroll, .media, .math-block, .sidenote, figure.sketch { break-inside: avoid; }
   .table-scroll { overflow: visible; }
   /* Every sidenote is shown on paper — a reader cannot click to reveal one. */
   .sidenote, .sidenote-toggle:checked + .sidenote {

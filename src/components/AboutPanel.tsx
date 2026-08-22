@@ -6,6 +6,8 @@ interface AboutPanelProps {
   updateReady: boolean;
 }
 
+const REPO_URL = 'https://github.com/edagent-ai/lipi-md';
+
 const CREDITS = [
   ['markdown-it', 'MIT', 'Markdown parsing and the plugin hooks the macros ride on'],
   ['CodeMirror 6', 'MIT', 'The editor, its Markdown grammar, and code highlighting'],
@@ -54,7 +56,11 @@ export function AboutPanel({ onClose, onUpdate, updateReady }: AboutPanelProps) 
         <h3>Licence</h3>
         <p>
           lipi.md is released under the <strong>MIT Licence</strong>, and every library it ships is
-          MIT-licensed too.
+          MIT-licensed too. The source is on GitHub at{' '}
+          <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
+            {REPO_URL.replace('https://', '')}
+          </a>
+          .
         </p>
         <table className="cheat">
           <tbody>

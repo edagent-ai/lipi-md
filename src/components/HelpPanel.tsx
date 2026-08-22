@@ -199,6 +199,11 @@ export function HelpPanel({ onClose }: HelpPanelProps) {
       <section className="settings-group">
         <h3>Page appearance</h3>
         <pre className="cheat-block">{`---
+author: Your Name
+link: https://example.com     turns the name into a link
+date: 2026
+version: 3
+
 font: serif        sans | serif | mono
 align: justify     left | justify | center
 width: normal      narrow | normal | wide | full | 40rem
@@ -208,8 +213,10 @@ color: "#2b2b2b"
 accent: "#bf5700"
 ---`}</pre>
         <p className="field-hint">
-          Styling lives in the document, so it travels with the file and carries through to the
-          HTML and PDF exports. Colours accept anything CSS understands — <code>#bf5700</code>,{' '}
+          <code>author</code>, <code>link</code>, <code>date</code> and <code>version</code> print
+          as a byline under the title, and the PDF puts the title, page number and author into its
+          running head. Styling lives in the document, so it travels with the file and carries
+          through to the HTML and PDF exports. Colours accept anything CSS understands — <code>#bf5700</code>,{' '}
           <code>rgb(191 87 0)</code>, <code>tomato</code>. Anything unrecognised is ignored rather
           than applied.
         </p>

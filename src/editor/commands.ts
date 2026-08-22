@@ -253,7 +253,8 @@ animate('.dot', {
   embed: '![Talk title](https://youtu.be/dQw4w9WgXcQ "Optional caption")',
 
   style:
-    '---\ntitle: My document\nauthor: Your Name\ndate: 2026\ntheme: paper\n' +
+    '---\ntitle: My document\nauthor: Your Name\nlink: https://example.com\n' +
+    'date: 2026\nversion: 1\ntheme: paper\n' +
     'font: serif\nalign: justify\nwidth: normal\nsize: 17px\n' +
     'background: "#fffdf7"\ncolor: "#2b2b2b"\naccent: "#bf5700"\n---',
 } as const;

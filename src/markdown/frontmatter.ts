@@ -14,6 +14,8 @@ export interface Frontmatter {
   author?: string;
   /** Shown beside the author. Free text — no date parsing is imposed. */
   date?: string;
+  /** A web address for the byline; links the author's name when both are set. */
+  link?: string;
   /** Every key as written, for presentation settings (see `docstyle.ts`). */
   raw: Record<string, string>;
 }
@@ -41,6 +43,7 @@ export function parseFrontmatter(src: string): Frontmatter {
     else if (key === 'folder' || key === 'path') out.folder = value;
     else if (key === 'author' || key === 'by') out.author = value;
     else if (key === 'date') out.date = value;
+    else if (key === 'link' || key === 'url' || key === 'website') out.link = value;
   }
   return out;
 }

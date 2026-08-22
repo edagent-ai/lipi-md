@@ -48,8 +48,10 @@ function lineAnchors(state: StateCore): boolean {
  * frontmatter drives the preview, the exports and the PDF running header.
  */
 function byline(state: StateCore): boolean {
-  const meta = (state.env as { byline?: { author?: string; date?: string } }).byline;
-  if (!meta?.author && !meta?.date) return true;
+  const meta = (state.env as {
+    byline?: { author?: string; date?: string; version?: string; link?: string };
+  }).byline;
+  if (!meta?.author && !meta?.date && !meta?.version && !meta?.link) return true;
 
   const { tokens } = state;
   const index = tokens.findIndex((t) => t.type === 'heading_open' && t.tag === 'h1');
@@ -152,8 +154,30 @@ export function createMarkdown(): MarkdownIt {
   md.renderer.rules.fence = renderFence;
 
   md.renderer.rules.lipi_byline = (tokens, idx) => {
-    const { author, date } = tokens[idx].meta as { author?: string; date?: string };
-    const parts = [author, date].filter(Boolean).map((v) => escapeHtml(String(v)));
+    const { author, date, version, link } = tokens[idx].meta as {
+      author?: string;
+      date?: string;
+      version?: string;
+      link?: string;
+    };
+
+    // Only http(s) reaches an href; anything else is shown as plain text so a
+    // `javascript:` value cannot be smuggled in through frontmatter.
+    const href = link && /^https?:\/\//i.test(link.trim()) ? link.trim() : null;
+    const shown = href ? href.replace(/^https?:\/\//i, '').replace(/\/$/, '') : link;
+
+    let who = author ? escapeHtml(author) : '';
+    if (href) {
+      const label = who || escapeHtml(String(shown));
+      who = `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+    } else if (!who && link) {
+      who = escapeHtml(String(link));
+    }
+
+    const parts = [who, date ? escapeHtml(String(date)) : ''].filter(Boolean);
+    // The version is set smaller again: it is a stamp on the document rather
+    // than part of the byline proper.
+    if (version) parts.push(`<span class="doc-version">v${escapeHtml(String(version))}</span>`);
     return `<p class="doc-byline">${parts.join(' <span aria-hidden="true">·</span> ')}</p>\n`;
   };
 
@@ -191,7 +215,12 @@ export function build(
   const env = {
     translit,
     mathOutput,
-    byline: { author: frontmatter.author, date: frontmatter.date },
+    byline: {
+      author: frontmatter.author,
+      date: frontmatter.date,
+      version: frontmatter.version,
+      link: frontmatter.link,
+    },
   };
   const tokens = md.parse(src, env);
 

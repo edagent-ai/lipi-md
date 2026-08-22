@@ -907,6 +907,13 @@ body.is-resizing iframe {
   color: var(--doc-muted, var(--fg-muted));
 }
 
+.doc-version {
+  font-size: 0.82em;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+}
+
 /* transliterated text */
 
 .lipi-tl,
