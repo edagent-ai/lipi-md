@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+public/runtimes
+dev-dist
+.DS_Store
+*.local
+.vite
+
+.vercel

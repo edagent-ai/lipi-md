@@ -1,0 +1,114 @@
+import type { Doc } from '../types';
+import type { Heading } from '../markdown';
+import { countWords, formatWhen } from '../lib/util';
+
+interface SidebarProps {
+  docs: Doc[];
+  currentId: string;
+  headings: Heading[];
+  onSelect(id: string): void;
+  onCreate(): void;
+  onDelete(id: string): void;
+  onDuplicate(id: string): void;
+  onImport(): void;
+  onJumpToLine(line: number): void;
+}
+
+export function Sidebar({
+  docs,
+  currentId,
+  headings,
+  onSelect,
+  onCreate,
+  onDelete,
+  onDuplicate,
+  onImport,
+  onJumpToLine,
+}: SidebarProps) {
+  const current = docs.find((d) => d.id === currentId);
+
+  return (
+    <aside className="sidebar">
+      <div className="sidebar-section">
+        <div className="sidebar-head">
+          <h2>Documents</h2>
+          <div className="sidebar-head-actions">
+            <button type="button" className="icon-btn" onClick={onImport} title="Import .md file">
+              ↓
+            </button>
+            <button type="button" className="icon-btn" onClick={onCreate} title="New document">
+              +
+            </button>
+          </div>
+        </div>
+
+        <ul className="doc-list">
+          {docs.map((doc) => (
+            <li key={doc.id}>
+              <button
+                type="button"
+                className={`doc-item${doc.id === currentId ? ' is-active' : ''}`}
+                onClick={() => onSelect(doc.id)}
+              >
+                <span className="doc-title">{doc.title || 'Untitled'}</span>
+                <span className="doc-meta">
+                  {formatWhen(doc.updatedAt)} · {countWords(doc.text)} words
+                </span>
+              </button>
+              <div className="doc-actions">
+                <button
+                  type="button"
+                  className="icon-btn"
+                  title="Duplicate"
+                  onClick={() => onDuplicate(doc.id)}
+                >
+                  ⧉
+                </button>
+                <button
+                  type="button"
+                  className="icon-btn is-danger"
+                  title="Delete"
+                  onClick={() => {
+                    if (confirm(`Delete “${doc.title || 'Untitled'}”? This cannot be undone.`)) {
+                      void onDelete(doc.id);
+                    }
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {headings.length > 0 && (
+        <div className="sidebar-section sidebar-outline">
+          <div className="sidebar-head">
+            <h2>Outline</h2>
+          </div>
+          <ul className="outline-list">
+            {headings.map((heading, index) => (
+              <li key={`${heading.id}-${index}`}>
+                <button
+                  type="button"
+                  className="outline-item"
+                  style={{ paddingLeft: `${8 + (heading.level - 1) * 12}px` }}
+                  onClick={() => onJumpToLine(heading.line)}
+                >
+                  {heading.text || '—'}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {current && (
+        <div className="sidebar-foot">
+          {countWords(current.text)} words · {current.text.length} characters
+        </div>
+      )}
+    </aside>
+  );
+}

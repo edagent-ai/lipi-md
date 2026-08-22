@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#0b0d12"/>
+  <rect x="28" y="28" width="456" height="456" rx="90" fill="#7c9dfb"/>
+  <text x="256" y="352" font-size="300" text-anchor="middle"
+        font-family="Noto Sans Kannada, Kannada Sangam MN, Kannada MN, sans-serif"
+        fill="#0b0d12">ಲಿ</text>
+</svg>

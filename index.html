@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0d12" />
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      name="description"
+      content="lipi.md — an offline-first Markdown editor that renders live animations and native Indic scripts from plain text."
+    />
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <title>lipi.md</title>
+    <script>
+      // Apply the persisted theme before first paint to avoid a flash.
+      try {
+        var t = localStorage.getItem('lipi.theme') || 'auto';
+        var dark =
+          t === 'dark' ||
+          (t === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>lipi.md needs JavaScript to render your Markdown.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
