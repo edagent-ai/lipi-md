@@ -21,6 +21,7 @@ import { parseFrontmatter } from './markdown/frontmatter';
 import { resolveScript } from './translit/schemes';
 import { schemeExists } from './translit';
 import { exportHtml } from './export/html';
+import { captureSketches } from './export/capture';
 import { useDocs } from './store/docs';
 import { useSettings } from './store/settings';
 import { download, slugify } from './lib/util';
@@ -146,15 +147,25 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     download(`${slugify(docs.current.title)}.md`, docs.current.text, 'text/markdown');
   }, [docs]);
 
+  /**
+   * Prefer the live preview, so an export reflects exactly what is on screen.
+   * With no preview mounted (Write view) fall back to an offscreen capture,
+   * rather than quietly exporting a document with its sketches missing.
+   */
+  const gatherSketches = useCallback(async (): Promise<Record<string, string>> => {
+    if (previewRef.current) return previewRef.current.snapshots();
+    return captureSketches(segments);
+  }, [segments]);
+
   const doExportHtml = useCallback(async () => {
     if (!docs.current) return;
-    const sketches = await previewRef.current?.snapshots();
+    const sketches = await gatherSketches();
     download(
       `${slugify(docs.current.title)}.html`,
-      exportHtml(docs.current.title, docs.current.text, translitEnv, sketches ?? {}),
+      exportHtml(docs.current.title, docs.current.text, translitEnv, sketches),
       'text/html',
     );
-  }, [docs, translitEnv]);
+  }, [docs, gatherSketches, translitEnv]);
 
   /**
    * PDF goes through the browser's own print pipeline rather than a JS PDF
@@ -166,8 +177,8 @@ export default function App({ updateReady, onUpdate }: AppProps) {
    */
   const doExportPdf = useCallback(async () => {
     if (!docs.current) return;
-    const sketches = await previewRef.current?.snapshots();
-    const html = exportHtml(docs.current.title, docs.current.text, translitEnv, sketches ?? {});
+    const sketches = await gatherSketches();
+    const html = exportHtml(docs.current.title, docs.current.text, translitEnv, sketches);
 
     const frame = document.createElement('iframe');
     frame.setAttribute('aria-hidden', 'true');
@@ -190,7 +201,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     });
 
     document.body.appendChild(frame);
-  }, [docs, translitEnv]);
+  }, [docs, gatherSketches, translitEnv]);
 
   /* ------------------------------ shortcuts ------------------------------ */
 
@@ -404,9 +415,12 @@ export default function App({ updateReady, onUpdate }: AppProps) {
         multiple
         hidden
         onChange={(event) => {
-          const files = event.target.files;
+          // Copy the FileList out first: resetting `value` (so the same file
+          // can be picked twice in a row) empties the live list, which was
+          // silently importing nothing.
+          const files = Array.from(event.target.files ?? []);
           event.target.value = '';
-          if (files?.length) void importFiles(files);
+          if (files.length) void importFiles(files);
         }}
       />
     </div>

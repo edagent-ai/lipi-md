@@ -33,10 +33,22 @@ export function Sidebar({
         <div className="sidebar-head">
           <h2>Documents</h2>
           <div className="sidebar-head-actions">
-            <button type="button" className="icon-btn" onClick={onImport} title="Import .md file">
-              ↓
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={onImport}
+              title="Upload a Markdown file"
+              aria-label="Upload a Markdown file"
+            >
+              ↑
             </button>
-            <button type="button" className="icon-btn" onClick={onCreate} title="New document">
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={onCreate}
+              title="New document"
+              aria-label="New document"
+            >
               +
             </button>
           </div>
