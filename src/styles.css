@@ -208,6 +208,9 @@ body.is-resizing iframe {
 .workspace {
   display: flex;
   min-height: 0;
+  /* Containing block for the sidebar when it becomes an overlay on narrow
+     screens; see the max-width: 900px block. */
+  position: relative;
 }
 
 .main {
@@ -264,16 +267,16 @@ body.is-resizing iframe {
 .toolbar {
   display: flex;
   align-items: center;
+  /* Wraps rather than scrolls on purpose. `overflow-x: auto` here made the
+     toolbar a scroll container — and because a non-visible overflow on one axis
+     forces the other to `auto`, it silently clipped away every dropdown panel,
+     so the menus opened invisibly. */
+  flex-wrap: wrap;
+  row-gap: 4px;
   gap: 3px;
   padding: 5px 10px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-raised);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.toolbar::-webkit-scrollbar {
-  display: none;
 }
 
 .toolbar-sep {
@@ -1417,12 +1420,33 @@ kbd {
 
 /* ------------------------------- responsive ------------------------------ */
 
+@media (max-width: 700px) {
+  /* Anchor dropdowns to the toolbar rather than to their trigger, so a menu
+     sitting near the right edge cannot open partly off-screen. */
+  .toolbar {
+    position: relative;
+  }
+
+  .menu {
+    position: static;
+  }
+
+  .menu-panel,
+  .menu-right .menu-panel {
+    left: 10px;
+    right: 10px;
+    top: calc(100% + 4px);
+    min-width: 0;
+  }
+}
+
 @media (max-width: 900px) {
+  /* Anchored to the workspace row rather than to hardcoded bar heights: the
+     toolbar wraps to two rows on a phone, and the old `top: bar + 39px` then
+     covered the second row and everything opening from it. */
   .sidebar {
-    position: fixed;
-    top: calc(var(--bar-h) + 39px);
-    bottom: 26px;
-    left: 0;
+    position: absolute;
+    inset: 0 auto 0 0;
     z-index: 30;
     width: 84vw;
     max-width: 300px;
