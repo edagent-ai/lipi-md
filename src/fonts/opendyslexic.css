@@ -1,0 +1,26 @@
+/*
+ * OpenDyslexic, bundled locally rather than fetched from a CDN so the
+ * dyslexia-friendly theme still works with no network.
+ *
+ * SIL Open Font License 1.1 — see node_modules/@fontsource/opendyslexic/LICENSE
+ * and the credit in the About panel. Only the two upright weights are shipped;
+ * italics would add another 230KB for a face that is rarely set in italic.
+ *
+ * The browser fetches these only when a rule actually uses the family, so a
+ * document not using the theme pays nothing at render time.
+ */
+@font-face {
+  font-family: 'OpenDyslexic';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('@fontsource/opendyslexic/files/opendyslexic-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('@fontsource/opendyslexic/files/opendyslexic-latin-700-normal.woff2') format('woff2');
+}

@@ -182,6 +182,7 @@ lipi.md is **MIT** licensed, and every library it ships is MIT too:
 | `@indic-transliteration/sanscript` | MIT |
 | Anime.js | MIT |
 | KaTeX | MIT |
+| OpenDyslexic (bundled font) | SIL OFL-1.1 |
 | React | MIT |
 | Vite, `vite-plugin-pwa` | MIT |
 

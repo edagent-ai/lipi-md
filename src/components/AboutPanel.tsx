@@ -15,6 +15,7 @@ const CREDITS = [
   ['Anime.js', 'MIT', 'Bundled animation runtime'],
   ['React', 'MIT', 'Application shell'],
   ['Vite + vite-plugin-pwa', 'MIT', 'Build tooling and the offline service worker'],
+  ['OpenDyslexic', 'OFL-1.1', 'The typeface used by the dyslexia-friendly theme'],
 ];
 
 export function AboutPanel({ onClose, onUpdate, updateReady }: AboutPanelProps) {
@@ -56,7 +57,8 @@ export function AboutPanel({ onClose, onUpdate, updateReady }: AboutPanelProps) 
         <h3>Licence</h3>
         <p>
           lipi.md is released under the <strong>MIT Licence</strong>, and every library it ships is
-          MIT-licensed too. The source is on GitHub at{' '}
+          MIT-licensed too — with one addition: the OpenDyslexic typeface, under the SIL Open Font
+          Licence, which permits bundling and redistribution. The source is on GitHub at{' '}
           <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
             {REPO_URL.replace('https://', '')}
           </a>

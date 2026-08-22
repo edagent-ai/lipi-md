@@ -16,7 +16,7 @@ const EXPORT_CSS = `
   --font-serif: ui-serif, Georgia, "Times New Roman", serif;
   --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --font-reading: Verdana, Tahoma, "Trebuchet MS", "DejaVu Sans", ui-sans-serif, sans-serif;
+  --font-reading: "OpenDyslexic", Verdana, Tahoma, "Trebuchet MS", ui-sans-serif, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root { --fg: #e7ecf2; --fg-muted: #9aa6b2; --bg: #0e1116; --border: #262c36;
@@ -93,6 +93,8 @@ figure.sketch { margin: 0 0 1.3em; text-align: center; }
 figure.sketch img {
   max-width: 100%; height: auto; border: 1px solid var(--border); border-radius: 10px;
 }
+.doc-footer { font-size: .85em; color: var(--doc-muted, var(--fg-muted)); }
+.doc-footer p:last-child { margin-bottom: 0; }
 p.doc-byline {
   margin: -.4em 0 1.6em; font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: .9em; color: var(--doc-muted, var(--fg-muted));
@@ -193,6 +195,8 @@ export function exportHtml(
   style: DocStyle = {},
   meta: { author?: string; date?: string } = {},
   dates: DocDates = {},
+  /** Extra CSS prepended to the stylesheet — used to embed webfonts. */
+  extraCss = '',
 ): string {
   const docVars = styleDeclarations(style);
   // Running header and footer text, read by the @page margin boxes above.
@@ -208,7 +212,7 @@ export function exportHtml(
 <title>${escapeHtml(title)}</title>
 <meta name="generator" content="lipi.md">
 <style>
-${EXPORT_CSS}
+${extraCss ? `${extraCss}\n` : ''}${EXPORT_CSS}
 ${`:root {\n${pdfVars}${docVars ? `\n${docVars}` : ''}\n}`}
 </style>
 </head>

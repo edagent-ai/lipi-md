@@ -76,6 +76,34 @@ function byline(state: StateCore): boolean {
   return true;
 }
 
+/**
+ * Treats whatever follows the document's final horizontal rule as a footer, set
+ * small and quiet — the colophon at the end, matching the byline at the top.
+ * Only the last rule counts, and only when something follows it, so rules used
+ * as ordinary separators mid-document are untouched.
+ */
+function footer(state: StateCore): boolean {
+  const { tokens } = state;
+
+  let rule = -1;
+  for (let i = tokens.length - 1; i >= 0; i--) {
+    if (tokens[i].type === 'hr' && tokens[i].level === 0) {
+      rule = i;
+      break;
+    }
+  }
+  if (rule < 0 || rule === tokens.length - 1) return true;
+
+  const open = new state.Token('lipi_footer_open', 'div', 1);
+  open.block = true;
+  const close = new state.Token('lipi_footer_close', 'div', -1);
+  close.block = true;
+
+  tokens.splice(rule + 1, 0, open);
+  tokens.push(close);
+  return true;
+}
+
 /** Slug ids for headings, derived from the roman source so links stay stable. */
 function headingIds(state: StateCore): boolean {
   const used = new Map<string, number>();
@@ -159,8 +187,12 @@ export function createMarkdown(): MarkdownIt {
   md.use(mediaPlugin);
   md.core.ruler.after('inline', 'lipi_heading_ids', headingIds);
   md.core.ruler.push('lipi_byline', byline);
+  md.core.ruler.push('lipi_footer', footer);
   md.core.ruler.push('lipi_line_anchors', lineAnchors);
   md.renderer.rules.fence = renderFence;
+
+  md.renderer.rules.lipi_footer_open = () => '<div class="doc-footer">\n';
+  md.renderer.rules.lipi_footer_close = () => '</div>\n';
 
   md.renderer.rules.lipi_byline = (tokens, idx) => {
     const { author, date, version, link, modified, created } = tokens[idx].meta as {

@@ -2,13 +2,17 @@
  * lipi.md — one stylesheet, themed by CSS custom properties.
  * ========================================================================== */
 
+@import './fonts/opendyslexic.css';
+
 :root {
   --font-ui: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-serif: ui-serif, 'Iowan Old Style', Georgia, 'Times New Roman', serif;
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
-  /* Plain, wide-apertured faces that read well for dyslexic readers, and that
-     ship with the OS — downloading a webfont would break offline-first. */
-  --font-reading: Verdana, Tahoma, 'Trebuchet MS', 'DejaVu Sans', ui-sans-serif, sans-serif;
+  /* OpenDyslexic first — weighted letter bottoms and distinct shapes, designed
+     for dyslexic readers. Bundled locally, so it works offline. The rest are
+     wide-apertured system faces, shown until the webfont arrives. */
+  --font-reading:
+    'OpenDyslexic', Verdana, Tahoma, 'Trebuchet MS', 'DejaVu Sans', ui-sans-serif, sans-serif;
 
   /* System Indic faces only — downloading webfonts would break offline-first. */
   --font-indic:
@@ -911,6 +915,16 @@ body.is-resizing iframe {
 .markdown mark {
   background: var(--accent-soft);
   color: inherit;
+}
+
+/* Whatever follows the document's last horizontal rule: a quiet colophon. */
+.doc-footer {
+  font-size: 0.85em;
+  color: var(--doc-muted, var(--fg-muted));
+}
+
+.doc-footer p:last-child {
+  margin-bottom: 0;
 }
 
 .doc-byline {

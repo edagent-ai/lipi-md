@@ -29,6 +29,7 @@ import { resolveScript } from './translit/schemes';
 import { schemeExists } from './translit';
 import { exportHtml } from './export/html';
 import { captureSketches } from './export/capture';
+import { openDyslexicFaces } from './export/fonts';
 import { useDocs } from './store/docs';
 import { useSettings } from './store/settings';
 import { countWords, download, formatDay, slugify } from './lib/util';
@@ -215,19 +216,26 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     return captureSketches(segments);
   }, [segments]);
 
+  /** Fonts an export must carry itself, since it cannot reach the app's assets. */
+  const embeddedFonts = useCallback(async (): Promise<string> => {
+    const effective = withDefaultTheme(style, settings.defaultTheme);
+    return effective.font === 'var(--font-reading)' ? openDyslexicFaces() : '';
+  }, [settings.defaultTheme, style]);
+
   const doExportHtml = useCallback(async () => {
     if (!docs.current) return;
     if (looksLikeMath(docs.current.text)) await loadMath();
     const sketches = await gatherSketches();
+    const fonts = await embeddedFonts();
     download(
       `${slugify(docs.current.title)}.html`,
       exportHtml(docs.current.title, docs.current.text, translitEnv, sketches, withDefaultTheme(style, settings.defaultTheme), {
         author: parseFrontmatter(docs.current.text).author,
         date: parseFrontmatter(docs.current.text).date,
-      }, docDates),
+      }, docDates, fonts),
       'text/html',
     );
-  }, [docDates, docs, gatherSketches, settings.defaultTheme, style, translitEnv]);
+  }, [docDates, docs, embeddedFonts, gatherSketches, settings.defaultTheme, style, translitEnv]);
 
   /**
    * PDF goes through the browser's own print pipeline rather than a JS PDF
@@ -241,10 +249,20 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     if (!docs.current) return;
     if (looksLikeMath(docs.current.text)) await loadMath();
     const sketches = await gatherSketches();
-    const html = exportHtml(docs.current.title, docs.current.text, translitEnv, sketches, withDefaultTheme(style, settings.defaultTheme), {
+    const fonts = await embeddedFonts();
+    const html = exportHtml(
+      docs.current.title,
+      docs.current.text,
+      translitEnv,
+      sketches,
+      withDefaultTheme(style, settings.defaultTheme),
+      {
         author: parseFrontmatter(docs.current.text).author,
         date: parseFrontmatter(docs.current.text).date,
-      }, docDates);
+      },
+      docDates,
+      fonts,
+    );
 
     const frame = document.createElement('iframe');
     frame.setAttribute('aria-hidden', 'true');
@@ -267,7 +285,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     });
 
     document.body.appendChild(frame);
-  }, [docDates, docs, gatherSketches, settings.defaultTheme, style, translitEnv]);
+  }, [docDates, docs, embeddedFonts, gatherSketches, settings.defaultTheme, style, translitEnv]);
 
   /* ------------------------------ shortcuts ------------------------------ */
 
