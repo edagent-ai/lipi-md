@@ -10,9 +10,6 @@ export const WELCOME_DOC = `---
 title: Baudhāyana's theorem
 script: kannada
 scheme: optitrans_dravidian
-font: serif
-width: normal
-accent: "#bf5700"
 author: Shashank Bangalore Lakshman
 link: https://shashankbl.github.io
 version: 1.0

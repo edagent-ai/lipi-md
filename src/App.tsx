@@ -413,6 +413,16 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             A Markdown editor that runs entirely in your browser.
           </p>
         </div>
+        <button
+          type="button"
+          className="icon-btn theme-toggle"
+          onClick={() => updateSettings({ theme: dark ? 'light' : 'dark' })}
+          title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-pressed={dark}
+        >
+          {dark ? '☾' : '☀'}
+        </button>
         <h1 className="doc-name" title={docs.current?.title}>
           {docs.current?.title || 'Untitled'}
         </h1>

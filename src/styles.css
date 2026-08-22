@@ -228,8 +228,21 @@ body.is-resizing iframe {
   }
 }
 
+/* Sits with the document name at the far end, so the two things that change
+   as you work are together. */
+.theme-toggle {
+  margin-left: auto;
+  flex: none;
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* Names what you are looking at, so it reads as a label on the workspace
+   rather than part of the brand. */
 .doc-name {
   margin: 0;
+  max-width: 38%;
+  text-align: right;
   font-size: 13px;
   font-weight: 500;
   color: var(--fg-muted);
