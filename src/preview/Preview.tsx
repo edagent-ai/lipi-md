@@ -1,7 +1,17 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import type { Segment } from '../markdown';
 import { SandboxHost, type SandboxDeps } from './SandboxHost';
 import { collectAnchors, lineForOffset, offsetForLine, type Anchor } from './scrollSync';
+
+/** Pixels of clear space a margin sidenote needs beside the text column. */
+const SIDENOTE_MARGIN = 250;
 
 interface Entry {
   node: HTMLElement;
@@ -123,10 +133,14 @@ interface PreviewProps {
   autoRun: boolean;
   onInstallP5: () => void;
   onScroll: () => void;
+  /** CSS custom properties from the document's frontmatter. */
+  docStyle: Record<string, string>;
+  /** Reports the heading currently at the top, to drive the outline. */
+  onActiveHeading?: (id: string) => void;
 }
 
 export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
-  { segments, autoRun, onInstallP5, onScroll },
+  { segments, autoRun, onInstallP5, onScroll, docStyle, onActiveHeading },
   ref,
 ) {
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -143,6 +157,52 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
   autoRunRef.current = autoRun;
   const installRef = useRef(onInstallP5);
   installRef.current = onInstallP5;
+
+  /* Which heading sits at the top right now — drives the outline highlight.
+   * Recomputed behind a rAF, since scroll fires far more often than the sidebar
+   * needs updating. */
+  const activeRef = useRef('');
+  const tickingRef = useRef(false);
+  const onScrollRef = useRef(onScroll);
+  onScrollRef.current = onScroll;
+  const onActiveRef = useRef(onActiveHeading);
+  onActiveRef.current = onActiveHeading;
+
+  const syncActiveHeading = useCallback(() => {
+    if (tickingRef.current) return;
+    tickingRef.current = true;
+
+    requestAnimationFrame(() => {
+      tickingRef.current = false;
+      const scroller = scrollerRef.current;
+      const host = bodyRef.current;
+      const report = onActiveRef.current;
+      if (!scroller || !host || !report) return;
+
+      const headings = [...host.querySelectorAll<HTMLElement>('h1[id],h2[id],h3[id],h4[id]')];
+      // A line a little below the top reads more naturally than the very edge.
+      const line = scroller.getBoundingClientRect().top + Math.min(120, scroller.clientHeight * 0.25);
+
+      let current = '';
+      for (const heading of headings) {
+        if (heading.getBoundingClientRect().top > line) break;
+        current = heading.id;
+      }
+      // The preview ends with 50vh of padding, so the final sections can never
+      // scroll to the top; at the bottom, the last heading is the right answer.
+      const atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 8;
+      if (atBottom && headings.length) current = headings[headings.length - 1].id;
+      if (current !== activeRef.current) {
+        activeRef.current = current;
+        report(current);
+      }
+    });
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    onScrollRef.current();
+    syncActiveHeading();
+  }, [syncActiveHeading]);
 
   useEffect(() => {
     const host = bodyRef.current;
@@ -161,14 +221,29 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
 
   useEffect(() => {
     rendererRef.current?.update(segments);
-  }, [segments, rendererEpoch]);
+    syncActiveHeading();
+  }, [segments, rendererEpoch, syncActiveHeading]);
 
   // Sandboxes resize themselves after load, which shifts every anchor below.
   useEffect(() => {
+    const scroller = scrollerRef.current;
     const host = bodyRef.current;
-    if (!host || typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(() => rendererRef.current?.invalidate());
+    if (!scroller || !host || typeof ResizeObserver === 'undefined') return;
+
+    const sync = () => {
+      rendererRef.current?.invalidate();
+      // Margin sidenotes need room *beside* the text column, which depends on
+      // the pane rather than the viewport — a wide window split in two has no
+      // room at all. Measured here because CSS cannot see the pane width
+      // without containment that would trap the fullscreen sandbox overlay.
+      const surplus = (scroller.clientWidth - host.clientWidth) / 2;
+      scroller.classList.toggle('is-roomy', surplus >= SIDENOTE_MARGIN);
+    };
+
+    const observer = new ResizeObserver(sync);
     observer.observe(host);
+    observer.observe(scroller);
+    sync();
     return () => observer.disconnect();
   }, []);
 
@@ -188,6 +263,7 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
     scroller: () => scrollerRef.current,
     snapshots: () => rendererRef.current?.snapshots() ?? Promise.resolve({}),
   }));
+
 
   /* Copy buttons and in-page heading links are delegated rather than bound per
    * node, since chunks are replaced wholesale on edit. */
@@ -227,7 +303,12 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
   }, []);
 
   return (
-    <div className="preview" ref={scrollerRef} onScroll={onScroll}>
+    <div
+      className="preview"
+      ref={scrollerRef}
+      onScroll={handleScroll}
+      style={docStyle as React.CSSProperties}
+    >
       <div className="preview-body markdown" ref={bodyRef} />
     </div>
   );

@@ -53,9 +53,45 @@ loop((t) => {
 Options follow the name: `height=420`, `height=auto`, `title="…"`, `manual`
 (wait for a click), `code` (show source), `norun` (keep as documentation).
 
+**Formulas.** LaTeX inline as `$E = mc^2$` or displayed between `$$`. Prices are
+safe — `$5 and $10` stays text. Exports emit MathML, so an exported page renders
+maths with no fonts and no scripts.
+
+**Pictures, video and sidenotes.** One syntax; the link decides the player:
+
+```markdown
+![A photo](https://…/photo.jpg "Caption")     picture with a caption
+![A clip](https://…/clip.mp4)                 video player
+![A talk](https://youtu.be/ID)                YouTube / Vimeo embed
+
+An assertion.^[A margin note, which may hold *emphasis* and [links](https://…).]
+```
+
+Sidenotes sit in the margin when the pane is wide enough, and collapse behind a
+tappable number when it is not.
+
+**Per-document styling,** declared in the file itself so it travels with it and
+carries through to exports:
+
+```yaml
+---
+font: serif        # sans | serif | mono
+align: justify     # left | justify | center
+width: wide        # narrow | normal | wide | full | 40rem
+size: 17px
+background: "#fffdf7"
+color: "#2b2b2b"
+accent: "#bf5700"
+---
+```
+
+Every value is validated against an allowlist before it reaches a stylesheet —
+these strings would otherwise be an easy route to injected CSS.
+
 **Everything else** is ordinary Markdown — CommonMark plus tables, with
 syntax-highlighted code blocks, an outline, autosave to IndexedDB, multi-document
-sidebar, light and dark themes, and full offline operation once loaded.
+sidebar, an auto-generated page menu that highlights the section you are
+reading, light and dark themes, and full offline operation once loaded.
 
 **Export** comes in three forms, all offline:
 
@@ -118,6 +154,11 @@ stays exactly where it is.
 carries a `data-line` attribute, so the two panes interpolate between known
 points instead of guessing.
 
+**KaTeX loads only when a document contains maths** — it is a separate 258KB
+chunk, still precached so offline documents render. Only its `woff2` fonts are
+precached; the legacy `ttf`/`woff` variants that its stylesheet also references
+are never requested by a current browser.
+
 **Raw HTML is disabled** in the Markdown parser. Input is Markdown only, which
 removes the injection surface rather than trying to sanitise it afterwards.
 
@@ -133,6 +174,7 @@ lipi.md is **MIT** licensed, and every library it ships is MIT too:
 | CodeMirror 6 (`@codemirror/*`, `@lezer/*`) | MIT |
 | `@indic-transliteration/sanscript` | MIT |
 | Anime.js | MIT |
+| KaTeX | MIT |
 | React | MIT |
 | Vite, `vite-plugin-pwa` | MIT |
 

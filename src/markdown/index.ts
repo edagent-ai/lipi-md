@@ -4,6 +4,11 @@ import { frontmatterPlugin, parseFrontmatter, type Frontmatter } from './frontma
 import { translitPlugin, type TranslitEnv } from './translit-plugin';
 import { runSpecFor, parseInfo, RUNTIME_LABEL, type RunSpec } from './fence';
 import { highlightCode } from './highlight';
+import { mathPlugin } from './math-plugin';
+import { mediaPlugin } from './media-plugin';
+import { sidenotePlugin } from './sidenote-plugin';
+import { parseDocStyle, type DocStyle } from './docstyle';
+import type { MathOutput } from '../math';
 import { escapeHtml, slugify } from '../lib/util';
 
 export type Segment =
@@ -21,6 +26,8 @@ export interface BuildResult {
   segments: Segment[];
   headings: Heading[];
   frontmatter: Frontmatter;
+  /** Presentation settings declared in this document's frontmatter. */
+  style: DocStyle;
 }
 
 /**
@@ -93,6 +100,9 @@ export function createMarkdown(): MarkdownIt {
 
   md.use(frontmatterPlugin);
   md.use(translitPlugin);
+  md.use(mathPlugin);
+  md.use(sidenotePlugin);
+  md.use(mediaPlugin);
   md.core.ruler.after('inline', 'lipi_heading_ids', headingIds);
   md.core.ruler.push('lipi_line_anchors', lineAnchors);
   md.renderer.rules.fence = renderFence;
@@ -122,9 +132,13 @@ export function createMarkdown(): MarkdownIt {
 
 const md = createMarkdown();
 
-export function build(src: string, translit: TranslitEnv): BuildResult {
+export function build(
+  src: string,
+  translit: TranslitEnv,
+  mathOutput: MathOutput = 'html',
+): BuildResult {
   const frontmatter = parseFrontmatter(src);
-  const env = { translit };
+  const env = { translit, mathOutput };
   const tokens = md.parse(src, env);
 
   const segments: Segment[] = [];
@@ -173,7 +187,7 @@ export function build(src: string, translit: TranslitEnv): BuildResult {
   }
   flush();
 
-  return { segments, headings, frontmatter };
+  return { segments, headings, frontmatter, style: parseDocStyle(frontmatter) };
 }
 
 /**
@@ -189,7 +203,9 @@ export function renderStatic(
   translit: TranslitEnv,
   sketches: Record<string, string> = {},
 ): string {
-  const { segments } = build(src, translit);
+  // MathML in exports: no stylesheet and no webfonts, so the file stays
+  // self-contained.
+  const { segments } = build(src, translit, 'mathml');
 
   return segments
     .map((seg) => {
@@ -215,5 +231,6 @@ export function renderStatic(
     .join('\n');
 }
 
-export { RUNTIME_LABEL };
+export { RUNTIME_LABEL, parseDocStyle };
+export type { DocStyle };
 export type { RunSpec, TranslitEnv, Frontmatter };

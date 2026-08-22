@@ -6,6 +6,7 @@ interface SidebarProps {
   docs: Doc[];
   currentId: string;
   headings: Heading[];
+  activeHeading: string;
   onSelect(id: string): void;
   onCreate(): void;
   onDelete(id: string): void;
@@ -18,6 +19,7 @@ export function Sidebar({
   docs,
   currentId,
   headings,
+  activeHeading,
   onSelect,
   onCreate,
   onDelete,
@@ -97,16 +99,19 @@ export function Sidebar({
       {headings.length > 0 && (
         <div className="sidebar-section sidebar-outline">
           <div className="sidebar-head">
-            <h2>Outline</h2>
+            <h2>On this page</h2>
           </div>
           <ul className="outline-list">
             {headings.map((heading, index) => (
               <li key={`${heading.id}-${index}`}>
                 <button
                   type="button"
-                  className="outline-item"
+                  className={`outline-item${
+                    heading.id && heading.id === activeHeading ? ' is-active' : ''
+                  }`}
                   style={{ paddingLeft: `${8 + (heading.level - 1) * 12}px` }}
                   onClick={() => onJumpToLine(heading.line)}
+                  aria-current={heading.id === activeHeading ? 'location' : undefined}
                 >
                   {heading.text || '—'}
                 </button>

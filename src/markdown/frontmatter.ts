@@ -6,6 +6,8 @@ export interface Frontmatter {
   script?: string;
   /** Roman scheme the document is written in. */
   scheme?: string;
+  /** Every key as written, for presentation settings (see `docstyle.ts`). */
+  raw: Record<string, string>;
 }
 
 /**
@@ -14,15 +16,16 @@ export interface Frontmatter {
  */
 export function parseFrontmatter(src: string): Frontmatter {
   const m = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(src);
-  if (!m) return {};
+  if (!m) return { raw: {} };
 
-  const out: Frontmatter = {};
+  const out: Frontmatter = { raw: {} };
   for (const line of m[1].split(/\r?\n/)) {
     const kv = /^\s*([A-Za-z_][\w-]*)\s*:\s*(.*?)\s*$/.exec(line);
     if (!kv) continue;
     const key = kv[1].toLowerCase();
     const value = kv[2].replace(/^["']|["']$/g, '');
     if (!value) continue;
+    out.raw[key] = value;
     if (key === 'title') out.title = value;
     else if (key === 'script' || key === 'lang' || key === 'language') out.script = value;
     else if (key === 'scheme' || key === 'input') out.scheme = value;

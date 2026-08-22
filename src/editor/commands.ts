@@ -151,6 +151,22 @@ export function insertBlock(view: EditorView, block: string): void {
   view.focus();
 }
 
+/** Wrap the selection in distinct opening and closing markers. */
+export function surround(
+  view: EditorView,
+  open: string,
+  close: string,
+  placeholder: string,
+): void {
+  const { from, to, empty } = view.state.selection.main;
+  const body = empty ? placeholder : view.state.sliceDoc(from, to);
+  view.dispatch({
+    changes: { from, to, insert: `${open}${body}${close}` },
+    selection: { anchor: from + open.length, head: from + open.length + body.length },
+  });
+  view.focus();
+}
+
 /** Wrap the selection in a transliteration macro, e.g. `@kannada(...)`. */
 export function wrapMacro(view: EditorView, script: string): void {
   const { from, to, empty } = view.state.selection.main;
@@ -226,4 +242,16 @@ animate('.dot', {
   translit: ':::lipi\nbhaagyada lakshmi baaramma\nnammamma shri saumangalyavanta\nlakshmi baaramma\n:::',
 
   table: '| Term | Meaning |\n| --- | --- |\n| @lipi(raaga) | melodic mode |\n| @lipi(taala) | rhythmic cycle |',
+
+  math: '$$\n\\int_0^\\infty e^{-x^2}\\,dx = \\frac{\\sqrt{\\pi}}{2}\n$$',
+
+  image: '![Describe the picture](https://example.com/photo.jpg "Optional caption")',
+
+  video: '![A short clip](https://example.com/clip.mp4 "Optional caption")',
+
+  embed: '![Talk title](https://youtu.be/dQw4w9WgXcQ "Optional caption")',
+
+  style:
+    '---\ntitle: My document\nfont: serif\nalign: justify\nwidth: normal\nsize: 17px\n' +
+    'background: "#fffdf7"\ncolor: "#2b2b2b"\naccent: "#bf5700"\n---',
 } as const;

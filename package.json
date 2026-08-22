@@ -28,6 +28,7 @@
     "@indic-transliteration/sanscript": "^1.3.3",
     "@lezer/highlight": "^1.2.3",
     "animejs": "^4.5.0",
+    "katex": "^0.18.4",
     "markdown-it": "^15.0.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"

@@ -94,7 +94,30 @@ Options go after the fence name: \`height=420\`, \`height=auto\`, \`title="..."\
 \`manual\` to wait for a click, \`code\` to show the source, \`norun\` to keep a
 block as documentation.
 
-## 3. Everything else is just Markdown
+## 3. Formulas, media and sidenotes
+
+Maths is LaTeX, inline as $e^{i\\pi} + 1 = 0$ or set on its own:
+
+$$
+\\int_{0}^{\\infty} e^{-x^{2}}\\,dx = \\frac{\\sqrt{\\pi}}{2}
+$$
+
+Prices stay prices — $5 and $10 are left alone.
+
+Pictures and video use the same link syntax; lipi.md picks the right player:
+
+- \`![alt](photo.jpg "A caption")\` — a picture
+- \`![alt](clip.mp4)\` — a video player
+- \`![alt](https://youtu.be/ID)\` — an embedded talk
+
+Add an aside with \`^[...]\`.^[Like this one. On a wide page it sits in the
+margin; on a narrow one, tap the number to open it.]
+
+Set the look of the page in its frontmatter — \`font\`, \`align\`, \`width\`,
+\`size\`, \`background\`, \`color\` and \`accent\`. It travels with the file and
+carries through to exports.
+
+## 4. Everything else is just Markdown
 
 Regular code blocks stay put and get highlighted:
 

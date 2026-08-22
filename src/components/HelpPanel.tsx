@@ -105,6 +105,106 @@ export function HelpPanel({ onClose }: HelpPanelProps) {
       </section>
 
       <section className="settings-group">
+        <h3>Formulas</h3>
+        <table className="cheat">
+          <tbody>
+            <tr>
+              <td>
+                <code>$E = mc^2$</code>
+              </td>
+              <td>inline LaTeX, mid-sentence</td>
+            </tr>
+            <tr>
+              <td>
+                <code>$$ … $$</code>
+              </td>
+              <td>a display equation on its own lines</td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="field-hint">
+          Prices are safe: <code>$5 and $10</code> stays as text, because a formula may not open
+          or close against a space. Exports use MathML, so an exported page needs no fonts and no
+          scripts to show maths correctly.
+        </p>
+      </section>
+
+      <section className="settings-group">
+        <h3>Pictures, video and audio</h3>
+        <table className="cheat">
+          <tbody>
+            <tr>
+              <td>
+                <code>![alt](https://…/photo.jpg "Caption")</code>
+              </td>
+              <td>a picture with an optional caption</td>
+            </tr>
+            <tr>
+              <td>
+                <code>![alt](https://…/clip.mp4)</code>
+              </td>
+              <td>a video player — also <code>.webm</code>, <code>.mov</code></td>
+            </tr>
+            <tr>
+              <td>
+                <code>![alt](https://youtu.be/ID)</code>
+              </td>
+              <td>YouTube or Vimeo, embedded</td>
+            </tr>
+            <tr>
+              <td>
+                <code>[![alt](img.png)](https://…)</code>
+              </td>
+              <td>a picture that links somewhere</td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="field-hint">
+          Same syntax throughout — the link tells lipi.md which player to use. YouTube is embedded
+          through <code>youtube-nocookie.com</code>, so nothing is set until a viewer presses play.
+          Embedded players need a connection; pictures and video files behave like any other link.
+        </p>
+      </section>
+
+      <section className="settings-group">
+        <h3>Sidenotes</h3>
+        <table className="cheat">
+          <tbody>
+            <tr>
+              <td>
+                <code>text^[the aside]</code>
+              </td>
+              <td>a numbered note, set in the margin</td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="field-hint">
+          Notes carry their own formatting — <em>emphasis</em>, links and transliteration macros
+          all work inside one. When the page is wide enough the note sits in the right margin;
+          when it is not, the number becomes a button that reveals the note in place.
+        </p>
+      </section>
+
+      <section className="settings-group">
+        <h3>Page appearance</h3>
+        <pre className="cheat-block">{`---
+font: serif        sans | serif | mono
+align: justify     left | justify | center
+width: normal      narrow | normal | wide | full | 40rem
+size: 17px
+background: "#fffdf7"
+color: "#2b2b2b"
+accent: "#bf5700"
+---`}</pre>
+        <p className="field-hint">
+          Styling lives in the document, so it travels with the file and carries through to the
+          HTML and PDF exports. Colours accept anything CSS understands — <code>#bf5700</code>,{' '}
+          <code>rgb(191 87 0)</code>, <code>tomato</code>. Anything unrecognised is ignored rather
+          than applied.
+        </p>
+      </section>
+
+      <section className="settings-group">
         <h3>Frontmatter</h3>
         <pre className="cheat-block">{`---
 title: Bhagyada Lakshmi

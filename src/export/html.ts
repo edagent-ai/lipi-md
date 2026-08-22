@@ -1,4 +1,5 @@
 import { renderStatic, type TranslitEnv } from '../markdown';
+import { styleDeclarations, type DocStyle } from '../markdown/docstyle';
 import { escapeHtml } from '../lib/util';
 
 /**
@@ -20,11 +21,15 @@ const EXPORT_CSS = `
 * { box-sizing: border-box; }
 body {
   margin: 0 auto; padding: clamp(24px, 6vw, 48px) clamp(16px, 5vw, 24px) 96px;
-  max-width: 46rem;
-  background: var(--bg); color: var(--fg);
-  font: clamp(15px, 0.95rem + 0.15vw, 17px)/1.7 ui-serif, Georgia, "Times New Roman", serif;
+  max-width: var(--doc-measure, 46rem);
+  background: var(--doc-bg, var(--bg)); color: var(--doc-fg, var(--fg));
+  font-family: var(--doc-font, ui-serif, Georgia, "Times New Roman", serif);
+  font-size: var(--doc-size, clamp(15px, 0.95rem + 0.15vw, 17px));
+  line-height: 1.7;
+  text-align: var(--doc-align, start);
   -webkit-text-size-adjust: 100%;
 }
+pre, code, table, figcaption { text-align: initial; }
 /* Long URLs and unbroken strings must not force the page to scroll sideways. */
 p, li, blockquote, td, th, figcaption { overflow-wrap: anywhere; }
 h1, h2, h3, h4, h5, h6 {
@@ -33,11 +38,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 /* Headings scale with the viewport, so a phone is not given desktop type. */
 h1 { font-size: clamp(1.55rem, 1.15rem + 1.9vw, 2rem); margin-top: 0; }
+h1, h2, h3, h4, h5, h6 { text-align: start; }
 h2 { font-size: clamp(1.28rem, 1.05rem + 1.1vw, 1.5rem);
      border-bottom: 1px solid var(--border); padding-bottom: .3em; }
 h3 { font-size: clamp(1.1rem, 1rem + 0.5vw, 1.2rem); }
 p, ul, ol, blockquote, table, figure { margin: 0 0 1.1em; }
-a { color: var(--accent); }
+a { color: var(--doc-accent, var(--accent)); }
 blockquote {
   margin-left: 0; padding: .2em 0 .2em 1.1em;
   border-left: 3px solid var(--border); color: var(--fg-muted);
@@ -83,6 +89,48 @@ figure.sketch img {
 figure.sketch figcaption {
   margin-top: .5em; font: 12px/1.4 ui-sans-serif, system-ui, sans-serif; color: var(--fg-muted);
 }
+/* Maths is exported as MathML: no stylesheet and no webfonts needed, so the
+   file stays self-contained. */
+.math-block { margin: 1.5em 0; overflow-x: auto; text-align: center; }
+math { font-size: 1.05em; }
+
+.sidenote-ref {
+  cursor: pointer; color: var(--doc-accent, var(--accent));
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: .72em; font-weight: 650; vertical-align: super; line-height: 0; padding: 0 .15em;
+}
+.sidenote-toggle { display: none; }
+.sidenote {
+  display: none; font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: .82em; line-height: 1.55; color: var(--fg-muted); text-align: start;
+}
+.sidenote-num { margin-right: .4em; color: var(--doc-accent, var(--accent)); font-weight: 650; }
+.sidenote-toggle:checked + .sidenote {
+  display: block; margin: .6em 0 .9em; padding: .6em .9em;
+  border-left: 3px solid var(--border); background: var(--code-bg); border-radius: 0 6px 6px 0;
+}
+@media (min-width: 1200px) {
+  .sidenote, .sidenote-toggle:checked + .sidenote {
+    display: block; float: right; clear: right; width: 13rem;
+    margin: .3rem -15rem .8rem 1.5rem; padding: 0; border: none; background: none;
+  }
+}
+
+.media { margin: 1.6em 0; }
+.media img, .media video, .media audio {
+  display: block; max-width: 100%; height: auto; margin: 0 auto; border-radius: 10px;
+}
+.media audio { width: 100%; }
+.media-embed {
+  position: relative; aspect-ratio: 16 / 9; width: 100%;
+  border-radius: 10px; overflow: hidden; background: var(--code-bg);
+}
+.media-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.media figcaption {
+  margin-top: .55em; font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: .83em; color: var(--fg-muted); text-align: center;
+}
+
 @page { margin: 18mm 16mm; }
 @media print {
   /* Printers get the light palette; a dark page would flood the paper with ink. */
@@ -94,6 +142,13 @@ figure.sketch figcaption {
   a { color: inherit; text-decoration: none; }
   h1, h2, h3, h4 { break-after: avoid; }
   .table-scroll { overflow: visible; }
+  /* Every sidenote is shown on paper — a reader cannot click to reveal one. */
+  .sidenote, .sidenote-toggle:checked + .sidenote {
+    display: block; float: none; width: auto;
+    margin: .5em 0 .8em 1.5em; padding: 0 0 0 .8em;
+    border-left: 2px solid #bbb; background: none;
+  }
+  .media-embed { display: none; }
   table { min-width: 0; }
   figure, pre, table, blockquote { break-inside: avoid; }
   .tok-keyword, .tok-string, .tok-number, .tok-function, .tok-comment { color: #333 !important; }
@@ -105,7 +160,9 @@ export function exportHtml(
   source: string,
   translit: TranslitEnv,
   sketches: Record<string, string> = {},
+  style: DocStyle = {},
 ): string {
+  const docVars = styleDeclarations(style);
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -115,6 +172,7 @@ export function exportHtml(
 <meta name="generator" content="lipi.md">
 <style>
 ${EXPORT_CSS}
+${docVars ? `:root {\n${docVars}\n}` : ''}
 </style>
 </head>
 <body>

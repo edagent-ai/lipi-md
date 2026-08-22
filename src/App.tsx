@@ -11,6 +11,7 @@ import {
   insertBlock,
   insertLink,
   SNIPPETS,
+  surround,
   toggleHeading,
   togglePrefix,
   toggleWrap,
@@ -26,6 +27,8 @@ import { useDocs } from './store/docs';
 import { useSettings } from './store/settings';
 import { download, slugify } from './lib/util';
 import { createScrollLock } from './preview/scrollSync';
+import { styleVars } from './markdown/docstyle';
+import { loadMath, looksLikeMath, mathReady } from './math';
 import type { ViewMode } from './types';
 import logoUrl from './assets/logo.png';
 
@@ -43,6 +46,10 @@ export default function App({ updateReady, onUpdate }: AppProps) {
   const docs = useDocs();
   const [panel, setPanel] = useState<Panel>(null);
   const [online, setOnline] = useState(() => navigator.onLine);
+  const [activeHeading, setActiveHeading] = useState('');
+  // Bumped when KaTeX finishes loading, to re-render maths that first rendered
+  // as raw TeX.
+  const [mathEpoch, setMathEpoch] = useState(0);
 
   const editorRef = useRef<EditorHandle>(null);
   const previewRef = useRef<PreviewHandle>(null);
@@ -66,10 +73,26 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     };
   }, [deferredText, settings.sourceScheme, settings.defaultScript]);
 
-  const { segments, headings } = useMemo(
+  const { segments, headings, style } = useMemo(
     () => build(deferredText, translitEnv),
-    [deferredText, translitEnv],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mathEpoch forces
+    // a rebuild once KaTeX is available.
+    [deferredText, translitEnv, mathEpoch],
   );
+
+  const docStyle = useMemo(() => styleVars(style), [style]);
+
+  // KaTeX is fetched only when a document actually contains maths.
+  useEffect(() => {
+    if (mathReady() || !looksLikeMath(deferredText)) return;
+    let cancelled = false;
+    void loadMath().then(() => {
+      if (!cancelled && mathReady()) setMathEpoch((epoch) => epoch + 1);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [deferredText]);
 
   useEffect(() => {
     const on = () => setOnline(true);
@@ -119,6 +142,9 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       case 'block':
         insertBlock(view, SNIPPETS[action.snippet]);
         break;
+      case 'surround':
+        surround(view, action.open, action.close, action.placeholder);
+        break;
       case 'macro':
         wrapMacro(view, action.script);
         break;
@@ -159,13 +185,14 @@ export default function App({ updateReady, onUpdate }: AppProps) {
 
   const doExportHtml = useCallback(async () => {
     if (!docs.current) return;
+    if (looksLikeMath(docs.current.text)) await loadMath();
     const sketches = await gatherSketches();
     download(
       `${slugify(docs.current.title)}.html`,
-      exportHtml(docs.current.title, docs.current.text, translitEnv, sketches),
+      exportHtml(docs.current.title, docs.current.text, translitEnv, sketches, style),
       'text/html',
     );
-  }, [docs, gatherSketches, translitEnv]);
+  }, [docs, gatherSketches, style, translitEnv]);
 
   /**
    * PDF goes through the browser's own print pipeline rather than a JS PDF
@@ -177,8 +204,9 @@ export default function App({ updateReady, onUpdate }: AppProps) {
    */
   const doExportPdf = useCallback(async () => {
     if (!docs.current) return;
+    if (looksLikeMath(docs.current.text)) await loadMath();
     const sketches = await gatherSketches();
-    const html = exportHtml(docs.current.title, docs.current.text, translitEnv, sketches);
+    const html = exportHtml(docs.current.title, docs.current.text, translitEnv, sketches, style);
 
     const frame = document.createElement('iframe');
     frame.setAttribute('aria-hidden', 'true');
@@ -201,7 +229,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     });
 
     document.body.appendChild(frame);
-  }, [docs, gatherSketches, translitEnv]);
+  }, [docs, gatherSketches, style, translitEnv]);
 
   /* ------------------------------ shortcuts ------------------------------ */
 
@@ -307,6 +335,8 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       autoRun={settings.autoRun}
       onInstallP5={() => setPanel('settings')}
       onScroll={onPreviewScroll}
+      docStyle={docStyle}
+      onActiveHeading={setActiveHeading}
     />
   );
 
@@ -348,6 +378,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             docs={docs.docs}
             currentId={docs.currentId}
             headings={headings}
+            activeHeading={activeHeading}
             onSelect={docs.select}
             onCreate={() => void docs.create()}
             onDelete={(id) => void docs.remove(id)}

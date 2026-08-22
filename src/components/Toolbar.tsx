@@ -8,6 +8,7 @@ export type ToolbarAction =
   | { kind: 'prefix'; prefix: string }
   | { kind: 'link' }
   | { kind: 'block'; snippet: keyof typeof import('../editor/commands').SNIPPETS }
+  | { kind: 'surround'; open: string; close: string; placeholder: string }
   | { kind: 'macro'; script: string };
 
 interface ToolbarProps {
@@ -110,6 +111,40 @@ export function Toolbar({
         <MenuItem onClick={() => onAction({ kind: 'prefix', prefix: '> ' })}>Quote</MenuItem>
         <hr />
         <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'table' })}>Table</MenuItem>
+        <MenuItem
+          onClick={() =>
+            onAction({ kind: 'surround', open: '^[', close: ']', placeholder: 'side note' })
+          }
+        >
+          Sidenote
+        </MenuItem>
+      </Menu>
+
+      <Menu label="Insert" disabled={readOnly}>
+        <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'image' })}>
+          Picture from a link
+        </MenuItem>
+        <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'video' })}>
+          Video from a link
+        </MenuItem>
+        <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'embed' })}>
+          YouTube / Vimeo
+        </MenuItem>
+        <hr />
+        <MenuItem
+          onClick={() =>
+            onAction({ kind: 'surround', open: '$', close: '$', placeholder: 'e^{i\\pi}+1=0' })
+          }
+        >
+          Formula (inline)
+        </MenuItem>
+        <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'math' })}>
+          Formula (block)
+        </MenuItem>
+        <hr />
+        <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'style' })}>
+          Page style block
+        </MenuItem>
       </Menu>
 
       <Menu label="Sketch" disabled={readOnly}>

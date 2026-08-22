@@ -575,6 +575,14 @@ body.is-resizing iframe {
   color: var(--fg-strong);
 }
 
+/* Highlights whichever section is currently at the top of the preview. */
+.outline-item.is-active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
 .sidebar-foot {
   margin-top: auto;
   padding: 10px 14px;
@@ -611,22 +619,35 @@ body.is-resizing iframe {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  background: var(--bg-preview);
+  /* `--doc-*` come from the document's own frontmatter (see docstyle.ts) and
+     fall back to the app theme when unset. */
+  background: var(--doc-bg, var(--bg-preview));
   border-left: 0;
 }
 
 .preview-body {
-  max-width: 46rem;
+  max-width: var(--doc-measure, 46rem);
   margin: 0 auto;
   padding: clamp(18px, 2.4vw, 28px) clamp(16px, 2.6vw, 32px) 50vh;
 }
 
 .markdown {
   overflow-wrap: anywhere;
-  font-family: var(--font-serif);
-  font-size: 16.5px;
+  font-family: var(--doc-font, var(--font-serif));
+  font-size: var(--doc-size, 16.5px);
   line-height: 1.72;
-  color: var(--fg);
+  color: var(--doc-fg, var(--fg));
+  text-align: var(--doc-align, start);
+}
+
+/* Justification is for prose only; code, tables and captions keep their own
+   alignment or they look broken. */
+.markdown pre,
+.markdown code,
+.markdown table,
+.markdown figcaption,
+.markdown .sandbox {
+  text-align: initial;
 }
 
 .markdown h1,
@@ -635,7 +656,8 @@ body.is-resizing iframe {
 .markdown h4,
 .markdown h5,
 .markdown h6 {
-  font-family: var(--font-ui);
+  font-family: var(--doc-font, var(--font-ui));
+  text-align: start;
   font-weight: 680;
   line-height: 1.25;
   letter-spacing: -0.015em;
@@ -690,7 +712,7 @@ body.is-resizing iframe {
 }
 
 .markdown a {
-  color: var(--accent);
+  color: var(--doc-accent, var(--accent));
   text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
   text-underline-offset: 2px;
 }
@@ -1428,6 +1450,136 @@ kbd {
   font-size: 17px;
   font-weight: 600;
   pointer-events: none;
+}
+
+/* --------------------------------- maths --------------------------------- */
+
+.math-block {
+  margin: 1.5em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-align: center;
+  padding: 2px 0;
+}
+
+.math-inline .katex {
+  font-size: 1.02em;
+}
+
+.math-pending,
+.math-error {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: var(--code-bg);
+}
+
+.math-error {
+  color: var(--danger);
+  border-bottom: 1px dotted var(--danger);
+}
+
+/* -------------------------------- sidenotes ------------------------------ */
+
+.sidenote-ref {
+  cursor: pointer;
+  color: var(--doc-accent, var(--accent));
+  font-family: var(--font-ui);
+  font-size: 0.72em;
+  font-weight: 650;
+  vertical-align: super;
+  line-height: 0;
+  padding: 0 0.15em;
+}
+
+.sidenote-toggle {
+  display: none;
+}
+
+.sidenote {
+  display: none;
+  font-family: var(--font-ui);
+  font-size: 0.82em;
+  line-height: 1.55;
+  color: var(--fg-muted);
+  text-align: start;
+}
+
+.sidenote-num {
+  margin-right: 0.4em;
+  color: var(--doc-accent, var(--accent));
+  font-weight: 650;
+}
+
+/* Narrow: the note is collapsed until its marker is clicked. */
+.sidenote-toggle:checked + .sidenote {
+  display: block;
+  margin: 0.6em 0 0.9em;
+  padding: 0.6em 0.9em;
+  border-left: 3px solid var(--border-strong);
+  background: var(--bg-hover);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* Roomy pane: set the note in the right margin, Tufte-style. `.is-roomy` is
+   applied by the preview after measuring the pane, since the space available
+   depends on the split ratio and not on the viewport. */
+.preview.is-roomy .sidenote,
+.preview.is-roomy .sidenote-toggle:checked + .sidenote {
+  display: block;
+  float: right;
+  clear: right;
+  width: 13rem;
+  margin: 0.3rem -15rem 0.8rem 1.5rem;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+/* ---------------------------------- media -------------------------------- */
+
+.media {
+  margin: 1.6em 0;
+}
+
+.media img,
+.media video,
+.media audio {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  border-radius: var(--radius);
+}
+
+.media audio {
+  width: 100%;
+}
+
+.media-embed {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--code-bg);
+}
+
+.media-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.media figcaption {
+  margin-top: 0.55em;
+  font-family: var(--font-ui);
+  font-size: 0.83em;
+  color: var(--fg-muted);
+  text-align: center;
 }
 
 /* ------------------------------- responsive ------------------------------ */
