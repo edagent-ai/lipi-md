@@ -181,6 +181,10 @@ lipi.md is **MIT** licensed, and every library it ships is MIT too:
 Build-time only (never shipped to the browser): TypeScript and Playwright, both
 Apache-2.0/MIT permissive.
 
+The app icon is the Devanagari letter **श** (*sha*). Its outline is derived from
+Noto Sans Devanagari (SIL Open Font License 1.1) and converted to paths, so the
+mark needs no font installed to render — and no proprietary font is embedded.
+
 ### Why p5.js is an add-on
 
 p5.js is **LGPL-2.1**, not MIT, so bundling it would break the "100% MIT

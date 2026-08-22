@@ -334,28 +334,46 @@
     },
 
     canvas: {
-      run: function (code) {
-        var canvas = document.createElement('canvas');
+      /**
+       * Match the canvas to the stage. A freshly inserted iframe can run its
+       * first script before it has been laid out, when every width reads zero —
+       * sizing from that produced a 0x0 canvas that silently never drew. So the
+       * fallbacks are non-zero, and a ResizeObserver corrects the size (and
+       * redraws) the moment real layout arrives, which also keeps the sketch
+       * sharp when the pane is resized.
+       */
+      fit: function () {
+        var w = stage.clientWidth || document.documentElement.clientWidth || 300;
+        var h = stage.clientHeight || document.documentElement.clientHeight || 150;
+        if (w === this.w && h === this.h) return false;
+
         var dpr = window.devicePixelRatio || 1;
-        var w = stage.clientWidth || window.innerWidth;
-        var h = stage.clientHeight || window.innerHeight;
-        canvas.width = Math.round(w * dpr);
-        canvas.height = Math.round(h * dpr);
-        canvas.style.width = w + 'px';
-        canvas.style.height = h + 'px';
-        stage.appendChild(canvas);
-
-        var ctx = canvas.getContext('2d');
-        ctx.scale(dpr, dpr);
-
-        // Sketches think in CSS pixels; the DPR scale above keeps it crisp.
-        window.canvas = canvas;
-        window.ctx = ctx;
+        this.w = w;
+        this.h = h;
+        this.canvas.width = Math.round(w * dpr);
+        this.canvas.height = Math.round(h * dpr);
+        this.canvas.style.width = w + 'px';
+        this.canvas.style.height = h + 'px';
+        // Sketches think in CSS pixels; the transform keeps it crisp.
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         window.width = w;
         window.height = h;
+        return true;
+      },
+
+      run: function (code) {
         var self = this;
+        self.w = 0;
+        self.h = 0;
         self.frame = null;
         self.start = performance.now();
+        self.canvas = document.createElement('canvas');
+        stage.appendChild(self.canvas);
+        self.ctx = self.canvas.getContext('2d');
+        self.fit();
+
+        window.canvas = self.canvas;
+        window.ctx = self.ctx;
         window.loop = function (frame) {
           self.frame = frame;
           var tick = function (now) {
@@ -364,15 +382,32 @@
           };
           window.requestAnimationFrame(tick);
         };
+
+        if (typeof ResizeObserver !== 'undefined') {
+          self.observer = new ResizeObserver(function () {
+            // Resizing clears the canvas, so redraw at the new size.
+            if (self.fit()) self.renderOnce();
+          });
+          self.observer.observe(document.documentElement);
+        }
+
         evalUserCode(code);
       },
+
       teardown: function () {
+        if (this.observer) {
+          this.observer.disconnect();
+          this.observer = null;
+        }
         this.frame = null;
+        this.canvas = null;
+        this.ctx = null;
         window.canvas = undefined;
         window.ctx = undefined;
         window.loop = undefined;
       },
-      /* Draw a frame synchronously — see `renderOnce` below. */
+
+      /* Draw a frame synchronously — see the snapshot handler. */
       renderOnce: function () {
         if (this.frame) this.frame(performance.now() - this.start);
       },

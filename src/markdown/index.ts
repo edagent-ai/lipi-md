@@ -65,6 +65,26 @@ function headingIds(state: StateCore): boolean {
   return true;
 }
 
+/**
+ * Visible text of an inline token, for the outline. Uses the children rather
+ * than `token.content`, so a heading written as `@lipi(kannaDadalli)` appears in
+ * the page menu as ಕನ್ನಡದಲ್ಲಿ rather than as its macro source.
+ */
+function inlineText(token: Token | undefined): string {
+  if (!token) return '';
+  if (!token.children?.length) return token.content;
+
+  let out = '';
+  for (const child of token.children) {
+    if (child.type === 'text' || child.type === 'code_inline' || child.type === 'lipi_translit') {
+      out += child.content;
+    } else if (child.type === 'softbreak' || child.type === 'hardbreak') {
+      out += ' ';
+    }
+  }
+  return out.trim() || token.content;
+}
+
 function renderFence(tokens: Token[], idx: number): string {
   const token = tokens[idx];
   const { lang } = parseInfo(token.info);
@@ -160,7 +180,7 @@ export function build(
       const inline = tokens[i + 1];
       headings.push({
         level: Number(token.tag.slice(1)) || 1,
-        text: inline?.content ?? '',
+        text: inlineText(inline),
         id: token.attrGet('id')?.toString() ?? '',
         line: token.map?.[0] ?? 0,
       });
