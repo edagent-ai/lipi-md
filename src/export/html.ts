@@ -100,16 +100,6 @@ figure.sketch figcaption {
 }
 `.trim();
 
-/**
- * markdown-it emits a bare `<table>`; wrapping it here (rather than in a shared
- * renderer rule) keeps the in-app preview markup unchanged.
- */
-function wrapTables(html: string): string {
-  return html
-    .replace(/<table(\s[^>]*)?>/g, '<div class="table-scroll" role="region" tabindex="0"><table$1>')
-    .replace(/<\/table>/g, '</table></div>');
-}
-
 export function exportHtml(
   title: string,
   source: string,
@@ -128,7 +118,7 @@ ${EXPORT_CSS}
 </style>
 </head>
 <body>
-${wrapTables(renderStatic(source, translit, sketches))}
+${renderStatic(source, translit, sketches)}
 </body>
 </html>
 `;

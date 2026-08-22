@@ -208,6 +208,10 @@ body.is-resizing iframe {
 .workspace {
   display: flex;
   min-height: 0;
+  /* A grid item defaults to `min-width: auto`, so its contents could push it
+     wider than its track — the pane measured 506px inside a 430px viewport and
+     the whole page scrolled sideways. */
+  min-width: 0;
   /* Containing block for the sidebar when it becomes an overlay on narrow
      screens; see the max-width: 900px block. */
   position: relative;
@@ -614,10 +618,11 @@ body.is-resizing iframe {
 .preview-body {
   max-width: 46rem;
   margin: 0 auto;
-  padding: 28px 32px 50vh;
+  padding: clamp(18px, 2.4vw, 28px) clamp(16px, 2.6vw, 32px) 50vh;
 }
 
 .markdown {
+  overflow-wrap: anywhere;
   font-family: var(--font-serif);
   font-size: 16.5px;
   line-height: 1.72;
@@ -709,6 +714,13 @@ body.is-resizing iframe {
 .markdown img {
   max-width: 100%;
   border-radius: var(--radius-sm);
+}
+
+/* Mirrors the exported HTML: a wide table scrolls in its own region rather
+   than stretching the pane. */
+.table-scroll {
+  overflow-x: auto;
+  margin: 0 0 1.05em;
 }
 
 .markdown table {
@@ -1464,10 +1476,6 @@ kbd {
 
   .main .split:not(.split-single) .divider {
     display: none;
-  }
-
-  .preview-body {
-    padding: 20px 18px 40vh;
   }
 
   .doc-name {

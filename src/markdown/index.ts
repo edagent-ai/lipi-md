@@ -97,6 +97,13 @@ export function createMarkdown(): MarkdownIt {
   md.core.ruler.push('lipi_line_anchors', lineAnchors);
   md.renderer.rules.fence = renderFence;
 
+  // A wide table scrolls inside its own region rather than stretching the pane
+  // (or the exported page) to fit. Done in the shared renderer so the preview
+  // and the exports behave identically.
+  md.renderer.rules.table_open = (tokens, idx, options, _env, self) =>
+    `<div class="table-scroll" role="region" tabindex="0">${self.renderToken(tokens, idx, options)}`;
+  md.renderer.rules.table_close = () => '</table></div>';
+
   // External links open in a new tab and never leak the referrer.
   const defaultLink =
     md.renderer.rules.link_open ??
