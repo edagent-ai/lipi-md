@@ -86,6 +86,16 @@ class SegmentRenderer {
     this.anchorCache = null;
   }
 
+  /** PNG of each running sketch, keyed by segment, for HTML/PDF export. */
+  async snapshots(): Promise<Record<string, string>> {
+    const shots = await Promise.all(
+      [...this.entries.entries()]
+        .filter(([, entry]) => entry.sandbox)
+        .map(async ([key, entry]) => [key, await entry.sandbox!.snapshot()] as const),
+    );
+    return Object.fromEntries(shots.filter(([, url]) => url)) as Record<string, string>;
+  }
+
   anchors(): Anchor[] {
     return (this.anchorCache ??= collectAnchors(this.host));
   }
@@ -105,6 +115,7 @@ export interface PreviewHandle {
   scrollToLine(line: number): void;
   topLine(): number;
   scroller(): HTMLElement | null;
+  snapshots(): Promise<Record<string, string>>;
 }
 
 interface PreviewProps {
@@ -175,6 +186,7 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
       return lineForOffset(scroller, renderer.anchors(), scroller.scrollTop);
     },
     scroller: () => scrollerRef.current,
+    snapshots: () => rendererRef.current?.snapshots() ?? Promise.resolve({}),
   }));
 
   /* Copy buttons and in-page heading links are delegated rather than bound per

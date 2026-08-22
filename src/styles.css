@@ -185,23 +185,14 @@ body.is-resizing iframe {
   flex: none;
 }
 
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: linear-gradient(140deg, var(--accent), #a78bfa);
-  color: var(--accent-fg);
-  font-family: var(--font-indic);
-  font-size: 15px;
-  line-height: 1;
-}
-
-.brand-name {
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  color: var(--fg-strong);
+/* The supplied wordmark carries its own yellow band, so it needs no colour
+   treatment per theme — only a radius so it sits with the rounded UI. */
+.brand-logo {
+  display: block;
+  height: 22px;
+  width: auto;
+  border-radius: 4px;
+  user-select: none;
 }
 
 .doc-name {
@@ -1478,8 +1469,10 @@ kbd {
     height: auto;
   }
 
-  .main .split .pane:first-child {
-    display: none;
+  /* Hide the editor specifically. Targeting :first-child hid the *only* pane
+     in Write and Read view, so Cmd+P printed a blank page outside Split. */
+  .pane:has(.editor) {
+    display: none !important;
   }
 
   .split,

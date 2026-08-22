@@ -61,6 +61,29 @@ canvas{display:block;max-width:100%;}
 `.trim();
 }
 
+/**
+ * Sandboxes have an opaque origin, so the service worker does not control them
+ * and a `<script src>` from inside one bypasses the cache and goes to the
+ * network — which fails offline. Fetching the source here in the parent, where
+ * the service worker *does* apply, and injecting it inline is what makes the
+ * bundled runtimes genuinely offline-capable.
+ */
+const sourceCache = new Map<string, Promise<string | undefined>>();
+
+export function loadRuntimeSource(runtime: RuntimeId): Promise<string | undefined> {
+  const { libUrl } = RUNTIMES[runtime];
+  if (!libUrl) return Promise.resolve(undefined);
+
+  let pending = sourceCache.get(libUrl);
+  if (!pending) {
+    pending = fetch(libUrl)
+      .then((response) => (response.ok ? response.text() : undefined))
+      .catch(() => undefined);
+    sourceCache.set(libUrl, pending);
+  }
+  return pending;
+}
+
 export interface SrcdocOptions {
   channel: string;
   runtime: RuntimeId;

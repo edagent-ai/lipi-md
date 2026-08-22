@@ -55,8 +55,21 @@ Options follow the name: `height=420`, `height=auto`, `title="…"`, `manual`
 
 **Everything else** is ordinary Markdown — CommonMark plus tables, with
 syntax-highlighted code blocks, an outline, autosave to IndexedDB, multi-document
-sidebar, import/export (`.md`, standalone `.html`, print/PDF), light and dark
-themes, and full offline operation once loaded.
+sidebar, light and dark themes, and full offline operation once loaded.
+
+**Export** comes in three forms, all offline:
+
+- **`.md`** — your source exactly as written, phonetic spellings intact.
+- **`.html`** — one self-contained file with the transliteration already applied,
+  so it reads correctly anywhere with no fonts to install and no scripts to run.
+- **`.pdf`** — via the browser's own print pipeline, which is the only thing that
+  shapes Indic conjuncts correctly (a JS PDF library would mangle them) and costs
+  no dependency.
+
+The HTML and PDF exports capture each sketch as a still image, snapshotted from
+the live sandbox — including sketches you never scrolled to, which are started
+just to be captured. A sketch that draws to the DOM rather than a canvas falls
+back to printing its source.
 
 ---
 
@@ -83,10 +96,13 @@ document, its IndexedDB, or its service worker. User code never travels in the
 frame's markup — it arrives over `postMessage`, which sidesteps HTML escaping and
 lets a sketch re-run without a reload.
 
-That opaque origin is also why the animation runtimes are pre-built as IIFE
-bundles into `public/runtimes/`: a sandboxed frame cannot import ES modules from
-our origin without CORS headers a static host will not send, but a classic script
-loads fine.
+That opaque origin also dictates how runtimes load. A sandboxed frame cannot
+import ES modules from our origin (a static host sends no CORS headers), and it
+is not controlled by the service worker either — so a `<script src>` from inside
+one bypasses the offline cache and goes to the network. Runtimes are therefore
+pre-built as IIFE bundles into `public/runtimes/`, fetched by the *parent* where
+the service worker does apply, and injected as inline source. The p5 add-on
+takes the same path out of IndexedDB.
 
 **No CSP header is set,** deliberately. `srcdoc` frames inherit the parent
 document's CSP, so a strict `script-src` would break every sandbox. Isolation is

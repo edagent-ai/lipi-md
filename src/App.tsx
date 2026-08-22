@@ -26,6 +26,7 @@ import { useSettings } from './store/settings';
 import { download, slugify } from './lib/util';
 import { createScrollLock } from './preview/scrollSync';
 import type { ViewMode } from './types';
+import logoUrl from './assets/logo.png';
 
 type Panel = 'settings' | 'help' | 'about' | null;
 
@@ -145,13 +146,50 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     download(`${slugify(docs.current.title)}.md`, docs.current.text, 'text/markdown');
   }, [docs]);
 
-  const doExportHtml = useCallback(() => {
+  const doExportHtml = useCallback(async () => {
     if (!docs.current) return;
+    const sketches = await previewRef.current?.snapshots();
     download(
       `${slugify(docs.current.title)}.html`,
-      exportHtml(docs.current.title, docs.current.text, translitEnv),
+      exportHtml(docs.current.title, docs.current.text, translitEnv, sketches ?? {}),
       'text/html',
     );
+  }, [docs, translitEnv]);
+
+  /**
+   * PDF goes through the browser's own print pipeline rather than a JS PDF
+   * library: it is the only thing here that shapes Kannada, Devanagari and the
+   * rest correctly, and it needs no dependency. Printing the exported document
+   * inside a hidden same-origin frame (rather than the app window) means the
+   * result is identical in every view mode — the old approach printed a blank
+   * page unless you happened to be in Split view.
+   */
+  const doExportPdf = useCallback(async () => {
+    if (!docs.current) return;
+    const sketches = await previewRef.current?.snapshots();
+    const html = exportHtml(docs.current.title, docs.current.text, translitEnv, sketches ?? {});
+
+    const frame = document.createElement('iframe');
+    frame.setAttribute('aria-hidden', 'true');
+    frame.style.cssText =
+      'position:fixed;right:0;bottom:0;width:210mm;height:0;border:0;visibility:hidden;';
+    frame.srcdoc = html;
+
+    frame.addEventListener('load', () => {
+      const win = frame.contentWindow;
+      if (!win) {
+        frame.remove();
+        return;
+      }
+      const cleanup = () => setTimeout(() => frame.remove(), 0);
+      win.addEventListener('afterprint', cleanup, { once: true });
+      // Safari never fires afterprint from a frame; sweep up regardless.
+      setTimeout(() => frame.remove(), 60_000);
+      win.focus();
+      win.print();
+    });
+
+    document.body.appendChild(frame);
   }, [docs, translitEnv]);
 
   /* ------------------------------ shortcuts ------------------------------ */
@@ -265,8 +303,14 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     <div className={`app${settings.sidebarOpen ? ' has-sidebar' : ''}`}>
       <header className="appbar">
         <div className="brand">
-          <span className="brand-mark">ಲಿ</span>
-          <span className="brand-name">lipi.md</span>
+          <img
+            className="brand-logo"
+            src={logoUrl}
+            alt="lipi.md"
+            width={556}
+            height={160}
+            draggable={false}
+          />
         </div>
         <h1 className="doc-name" title={docs.current?.title}>
           {docs.current?.title || 'Untitled'}
@@ -281,8 +325,8 @@ export default function App({ updateReady, onUpdate }: AppProps) {
         sidebarOpen={settings.sidebarOpen}
         onToggleSidebar={() => updateSettings({ sidebarOpen: !settings.sidebarOpen })}
         onExportMarkdown={doExportMarkdown}
-        onExportHtml={doExportHtml}
-        onPrint={() => window.print()}
+        onExportHtml={() => void doExportHtml()}
+        onExportPdf={() => void doExportPdf()}
         onOpenSettings={() => setPanel('settings')}
         onOpenHelp={() => setPanel('help')}
       />

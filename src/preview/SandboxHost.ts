@@ -1,4 +1,4 @@
-import { buildSrcdoc, RUNTIMES } from '../sandbox/runtime';
+import { buildSrcdoc, loadRuntimeSource, RUNTIMES } from '../sandbox/runtime';
 import { getP5Source } from '../sandbox/p5addon';
 import { RUNTIME_LABEL, type RunSpec } from '../markdown/fence';
 import { highlightCode } from '../markdown/highlight';
@@ -8,11 +8,13 @@ type Status = 'idle' | 'loading' | 'running' | 'paused' | 'error';
 
 interface SandboxMessage {
   channel: string;
-  type: 'ready' | 'console' | 'status' | 'height' | 'clear';
+  type: 'ready' | 'console' | 'status' | 'height' | 'clear' | 'snapshot';
   level?: string;
   text?: string;
   state?: Status;
   height?: number;
+  id?: string;
+  dataUrl?: string | null;
 }
 
 export interface SandboxDeps {
@@ -65,6 +67,8 @@ export class SandboxHost {
   private status: Status = 'idle';
   private errorCount = 0;
   private logCount = 0;
+  private readonly pendingShots = new Map<string, (url: string | null) => void>();
+  private readyWaiters: Array<(ok: boolean) => void> = [];
 
   private readonly stage: HTMLElement;
   private readonly overlay: HTMLButtonElement;
@@ -277,6 +281,10 @@ export class SandboxHost {
         return;
       }
       libSource = source;
+    } else {
+      // Inlined rather than linked, so the service worker's cache is used.
+      libSource = await loadRuntimeSource(this.spec.runtime);
+      if (this.destroyed) return;
     }
 
     const frame = document.createElement('iframe');
@@ -365,6 +373,7 @@ export class SandboxHost {
       case 'ready':
         this.ready = true;
         this.send({ type: 'run', code: this.code });
+        this.readyWaiters.splice(0).forEach((wake) => wake(true));
         break;
       case 'status':
         if (message.state) this.status = message.state;
@@ -382,6 +391,12 @@ export class SandboxHost {
           this.stage.style.height = `${message.height}px`;
         }
         break;
+      case 'snapshot': {
+        const resolve = message.id ? this.pendingShots.get(message.id) : undefined;
+        if (message.id) this.pendingShots.delete(message.id);
+        resolve?.(message.dataUrl ?? null);
+        break;
+      }
     }
   }
 
@@ -433,6 +448,60 @@ export class SandboxHost {
     this.send({ type: 'run', code: this.code });
   }
 
+  /**
+   * A PNG of the sketch as it currently stands, for HTML and PDF export.
+   * Resolves to null for a sketch that never started, or one that draws to the
+   * DOM rather than a canvas — callers fall back to printing the source.
+   */
+  async snapshot(timeoutMs = 2000): Promise<string | null> {
+    if (this.destroyed) return null;
+
+    // Sketches boot lazily on scroll, so exporting a document the user never
+    // scrolled through would otherwise capture nothing. Start the cold ones.
+    const wasCold = !this.started;
+    if (wasCold) {
+      this.observer?.disconnect();
+      this.observer = null;
+      await this.start();
+      // start() bails without a frame when the p5 add-on is missing; do not
+      // sit through the ready timeout for something that will never arrive.
+      if (!this.started) return null;
+    }
+
+    if (!(await this.whenReady(5000))) return null;
+    if (wasCold) await new Promise((resolve) => setTimeout(resolve, 350));
+    if (!this.frameWindow) return null;
+
+    const id = uid();
+    return new Promise<string | null>((resolve) => {
+      const timer = setTimeout(() => {
+        this.pendingShots.delete(id);
+        resolve(null);
+      }, timeoutMs);
+
+      this.pendingShots.set(id, (url) => {
+        clearTimeout(timer);
+        resolve(url);
+      });
+      this.send({ type: 'snapshot', id });
+    });
+  }
+
+  private whenReady(timeoutMs: number): Promise<boolean> {
+    if (this.ready) return Promise.resolve(true);
+    return new Promise<boolean>((resolve) => {
+      const waiter = (ok: boolean) => {
+        clearTimeout(timer);
+        resolve(ok);
+      };
+      const timer = setTimeout(() => {
+        this.readyWaiters = this.readyWaiters.filter((w) => w !== waiter);
+        resolve(false);
+      }, timeoutMs);
+      this.readyWaiters.push(waiter);
+    });
+  }
+
   private teardownFrame(): void {
     this.iframe?.remove();
     this.iframe = null;
@@ -440,6 +509,9 @@ export class SandboxHost {
 
   destroy(): void {
     this.destroyed = true;
+    for (const resolve of this.pendingShots.values()) resolve(null);
+    this.pendingShots.clear();
+    this.readyWaiters.splice(0).forEach((wake) => wake(false));
     this.observer?.disconnect();
     this.observer = null;
     this.teardownFrame();

@@ -19,7 +19,7 @@ interface ToolbarProps {
   onToggleSidebar(): void;
   onExportMarkdown(): void;
   onExportHtml(): void;
-  onPrint(): void;
+  onExportPdf(): void;
   onOpenSettings(): void;
   onOpenHelp(): void;
 }
@@ -35,7 +35,7 @@ export function Toolbar({
   onToggleSidebar,
   onExportMarkdown,
   onExportHtml,
-  onPrint,
+  onExportPdf,
   onOpenSettings,
   onOpenHelp,
 }: ToolbarProps) {
@@ -160,7 +160,7 @@ export function Toolbar({
       <Menu label="Export" align="right">
         <MenuItem onClick={onExportMarkdown}>Markdown (.md)</MenuItem>
         <MenuItem onClick={onExportHtml}>Web page (.html)</MenuItem>
-        <MenuItem onClick={onPrint}>Print / PDF</MenuItem>
+        <MenuItem onClick={onExportPdf}>PDF (.pdf)</MenuItem>
       </Menu>
 
       <button type="button" className="icon-btn" title="Help" onClick={onOpenHelp}>

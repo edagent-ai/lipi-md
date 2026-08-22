@@ -328,6 +328,9 @@
       resume: function () {
         if (this.instance && this.instance.loop) this.instance.loop();
       },
+      renderOnce: function () {
+        if (this.instance && this.instance.redraw) this.instance.redraw();
+      },
     },
 
     canvas: {
@@ -350,10 +353,13 @@
         window.ctx = ctx;
         window.width = w;
         window.height = h;
+        var self = this;
+        self.frame = null;
+        self.start = performance.now();
         window.loop = function (frame) {
-          var start = performance.now();
+          self.frame = frame;
           var tick = function (now) {
-            frame(now - start);
+            frame(now - self.start);
             window.requestAnimationFrame(tick);
           };
           window.requestAnimationFrame(tick);
@@ -361,9 +367,14 @@
         evalUserCode(code);
       },
       teardown: function () {
+        this.frame = null;
         window.canvas = undefined;
         window.ctx = undefined;
         window.loop = undefined;
+      },
+      /* Draw a frame synchronously — see `renderOnce` below. */
+      renderOnce: function () {
+        if (this.frame) this.frame(performance.now() - this.start);
       },
     },
 
@@ -478,6 +489,29 @@
       case 'restart':
         if (currentCode !== null) run(currentCode);
         break;
+      case 'snapshot': {
+        // A still frame for HTML/PDF export. The parent cannot read this canvas
+        // itself — the frame is opaque-origin — so the pixels come back here.
+        var shot = null;
+        try {
+          // An off-screen iframe gets its rAF throttled, so a sketch that only
+          // paints from a rAF loop would be captured blank. Ask the runtime to
+          // draw one frame synchronously first.
+          if (runtime.renderOnce) runtime.renderOnce();
+        } catch (err) {
+          /* a sketch that cannot redraw is still worth capturing as-is */
+        }
+        try {
+          var target = document.querySelector('canvas');
+          if (target && target.width && target.height) {
+            shot = target.toDataURL('image/png');
+          }
+        } catch (err) {
+          shot = null; // tainted or oversized canvas
+        }
+        post({ type: 'snapshot', id: data.id, dataUrl: shot });
+        break;
+      }
       default:
         break;
     }

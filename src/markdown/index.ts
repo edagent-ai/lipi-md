@@ -169,17 +169,42 @@ export function build(src: string, translit: TranslitEnv): BuildResult {
   return { segments, headings, frontmatter };
 }
 
-/** Full-document HTML, used by the standalone `.html` export. */
-export function renderStatic(src: string, translit: TranslitEnv): string {
+/**
+ * Full-document HTML for the standalone `.html` and PDF exports.
+ *
+ * `sketches` maps a run segment's key to a PNG data URL captured from the live
+ * sandbox. A still frame is what a page can actually carry, so where one exists
+ * it replaces the source listing; without it (a sketch that never ran, or one
+ * that draws to the DOM rather than a canvas) the code is printed instead.
+ */
+export function renderStatic(
+  src: string,
+  translit: TranslitEnv,
+  sketches: Record<string, string> = {},
+): string {
   const { segments } = build(src, translit);
+
   return segments
-    .map((seg) =>
-      seg.kind === 'html'
-        ? seg.html
-        : `<figure class="code-block"><figcaption><span class="code-lang">${escapeHtml(
-            RUNTIME_LABEL[seg.spec.runtime],
-          )}</span></figcaption><pre><code>${highlightCode(seg.code, 'js')}</code></pre></figure>`,
-    )
+    .map((seg) => {
+      if (seg.kind === 'html') return seg.html;
+
+      const label = escapeHtml(seg.spec.title ?? RUNTIME_LABEL[seg.spec.runtime]);
+      const image = sketches[seg.key];
+
+      if (image) {
+        return (
+          '<figure class="sketch">' +
+          `<img src="${image}" alt="${label}">` +
+          `<figcaption>${label}</figcaption>` +
+          '</figure>'
+        );
+      }
+      return (
+        '<figure class="code-block"><figcaption>' +
+        `<span class="code-lang">${escapeHtml(RUNTIME_LABEL[seg.spec.runtime])}</span>` +
+        `</figcaption><pre><code>${highlightCode(seg.code, 'js')}</code></pre></figure>`
+      );
+    })
     .join('\n');
 }
 

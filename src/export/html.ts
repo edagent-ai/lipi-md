@@ -67,13 +67,34 @@ img { max-width: 100%; }
   .tok-number, .tok-bool { color: #79c0ff; }
   .tok-function { color: #d2a8ff; }
 }
+figure.sketch { margin: 0 0 1.3em; text-align: center; }
+figure.sketch img {
+  max-width: 100%; height: auto; border: 1px solid var(--border); border-radius: 10px;
+}
+figure.sketch figcaption {
+  margin-top: .5em; font: 12px/1.4 ui-sans-serif, system-ui, sans-serif; color: var(--fg-muted);
+}
+@page { margin: 18mm 16mm; }
 @media print {
-  body { max-width: none; padding: 0; }
+  /* Printers get the light palette; a dark page would flood the paper with ink. */
+  :root {
+    --fg: #111; --fg-muted: #555; --bg: #fff; --border: #ccc;
+    --accent: #14459c; --code-bg: #f4f4f4;
+  }
+  body { max-width: none; padding: 0; background: #fff; color: #111; }
   a { color: inherit; text-decoration: none; }
+  h1, h2, h3, h4 { break-after: avoid; }
+  figure, pre, table, blockquote { break-inside: avoid; }
+  .tok-keyword, .tok-string, .tok-number, .tok-function, .tok-comment { color: #333 !important; }
 }
 `.trim();
 
-export function exportHtml(title: string, source: string, translit: TranslitEnv): string {
+export function exportHtml(
+  title: string,
+  source: string,
+  translit: TranslitEnv,
+  sketches: Record<string, string> = {},
+): string {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -86,7 +107,7 @@ ${EXPORT_CSS}
 </style>
 </head>
 <body>
-${renderStatic(source, translit)}
+${renderStatic(source, translit, sketches)}
 </body>
 </html>
 `;
