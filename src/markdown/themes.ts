@@ -79,7 +79,7 @@ export const THEMES: Record<string, ThemePreset> = {
   },
   dyslexic: {
     label: 'Dyslexia-friendly',
-    blurb: 'Verdana, loose spacing, cream page, never justified',
+    blurb: 'OpenDyslexic, loose spacing, cream page, never justified',
     font: 'reading',
     // Every value here follows common dyslexia typography guidance: a plain
     // sans face, larger text, generous line and letter spacing, a short

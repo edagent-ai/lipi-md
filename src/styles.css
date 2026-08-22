@@ -203,14 +203,29 @@ body.is-resizing iframe {
   flex: none;
 }
 
-/* The supplied wordmark carries its own yellow band, so it needs no colour
-   treatment per theme — only a radius so it sits with the rounded UI. */
+/* The wordmark carries its own coloured band, so it needs no treatment per
+   theme — only a radius so it sits with the rounded UI. */
 .brand-logo {
   display: block;
   height: 22px;
   width: auto;
   border-radius: 4px;
   user-select: none;
+}
+
+/* Says what the app is, for anyone arriving cold. First thing to go when the
+   bar gets tight: the open document's name matters more than the pitch. */
+.brand-tagline {
+  margin: 0;
+  font-size: 12px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .brand-tagline {
+    display: none;
+  }
 }
 
 .doc-name {
@@ -851,7 +866,7 @@ body.is-resizing iframe {
 
 .markdown a {
   color: var(--doc-accent, var(--accent));
-  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--doc-accent, var(--accent)) 40%, transparent);
   text-underline-offset: 2px;
 }
 
@@ -886,7 +901,7 @@ body.is-resizing iframe {
 .markdown table {
   width: 100%;
   border-collapse: collapse;
-  font-family: var(--font-ui);
+  font-family: var(--doc-font, var(--font-ui));
   font-size: 0.9em;
 }
 
@@ -913,7 +928,7 @@ body.is-resizing iframe {
 }
 
 .markdown mark {
-  background: var(--accent-soft);
+  background: color-mix(in srgb, var(--doc-accent, var(--accent)) 22%, transparent);
   color: inherit;
 }
 
@@ -929,7 +944,7 @@ body.is-resizing iframe {
 
 .doc-byline {
   margin: -0.4em 0 1.6em;
-  font-family: var(--font-ui);
+  font-family: var(--doc-font, var(--font-ui));
   font-size: 0.9em;
   color: var(--doc-muted, var(--fg-muted));
 }
@@ -937,6 +952,13 @@ body.is-resizing iframe {
 .doc-byline-label {
   font-weight: 600;
   opacity: 0.75;
+}
+
+/* Version and date sit on their own line under the name, so a long author
+   credit cannot push them out of sight. */
+.doc-byline-rev {
+  display: block;
+  margin-top: 0.25em;
 }
 
 .doc-version {
@@ -956,13 +978,13 @@ body.is-resizing iframe {
 
 .lipi-tl {
   cursor: help;
-  border-bottom: 1px dotted color-mix(in srgb, var(--accent) 45%, transparent);
+  border-bottom: 1px dotted color-mix(in srgb, var(--doc-accent, var(--accent)) 45%, transparent);
 }
 
 .lipi-block {
   margin: 1.5em 0;
   padding: 0.1em 0 0.1em 1.05em;
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--doc-accent, var(--accent));
   line-height: 1.95;
 }
 
@@ -987,7 +1009,7 @@ body.is-resizing iframe {
   gap: 10px;
   padding: 6px 8px 6px 12px;
   border-bottom: 1px solid var(--doc-border, var(--border));
-  font-family: var(--font-ui);
+  font-family: var(--doc-font, var(--font-ui));
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -1037,45 +1059,45 @@ body.is-resizing iframe {
 .tok-modifier,
 .tok-controlKeyword,
 .tok-moduleKeyword {
-  color: var(--syn-keyword);
+  color: var(--doc-syn-keyword, var(--syn-keyword));
 }
 .tok-string,
 .tok-regexp,
 .tok-special {
-  color: var(--syn-string);
+  color: var(--doc-syn-string, var(--syn-string));
 }
 .tok-number,
 .tok-bool,
 .tok-null,
 .tok-atom {
-  color: var(--syn-number);
+  color: var(--doc-syn-number, var(--syn-number));
 }
 .tok-comment,
 .tok-lineComment,
 .tok-blockComment {
-  color: var(--syn-comment);
+  color: var(--doc-syn-comment, var(--syn-comment));
   font-style: italic;
 }
 .tok-function {
-  color: var(--syn-fn);
+  color: var(--doc-syn-fn, var(--syn-fn));
 }
 .tok-definition {
-  color: var(--syn-def);
+  color: var(--doc-syn-def, var(--syn-def));
 }
 .tok-typeName,
 .tok-className,
 .tok-namespace {
-  color: var(--syn-type);
+  color: var(--doc-syn-type, var(--syn-type));
 }
 .tok-operator,
 .tok-punctuation,
 .tok-separator,
 .tok-bracket,
 .tok-derefOperator {
-  color: var(--syn-punct);
+  color: var(--doc-syn-punct, var(--syn-punct));
 }
 .tok-propertyName {
-  color: var(--fg);
+  color: var(--doc-fg, var(--fg));
 }
 .tok-invalid {
   color: var(--danger);

@@ -63,6 +63,8 @@ pre code { background: none; padding: 0; }
 figure.code-block { margin: 0 0 1.1em; border: 1px solid var(--doc-border, var(--border)); border-radius: 10px; overflow: hidden; }
 figure.code-block figcaption {
   font: 600 11px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .04em;
+  /* after the shorthand, which would otherwise reset the family */
+  font-family: var(--doc-font, ui-sans-serif, system-ui, sans-serif);
   text-transform: uppercase; color: var(--doc-muted, var(--fg-muted));
   padding: 8px 12px; border-bottom: 1px solid var(--doc-border, var(--border)); background: var(--doc-code-bg, var(--code-bg));
 }
@@ -76,18 +78,18 @@ th, td { border: 1px solid var(--doc-border, var(--border)); padding: .5em .7em;
 th { background: var(--doc-code-bg, var(--code-bg)); }
 img { max-width: 100%; height: auto; }
 .lipi-tl, .lipi-block { font-family: inherit; letter-spacing: normal; word-spacing: normal; }
-.lipi-block { margin: 1.4em 0; padding-left: 1em; border-left: 3px solid var(--accent); }
-.tok-keyword, .tok-modifier { color: #cf222e; }
-.tok-string, .tok-string2 { color: #0a3069; }
-.tok-number, .tok-bool { color: #0550ae; }
-.tok-comment { color: var(--fg-muted); font-style: italic; }
+.lipi-block { margin: 1.4em 0; padding-left: 1em; border-left: 3px solid var(--doc-accent, var(--accent)); }
+.tok-keyword, .tok-modifier { color: var(--doc-syn-keyword, #cf222e); }
+.tok-string, .tok-string2 { color: var(--doc-syn-string, #0a3069); }
+.tok-number, .tok-bool { color: var(--doc-syn-number, #0550ae); }
+.tok-comment { color: var(--doc-syn-comment, var(--fg-muted)); font-style: italic; }
 .tok-variableName { color: inherit; }
-.tok-function { color: #8250df; }
+.tok-function { color: var(--doc-syn-fn, #8250df); }
 @media (prefers-color-scheme: dark) {
-  .tok-keyword, .tok-modifier { color: #ff7b72; }
-  .tok-string, .tok-string2 { color: #a5d6ff; }
-  .tok-number, .tok-bool { color: #79c0ff; }
-  .tok-function { color: #d2a8ff; }
+  .tok-keyword, .tok-modifier { color: var(--doc-syn-keyword, #ff7b72); }
+  .tok-string, .tok-string2 { color: var(--doc-syn-string, #a5d6ff); }
+  .tok-number, .tok-bool { color: var(--doc-syn-number, #79c0ff); }
+  .tok-function { color: var(--doc-syn-fn, #d2a8ff); }
 }
 figure.sketch { margin: 0 0 1.3em; text-align: center; }
 figure.sketch img {
@@ -96,10 +98,11 @@ figure.sketch img {
 .doc-footer { font-size: .85em; color: var(--doc-muted, var(--fg-muted)); }
 .doc-footer p:last-child { margin-bottom: 0; }
 p.doc-byline {
-  margin: -.4em 0 1.6em; font-family: ui-sans-serif, system-ui, sans-serif;
+  margin: -.4em 0 1.6em; font-family: var(--doc-font, ui-sans-serif, system-ui, sans-serif);
   font-size: .9em; color: var(--doc-muted, var(--fg-muted));
 }
 .doc-byline-label { font-weight: 600; opacity: .75; }
+.doc-byline-rev { display: block; margin-top: .25em; }
 .doc-version { font-size: .82em; font-variant-numeric: tabular-nums; letter-spacing: .02em; opacity: .85; }
 figure.sketch figcaption {
   margin-top: .5em; font: 12px/1.4 ui-sans-serif, system-ui, sans-serif; color: var(--fg-muted);
@@ -180,6 +183,12 @@ math { font-size: 1.05em; }
   .media-embed { display: none; }
   table { min-width: 0; }
   figure, pre, table, blockquote { break-inside: avoid; }
+  /* Diagrams and illustrations are sized to the page rather than kept at
+     whatever pixel size they happened to be captured at, and nothing is
+     allowed to run off the right edge where printing would simply clip it. */
+  figure.sketch img { width: 100%; }
+  img, canvas, svg, video { max-width: 100%; height: auto; }
+  .math-block, .table-scroll, .media { overflow: visible; }
   .tok-keyword, .tok-string, .tok-number, .tok-function, .tok-comment { color: #333 !important; }
 }
 `.trim();

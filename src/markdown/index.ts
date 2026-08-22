@@ -220,24 +220,31 @@ export function createMarkdown(): MarkdownIt {
     // author, and the label would be a lie.
     if (author && who) who = `<span class="doc-byline-label">Author:</span> ${who}`;
 
-    // Version sits directly after the name, then the date: it identifies which
-    // revision of the document this is, so it belongs with its author.
-    const parts = [who];
+    // Version and the date it applies to form a second line under the name.
+    // They describe the revision rather than the person, and a long author
+    // credit would otherwise push them off the end of the line.
+    const rev: string[] = [];
     if (version) {
-      parts.push(`<span class="doc-version">v${escapeHtml(String(version))}</span>`);
+      rev.push(`<span class="doc-version">v${escapeHtml(String(version))}</span>`);
     }
     // An explicit `date:` is the author's own statement and wins; otherwise the
     // document's own modified date stands in, falling back to when it was made.
     if (date) {
-      parts.push(escapeHtml(String(date)));
+      rev.push(escapeHtml(String(date)));
     } else if (modified || created) {
       const when = modified || created;
       const label = modified ? 'Updated' : 'Created';
-      parts.push(`<span class="doc-date">${label} ${escapeHtml(String(when))}</span>`);
+      rev.push(`<span class="doc-date">${label} ${escapeHtml(String(when))}</span>`);
     }
-    return `<p class="doc-byline">${parts
-      .filter(Boolean)
-      .join(' <span aria-hidden="true">·</span> ')}</p>\n`;
+
+    const lines: string[] = [];
+    if (who) lines.push(who);
+    if (rev.length) {
+      lines.push(
+        `<span class="doc-byline-rev">${rev.join(' <span aria-hidden="true">·</span> ')}</span>`,
+      );
+    }
+    return `<p class="doc-byline">${lines.join('')}</p>\n`;
   };
 
   // A wide table scrolls inside its own region rather than stretching the pane

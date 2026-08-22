@@ -80,6 +80,88 @@ function safeLength(value: string): string | undefined {
   return LENGTH.test(v) ? v : undefined;
 }
 
+/**
+ * Syntax-highlighting palettes chosen for the document's own page rather than
+ * the app's light/dark setting. Without this, a dark-paged theme read inside a
+ * light app draws dark tokens on a dark code block — the code is still there,
+ * but invisible — and a light-paged theme does the reverse in a dark app.
+ */
+const SYN_LIGHT: Record<string, string> = {
+  keyword: '#cf222e',
+  string: '#0a3069',
+  number: '#0550ae',
+  comment: '#5b6673',
+  fn: '#8250df',
+  def: '#953800',
+  type: '#116329',
+  punct: '#5b6673',
+};
+
+const SYN_DARK: Record<string, string> = {
+  keyword: '#ff7b72',
+  string: '#a5d6ff',
+  number: '#79c0ff',
+  comment: '#9aa7b8',
+  fn: '#d2a8ff',
+  def: '#ffa657',
+  type: '#7ee0c4',
+  punct: '#8d99a8',
+};
+
+/** `#abc`, `#aabbcc`, `rgb(…)` — and, in a browser, anything CSS understands. */
+function toRgb(value: string): [number, number, number] | undefined {
+  const v = value.trim();
+
+  const hex = v.match(/^#([0-9a-f]{3,8})$/i)?.[1];
+  if (hex) {
+    const wide = hex.length >= 6;
+    const at = (i: number) =>
+      wide ? parseInt(hex.slice(i * 2, i * 2 + 2), 16) : parseInt(hex[i] + hex[i], 16);
+    const rgb: [number, number, number] = [at(0), at(1), at(2)];
+    return rgb.every((n) => Number.isFinite(n)) ? rgb : undefined;
+  }
+
+  const inside = v.match(/^rgba?\(([^)]+)\)$/i)?.[1];
+  if (inside) {
+    const n = inside
+      .split(/[\s,/]+/)
+      .filter(Boolean)
+      .map(Number);
+    if (n.length >= 3 && n.slice(0, 3).every((x) => Number.isFinite(x))) {
+      return [n[0], n[1], n[2]];
+    }
+  }
+
+  // Named colours and every other syntax: let the browser resolve it.
+  if (typeof document === 'undefined') return undefined;
+  try {
+    const probe = document.createElement('span');
+    probe.style.color = v;
+    if (!probe.style.color) return undefined;
+    probe.style.display = 'none';
+    document.body.appendChild(probe);
+    const resolved = getComputedStyle(probe).color;
+    probe.remove();
+    return resolved === v ? undefined : toRgb(resolved);
+  } catch {
+    return undefined;
+  }
+}
+
+/** Whether the surface code sits on reads as dark. */
+function isDarkSurface(style: DocStyle): boolean | undefined {
+  const surface = style.codeBg ?? style.background;
+  if (!surface) return undefined;
+  const rgb = toRgb(surface);
+  if (!rgb) return undefined;
+
+  const channel = (v: number) => {
+    const f = v / 255;
+    return f <= 0.03928 ? f / 12.92 : ((f + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * channel(rgb[0]) + 0.7152 * channel(rgb[1]) + 0.0722 * channel(rgb[2]) < 0.4;
+}
+
 export function parseDocStyle(front: Frontmatter): DocStyle {
   const raw = front.raw ?? {};
   const pick = (...keys: string[]) => {
@@ -113,20 +195,24 @@ export function parseDocStyle(front: Frontmatter): DocStyle {
   const align = pick('align', 'text-align')?.toLowerCase();
   if (align && ALIGN.has(align)) style.align = align;
 
+  // A value that fails validation is ignored rather than applied. Assigning
+  // the `undefined` it returns would strip whatever the theme had set and
+  // leave the page half-styled — a dark theme's pale ink stranded on the app's
+  // light background, say, which is far worse than the typo it came from.
   const background = pick('background', 'bg', 'paper');
-  if (background) style.background = safeColor(background);
+  if (background) style.background = safeColor(background) ?? style.background;
 
   const color = pick('color', 'text', 'ink');
-  if (color) style.color = safeColor(color);
+  if (color) style.color = safeColor(color) ?? style.color;
 
   const accent = pick('accent', 'link');
-  if (accent) style.accent = safeColor(accent);
+  if (accent) style.accent = safeColor(accent) ?? style.accent;
 
   const width = pick('width', 'measure')?.toLowerCase();
-  if (width) style.measure = MEASURE[width] ?? safeLength(width);
+  if (width) style.measure = MEASURE[width] ?? safeLength(width) ?? style.measure;
 
   const size = pick('size', 'font-size');
-  if (size) style.size = safeLength(size);
+  if (size) style.size = safeLength(size) ?? style.size;
 
   return style;
 }
@@ -146,6 +232,16 @@ export function styleVars(style: DocStyle): Record<string, string> {
   if (style.lineHeight) vars['--doc-line-height'] = style.lineHeight;
   if (style.letterSpacing) vars['--doc-letter-spacing'] = style.letterSpacing;
   if (style.wordSpacing) vars['--doc-word-spacing'] = style.wordSpacing;
+  // Code tokens follow the document's page rather than the app's theme, for
+  // the same reason the muted colour below does.
+  const dark = isDarkSurface(style);
+  if (dark !== undefined) {
+    const palette = dark ? SYN_DARK : SYN_LIGHT;
+    for (const [token, value] of Object.entries(palette)) {
+      vars[`--doc-syn-${token}`] = value;
+    }
+  }
+
   // Headings and secondary text are derived from the document's own ink, not
   // the app theme's — otherwise a dark page inside a light app renders its
   // headings in near-black on near-black.

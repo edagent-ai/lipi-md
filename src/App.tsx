@@ -405,10 +405,13 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             className="brand-logo"
             src={logoUrl}
             alt="lipi.md"
-            width={556}
+            width={494}
             height={160}
             draggable={false}
           />
+          <p className="brand-tagline">
+            A Markdown editor that runs entirely in your browser.
+          </p>
         </div>
         <h1 className="doc-name" title={docs.current?.title}>
           {docs.current?.title || 'Untitled'}
