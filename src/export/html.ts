@@ -27,7 +27,7 @@ body {
   margin: 0 auto; padding: clamp(24px, 6vw, 48px) clamp(16px, 5vw, 24px) 96px;
   max-width: var(--doc-measure, 46rem);
   background: var(--doc-bg, var(--bg)); color: var(--doc-fg, var(--fg));
-  font-family: var(--doc-font, ui-serif, Georgia, "Times New Roman", serif);
+  font-family: var(--doc-font, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif);
   font-size: var(--doc-size, clamp(15px, 0.95rem + 0.15vw, 17px));
   line-height: var(--doc-line-height, 1.7);
   letter-spacing: var(--doc-letter-spacing, normal);

@@ -789,7 +789,7 @@ body.is-resizing iframe {
 
 .markdown {
   overflow-wrap: anywhere;
-  font-family: var(--doc-font, var(--font-serif));
+  font-family: var(--doc-font, var(--font-ui));
   font-size: var(--doc-size, 16.5px);
   line-height: var(--doc-line-height, 1.72);
   letter-spacing: var(--doc-letter-spacing, normal);

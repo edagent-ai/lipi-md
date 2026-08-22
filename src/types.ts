@@ -40,7 +40,9 @@ export const DEFAULT_SETTINGS: Settings = {
   sourceScheme: 'optitrans',
   defaultScript: 'kannada',
   editorFontSize: 14,
-  splitRatio: 0.5,
+  // Write : read = 1 : 2. Reading is what the pane is for; the source only
+  // needs enough room to edit a line comfortably.
+  splitRatio: 1 / 3,
   syncScroll: true,
   lineNumbers: false,
   sidebarOpen: true,
