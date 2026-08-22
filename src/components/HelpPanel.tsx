@@ -212,6 +212,12 @@ script: kannada
 scheme: optitrans
 ---`}</pre>
         <p className="field-hint">
+          <strong>Insert → Bump version</strong> raises a <code>version:</code> key here, creating
+          the frontmatter if there is none. It increments the last number, so <code>3</code>
+          becomes <code>4</code> and <code>1.2.9</code> becomes <code>1.2.10</code>. The current
+          version shows in the status bar.
+        </p>
+        <p className="field-hint">
           Optional, and only at the very top. Sets the title in the sidebar and the default script
           and input scheme for this document.
         </p>

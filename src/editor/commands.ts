@@ -255,3 +255,51 @@ animate('.dot', {
     '---\ntitle: My document\nfont: serif\nalign: justify\nwidth: normal\nsize: 17px\n' +
     'background: "#fffdf7"\ncolor: "#2b2b2b"\naccent: "#bf5700"\n---',
 } as const;
+
+/**
+ * Increments the last number in a version string, so `3` → `4`, `1.2.9` →
+ * `1.2.10` and `v2` → `v3` all behave sensibly. A label with no digits gains
+ * one rather than being overwritten, since discarding what the author wrote
+ * would be worse than an odd-looking bump.
+ */
+function nextVersion(raw: string): string {
+  const value = raw.trim().replace(/^["']|["']$/g, '');
+  if (!value) return '1';
+  const match = /^(.*?)(\d+)(\D*)$/.exec(value);
+  if (!match) return `${value}.1`;
+  return `${match[1]}${Number(match[2]) + 1}${match[3]}`;
+}
+
+/**
+ * Raises the document's `version:` in its frontmatter, adding the key — or the
+ * whole frontmatter block — when it is not there yet. Written as a minimal
+ * change so a single undo takes it back.
+ */
+export function bumpVersion(view: EditorView): void {
+  const { state } = view;
+  const text = state.doc.toString();
+  const front = /^---(\r?\n)([\s\S]*?)\r?\n---(\r?\n|$)/.exec(text);
+
+  if (!front) {
+    const insert = '---\nversion: 1\n---\n\n';
+    view.dispatch({ changes: { from: 0, insert }, selection: { anchor: insert.length } });
+    view.focus();
+    return;
+  }
+
+  const bodyStart = 3 + front[1].length;
+  const body = front[2];
+  const line = /^([ \t]*version[ \t]*:[ \t]*)(.*?)[ \t]*$/im.exec(body);
+
+  if (line) {
+    const from = bodyStart + line.index + line[1].length;
+    view.dispatch({
+      changes: { from, to: from + line[2].length, insert: nextVersion(line[2]) },
+    });
+  } else {
+    // Append the key just inside the closing fence.
+    const at = bodyStart + body.length;
+    view.dispatch({ changes: { from: at, insert: '\nversion: 1' } });
+  }
+  view.focus();
+}

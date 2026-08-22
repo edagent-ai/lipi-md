@@ -8,6 +8,8 @@ interface StatusBarProps {
   script: string;
   scheme: string;
   online: boolean;
+  /** Frontmatter `version:`, shown only once a document has one. */
+  version?: string;
   onOpenAbout(): void;
 }
 
@@ -23,6 +25,7 @@ export function StatusBar({
   script,
   scheme,
   online,
+  version,
   onOpenAbout,
 }: StatusBarProps) {
   const lines = text ? text.split('\n').length : 0;
@@ -35,6 +38,13 @@ export function StatusBar({
       <span>{countWords(text)} words</span>
       <span className="statusbar-sep">·</span>
       <span>{lines} lines</span>
+
+      {version && (
+        <>
+          <span className="statusbar-sep">·</span>
+          <span title="Document version, from its frontmatter">v{version}</span>
+        </>
+      )}
 
       <span className="statusbar-spacer" />
 

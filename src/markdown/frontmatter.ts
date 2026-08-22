@@ -6,6 +6,8 @@ export interface Frontmatter {
   script?: string;
   /** Roman scheme the document is written in. */
   scheme?: string;
+  /** Document version, bumped on demand from the toolbar. */
+  version?: string;
   /** Every key as written, for presentation settings (see `docstyle.ts`). */
   raw: Record<string, string>;
 }
@@ -29,6 +31,7 @@ export function parseFrontmatter(src: string): Frontmatter {
     if (key === 'title') out.title = value;
     else if (key === 'script' || key === 'lang' || key === 'language') out.script = value;
     else if (key === 'scheme' || key === 'input') out.scheme = value;
+    else if (key === 'version') out.version = value;
   }
   return out;
 }

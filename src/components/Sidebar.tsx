@@ -10,6 +10,7 @@ interface SidebarProps {
   onSelect(id: string): void;
   onCreate(): void;
   onRequestDelete(doc: Doc): void;
+  onRequestReset(doc: Doc): void;
   onDuplicate(id: string): void;
   onImport(): void;
   onJumpToLine(line: number): void;
@@ -23,6 +24,7 @@ export function Sidebar({
   onSelect,
   onCreate,
   onRequestDelete,
+  onRequestReset,
   onDuplicate,
   onImport,
   onJumpToLine,
@@ -79,12 +81,15 @@ export function Sidebar({
                   ⧉
                 </button>
                 {doc.example ? (
-                  <span
-                    className="doc-badge"
-                    title="The example that ships with lipi.md. You can edit it, but it cannot be deleted."
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    title="Reset to the original"
+                    aria-label={`Reset ${doc.title || 'Untitled'} to the original`}
+                    onClick={() => onRequestReset(doc)}
                   >
-                    example
-                  </span>
+                    ↺
+                  </button>
                 ) : (
                   <button
                     type="button"

@@ -7,8 +7,10 @@ import { StatusBar } from './components/StatusBar';
 import { SettingsPanel } from './components/SettingsPanel';
 import { HelpPanel } from './components/HelpPanel';
 import { AboutPanel } from './components/AboutPanel';
-import { DeleteDialog } from './components/DeleteDialog';
+import { ConfirmDialog } from './components/ConfirmDialog';
+import { redo, undo } from '@codemirror/commands';
 import {
+  bumpVersion,
   insertBlock,
   insertLink,
   SNIPPETS,
@@ -26,7 +28,7 @@ import { exportHtml } from './export/html';
 import { captureSketches } from './export/capture';
 import { useDocs } from './store/docs';
 import { useSettings } from './store/settings';
-import { download, slugify } from './lib/util';
+import { countWords, download, slugify } from './lib/util';
 import { createScrollLock } from './preview/scrollSync';
 import { styleVars } from './markdown/docstyle';
 import { loadMath, looksLikeMath, mathReady } from './math';
@@ -49,6 +51,8 @@ export default function App({ updateReady, onUpdate }: AppProps) {
   const [online, setOnline] = useState(() => navigator.onLine);
   const [activeHeading, setActiveHeading] = useState('');
   const [pendingDelete, setPendingDelete] = useState<Doc | null>(null);
+  const [pendingReset, setPendingReset] = useState<Doc | null>(null);
+  const [history, setHistory] = useState({ canUndo: false, canRedo: false });
   // Bumped when KaTeX finishes loading, to re-render maths that first rendered
   // as raw TeX.
   const [mathEpoch, setMathEpoch] = useState(0);
@@ -149,6 +153,13 @@ export default function App({ updateReady, onUpdate }: AppProps) {
         break;
       case 'macro':
         wrapMacro(view, action.script);
+        break;
+      case 'history':
+        (action.direction === 'undo' ? undo : redo)(view);
+        view.focus();
+        break;
+      case 'bumpVersion':
+        bumpVersion(view);
         break;
     }
   }, []);
@@ -324,6 +335,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       value={text}
       onChange={docs.setText}
       onScroll={onEditorScroll}
+      onHistoryChange={setHistory}
       fontSize={settings.editorFontSize}
       showLineNumbers={settings.lineNumbers}
       dark={dark}
@@ -372,6 +384,8 @@ export default function App({ updateReady, onUpdate }: AppProps) {
         onExportPdf={() => void doExportPdf()}
         onOpenSettings={() => setPanel('settings')}
         onOpenHelp={() => setPanel('help')}
+        canUndo={history.canUndo}
+        canRedo={history.canRedo}
       />
 
       <div className="workspace">
@@ -384,6 +398,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             onSelect={docs.select}
             onCreate={() => void docs.create()}
             onRequestDelete={setPendingDelete}
+            onRequestReset={setPendingReset}
             onDuplicate={(id) => void docs.duplicate(id)}
             onImport={() => fileInputRef.current?.click()}
             onJumpToLine={jumpToLine}
@@ -419,6 +434,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
         text={text}
         script={translitEnv.defaultScript}
         scheme={translitEnv.sourceScheme}
+        version={parseFrontmatter(text).version}
         online={online}
         onOpenAbout={() => setPanel('about')}
       />
@@ -432,14 +448,46 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       )}
       {panel === 'help' && <HelpPanel onClose={() => setPanel(null)} />}
       {pendingDelete && (
-        <DeleteDialog
-          doc={pendingDelete}
+        <ConfirmDialog
+          title="Delete document"
+          confirmLabel="Delete document"
+          requireName={pendingDelete.title || 'Untitled'}
+          danger
           onCancel={() => setPendingDelete(null)}
           onConfirm={() => {
             void docs.remove(pendingDelete.id);
             setPendingDelete(null);
           }}
-        />
+        >
+          <p>
+            This deletes <strong>{pendingDelete.title || 'Untitled'}</strong> from this browser.
+            It cannot be undone, and lipi.md keeps no copy anywhere else.
+          </p>
+          <p className="field-hint">
+            {countWords(pendingDelete.text)} words · {pendingDelete.text.length} characters.
+            Export it first if you might want it back.
+          </p>
+        </ConfirmDialog>
+      )}
+      {pendingReset && (
+        <ConfirmDialog
+          title="Reset to the original"
+          confirmLabel="Reset document"
+          onCancel={() => setPendingReset(null)}
+          onConfirm={() => {
+            void docs.reset(pendingReset.id);
+            setPendingReset(null);
+          }}
+        >
+          <p>
+            This puts the original example back into{' '}
+            <strong>{pendingReset.title || 'Untitled'}</strong>, discarding any changes you have
+            made to it.
+          </p>
+          <p className="field-hint">
+            Your other documents are untouched. To keep the current version, duplicate it first.
+          </p>
+        </ConfirmDialog>
       )}
       {panel === 'about' && (
         <AboutPanel

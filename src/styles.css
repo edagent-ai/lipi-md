@@ -1388,20 +1388,6 @@ output {
   outline-offset: 1px;
 }
 
-/* Marks the shipped example, which cannot be deleted. */
-.doc-badge {
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: var(--bg-hover);
-  color: var(--fg-faint);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  cursor: help;
-}
-
 .button-row {
   display: flex;
   flex-wrap: wrap;

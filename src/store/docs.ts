@@ -203,6 +203,37 @@ export function useDocs() {
     [currentId],
   );
 
+  /**
+   * Restores the shipped example over whatever the document now contains. This
+   * is what the example offers in place of deletion: it can always be put back,
+   * so there is no need to keep a pristine copy around.
+   */
+  const reset = useCallback(
+    async (id: string) => {
+      const target = docsRef.current.find((d) => d.id === id);
+      if (!target?.example) return;
+
+      // Drop any queued autosave, or the debounced write would land after this
+      // and put the edited text straight back.
+      scheduleSave.cancel();
+      if (pending.current?.id === id) pending.current = null;
+
+      const restored: Doc = {
+        ...target,
+        text: WELCOME_DOC,
+        title: deriveTitle(WELCOME_DOC),
+        updatedAt: Date.now(),
+      };
+      await idbSet('docs', id, restored);
+
+      const next = docsRef.current.map((d) => (d.id === id ? restored : d));
+      docsRef.current = next;
+      setDocs(next);
+      setSaveState('saved');
+    },
+    [scheduleSave],
+  );
+
   const duplicate = useCallback(
     async (id: string) => {
       const source = docs.find((d) => d.id === id);
@@ -224,6 +255,7 @@ export function useDocs() {
     select,
     create,
     remove,
+    reset,
     duplicate,
     saveNow: flush,
   };

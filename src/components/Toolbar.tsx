@@ -9,7 +9,9 @@ export type ToolbarAction =
   | { kind: 'link' }
   | { kind: 'block'; snippet: keyof typeof import('../editor/commands').SNIPPETS }
   | { kind: 'surround'; open: string; close: string; placeholder: string }
-  | { kind: 'macro'; script: string };
+  | { kind: 'macro'; script: string }
+  | { kind: 'history'; direction: 'undo' | 'redo' }
+  | { kind: 'bumpVersion' };
 
 interface ToolbarProps {
   onAction(action: ToolbarAction): void;
@@ -23,6 +25,8 @@ interface ToolbarProps {
   onExportPdf(): void;
   onOpenSettings(): void;
   onOpenHelp(): void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 const MOD = navigator.platform.toLowerCase().includes('mac') ? '⌘' : 'Ctrl';
@@ -39,6 +43,8 @@ export function Toolbar({
   onExportPdf,
   onOpenSettings,
   onOpenHelp,
+  canUndo,
+  canRedo,
 }: ToolbarProps) {
   const quickScripts = TARGET_SCRIPTS.slice(0, 6);
   // Read view has no editor behind it, so authoring controls would be inert.
@@ -56,6 +62,29 @@ export function Toolbar({
         aria-pressed={sidebarOpen}
       >
         ☰
+      </button>
+
+      <span className="toolbar-sep" />
+
+      <button
+        type="button"
+        className="icon-btn"
+        disabled={readOnly || !canUndo}
+        title={editTitle(`Undo (${MOD}Z)`)}
+        aria-label="Undo"
+        onClick={() => onAction({ kind: 'history', direction: 'undo' })}
+      >
+        ↶
+      </button>
+      <button
+        type="button"
+        className="icon-btn"
+        disabled={readOnly || !canRedo}
+        title={editTitle(`Redo (${MOD}⇧Z)`)}
+        aria-label="Redo"
+        onClick={() => onAction({ kind: 'history', direction: 'redo' })}
+      >
+        ↷
       </button>
 
       <span className="toolbar-sep" />
@@ -145,6 +174,7 @@ export function Toolbar({
         <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'style' })}>
           Page style block
         </MenuItem>
+        <MenuItem onClick={() => onAction({ kind: 'bumpVersion' })}>Bump version</MenuItem>
       </Menu>
 
       <Menu label="Sketch" disabled={readOnly}>

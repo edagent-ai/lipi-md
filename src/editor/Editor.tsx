@@ -12,7 +12,14 @@ import {
   placeholder as placeholderExt,
   rectangularSelection,
 } from '@codemirror/view';
-import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
+import {
+  defaultKeymap,
+  history,
+  historyKeymap,
+  indentWithTab,
+  redoDepth,
+  undoDepth,
+} from '@codemirror/commands';
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search';
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { LanguageDescription } from '@codemirror/language';
@@ -46,6 +53,8 @@ interface EditorProps {
   value: string;
   onChange(value: string): void;
   onScroll(): void;
+  /** Reports whether undo/redo currently have anything to do. */
+  onHistoryChange?(state: { canUndo: boolean; canRedo: boolean }): void;
   fontSize: number;
   showLineNumbers: boolean;
   dark: boolean;
@@ -57,7 +66,7 @@ Write Markdown. Add @kannada(namaskaara) to render native script,
 or a \`\`\`p5 block to run a live sketch.`;
 
 export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
-  { docId, value, onChange, onScroll, fontSize, showLineNumbers, dark },
+  { docId, value, onChange, onScroll, onHistoryChange, fontSize, showLineNumbers, dark },
   ref,
 ) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -68,6 +77,8 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
   onChangeRef.current = onChange;
   const onScrollRef = useRef(onScroll);
   onScrollRef.current = onScroll;
+  const onHistoryRef = useRef(onHistoryChange);
+  onHistoryRef.current = onHistoryChange;
   const lastEmitted = useRef(value);
 
   const lineNumberComp = useRef(new Compartment()).current;
@@ -106,6 +117,13 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
           placeholderExt(PLACEHOLDER),
           editorTheme,
           EditorView.updateListener.of((update) => {
+            // Depth is reported on every update, not only document changes:
+            // undo itself does not change the document from React's point of
+            // view on the redo side.
+            onHistoryRef.current?.({
+              canUndo: undoDepth(update.state) > 0,
+              canRedo: redoDepth(update.state) > 0,
+            });
             if (!update.docChanged) return;
             const text = update.state.doc.toString();
             lastEmitted.current = text;
