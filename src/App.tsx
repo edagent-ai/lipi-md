@@ -7,6 +7,7 @@ import { StatusBar } from './components/StatusBar';
 import { SettingsPanel } from './components/SettingsPanel';
 import { HelpPanel } from './components/HelpPanel';
 import { AboutPanel } from './components/AboutPanel';
+import { DeleteDialog } from './components/DeleteDialog';
 import {
   insertBlock,
   insertLink,
@@ -29,7 +30,7 @@ import { download, slugify } from './lib/util';
 import { createScrollLock } from './preview/scrollSync';
 import { styleVars } from './markdown/docstyle';
 import { loadMath, looksLikeMath, mathReady } from './math';
-import type { ViewMode } from './types';
+import type { Doc, ViewMode } from './types';
 import logoUrl from './assets/logo.png';
 
 type Panel = 'settings' | 'help' | 'about' | null;
@@ -47,6 +48,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
   const [panel, setPanel] = useState<Panel>(null);
   const [online, setOnline] = useState(() => navigator.onLine);
   const [activeHeading, setActiveHeading] = useState('');
+  const [pendingDelete, setPendingDelete] = useState<Doc | null>(null);
   // Bumped when KaTeX finishes loading, to re-render maths that first rendered
   // as raw TeX.
   const [mathEpoch, setMathEpoch] = useState(0);
@@ -381,7 +383,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             activeHeading={activeHeading}
             onSelect={docs.select}
             onCreate={() => void docs.create()}
-            onDelete={(id) => void docs.remove(id)}
+            onRequestDelete={setPendingDelete}
             onDuplicate={(id) => void docs.duplicate(id)}
             onImport={() => fileInputRef.current?.click()}
             onJumpToLine={jumpToLine}
@@ -429,6 +431,16 @@ export default function App({ updateReady, onUpdate }: AppProps) {
         />
       )}
       {panel === 'help' && <HelpPanel onClose={() => setPanel(null)} />}
+      {pendingDelete && (
+        <DeleteDialog
+          doc={pendingDelete}
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={() => {
+            void docs.remove(pendingDelete.id);
+            setPendingDelete(null);
+          }}
+        />
+      )}
       {panel === 'about' && (
         <AboutPanel
           onClose={() => setPanel(null)}

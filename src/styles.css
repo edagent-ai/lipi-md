@@ -1347,6 +1347,61 @@ output {
   font-weight: 550;
 }
 
+.btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+  font-weight: 550;
+}
+
+.btn-danger:hover:not(:disabled) {
+  border-color: var(--danger);
+  filter: brightness(0.93);
+}
+
+.btn-danger:disabled {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--fg-muted);
+}
+
+/* Type-the-name confirmation */
+.delete-confirm {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.delete-confirm input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--fg);
+  font: inherit;
+  font-size: 14px;
+}
+
+.delete-confirm input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Marks the shipped example, which cannot be deleted. */
+.doc-badge {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  color: var(--fg-faint);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: help;
+}
+
 .button-row {
   display: flex;
   flex-wrap: wrap;

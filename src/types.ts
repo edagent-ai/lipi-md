@@ -4,6 +4,11 @@ export interface Doc {
   text: string;
   createdAt: number;
   updatedAt: number;
+  /**
+   * True for the document lipi.md ships with. It can be edited freely but not
+   * deleted, so the reference example is always there to come back to.
+   */
+  example?: boolean;
 }
 
 export type ThemeMode = 'light' | 'dark' | 'auto';

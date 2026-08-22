@@ -9,7 +9,7 @@ interface SidebarProps {
   activeHeading: string;
   onSelect(id: string): void;
   onCreate(): void;
-  onDelete(id: string): void;
+  onRequestDelete(doc: Doc): void;
   onDuplicate(id: string): void;
   onImport(): void;
   onJumpToLine(line: number): void;
@@ -22,7 +22,7 @@ export function Sidebar({
   activeHeading,
   onSelect,
   onCreate,
-  onDelete,
+  onRequestDelete,
   onDuplicate,
   onImport,
   onJumpToLine,
@@ -78,18 +78,24 @@ export function Sidebar({
                 >
                   ⧉
                 </button>
-                <button
-                  type="button"
-                  className="icon-btn is-danger"
-                  title="Delete"
-                  onClick={() => {
-                    if (confirm(`Delete “${doc.title || 'Untitled'}”? This cannot be undone.`)) {
-                      void onDelete(doc.id);
-                    }
-                  }}
-                >
-                  ✕
-                </button>
+                {doc.example ? (
+                  <span
+                    className="doc-badge"
+                    title="The example that ships with lipi.md. You can edit it, but it cannot be deleted."
+                  >
+                    example
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="icon-btn is-danger"
+                    title={`Delete “${doc.title || 'Untitled'}”`}
+                    aria-label={`Delete ${doc.title || 'Untitled'}`}
+                    onClick={() => onRequestDelete(doc)}
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
             </li>
           ))}

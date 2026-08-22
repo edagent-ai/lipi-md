@@ -23,10 +23,15 @@ export function deriveTitle(text: string): string {
   return firstLine ? firstLine.replace(/[#*`_>]/g, '').trim().slice(0, 120) : 'Untitled';
 }
 
-function newDoc(text: string): Doc {
+function newDoc(text: string, example = false): Doc {
   const now = Date.now();
-  return { id: uid(), title: deriveTitle(text), text, createdAt: now, updatedAt: now };
+  const doc: Doc = { id: uid(), title: deriveTitle(text), text, createdAt: now, updatedAt: now };
+  if (example) doc.example = true;
+  return doc;
 }
+
+/** The shipped example is protected from deletion; everything else is fair game. */
+export const isExample = (doc: Doc | undefined): boolean => doc?.example === true;
 
 const byRecency = (a: Doc, b: Doc) => b.updatedAt - a.updatedAt;
 
@@ -39,6 +44,8 @@ export function useDocs() {
   /* The autosave debouncer must survive re-renders, and needs the latest doc
    * without re-creating itself on every keystroke. */
   const pending = useRef<Doc | null>(null);
+  /** Latest documents, for callbacks that must not depend on render order. */
+  const docsRef = useRef<Doc[]>([]);
 
   const flush = useCallback(async () => {
     const doc = pending.current;
@@ -60,13 +67,23 @@ export function useDocs() {
       if (cancelled) return;
 
       if (!stored.length) {
-        const welcome = newDoc(WELCOME_DOC);
+        const welcome = newDoc(WELCOME_DOC, true);
         await idbSet('docs', welcome.id, welcome);
         await idbSet('kv', CURRENT_KEY, welcome.id);
         if (cancelled) return;
         setDocs([welcome]);
         setCurrentId(welcome.id);
       } else {
+        // Installs seeded before the flag existed have an unmarked example.
+        // Only an untouched copy is adopted, so a document the user has since
+        // made their own is never silently made undeletable.
+        if (!stored.some((d) => d.example)) {
+          const pristine = stored.find((d) => d.text === WELCOME_DOC);
+          if (pristine) {
+            pristine.example = true;
+            void idbSet('docs', pristine.id, pristine);
+          }
+        }
         stored.sort(byRecency);
         const id = savedId && stored.some((d) => d.id === savedId) ? savedId : stored[0].id;
         setDocs(stored);
@@ -95,6 +112,8 @@ export function useDocs() {
       document.removeEventListener('visibilitychange', onHide);
     };
   }, [flush, scheduleSave]);
+
+  docsRef.current = docs;
 
   const current = useMemo(() => docs.find((d) => d.id === currentId), [docs, currentId]);
 
@@ -148,22 +167,35 @@ export function useDocs() {
 
   const remove = useCallback(
     async (id: string) => {
+      const target = docsRef.current.find((d) => d.id === id);
+      // Enforced here as well as in the UI, so no caller can delete the example.
+      if (!target || target.example) return;
+
       await idbDel('docs', id);
-      let nextId = '';
-      setDocs((prev) => {
-        const next = prev.filter((d) => d.id !== id);
-        if (id === currentId) nextId = next[0]?.id ?? '';
-        return next;
-      });
+
+      // Computed from the ref rather than from inside a setState updater: the
+      // updater may not have run yet, and reading its result through a closure
+      // variable made this think the library was empty and replace it with a
+      // single blank document.
+      const remaining = docsRef.current.filter((d) => d.id !== id);
+
+      if (!remaining.length) {
+        // Nothing left to show — hand back a blank page rather than an empty
+        // shell with nothing to type into.
+        const doc = newDoc(BLANK_DOC);
+        await idbSet('docs', doc.id, doc);
+        docsRef.current = [doc];
+        setDocs([doc]);
+        setCurrentId(doc.id);
+        await idbSet('kv', CURRENT_KEY, doc.id);
+        return;
+      }
+
+      docsRef.current = remaining;
+      setDocs(remaining);
+
       if (id === currentId) {
-        // Deleting the last document leaves the user with a blank page rather
-        // than an empty shell with nothing to type into.
-        if (!nextId) {
-          const doc = newDoc(BLANK_DOC);
-          await idbSet('docs', doc.id, doc);
-          setDocs([doc]);
-          nextId = doc.id;
-        }
+        const nextId = remaining[0].id;
         setCurrentId(nextId);
         await idbSet('kv', CURRENT_KEY, nextId);
       }
