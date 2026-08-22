@@ -22,7 +22,7 @@ instructions for building altars set down the relation that now carries the
 Greek name. This is a short summary in English, @sa:iast(saṃskṛta) and
 @lipi(kannaDa).
 
-## What the text is
+## Practical origins of the theorem
 
 The **Baudhāyana Śulbasūtra** belongs to the Kalpasūtra of the Taittirīya school
 of the Kṛṣṇa Yajurveda, and is usually placed around the eighth century
