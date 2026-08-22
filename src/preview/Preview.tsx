@@ -10,8 +10,11 @@ import type { Segment } from '../markdown';
 import { SandboxHost, type SandboxDeps } from './SandboxHost';
 import { collectAnchors, lineForOffset, offsetForLine, type Anchor } from './scrollSync';
 
-/** Pixels of clear space a margin sidenote needs beside the text column. */
-const SIDENOTE_MARGIN = 250;
+/**
+ * Narrowest pane that can carry a text column and a sidenote column side by
+ * side. Below it the notes stay in the flow rather than being hidden.
+ */
+const SIDENOTE_COLUMN_MIN = 560;
 
 interface Entry {
   node: HTMLElement;
@@ -232,12 +235,11 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
 
     const sync = () => {
       rendererRef.current?.invalidate();
-      // Margin sidenotes need room *beside* the text column, which depends on
-      // the pane rather than the viewport — a wide window split in two has no
-      // room at all. Measured here because CSS cannot see the pane width
-      // without containment that would trap the fullscreen sandbox overlay.
-      const surplus = (scroller.clientWidth - host.clientWidth) / 2;
-      scroller.classList.toggle('is-roomy', surplus >= SIDENOTE_MARGIN);
+      // Whether the pane can carry a sidenote column depends on the pane, not
+      // the viewport — a wide window split in two often cannot. Measured here
+      // because CSS cannot see the pane width without containment that would
+      // trap the fullscreen sandbox overlay.
+      scroller.classList.toggle('is-roomy', scroller.clientWidth >= SIDENOTE_COLUMN_MIN);
     };
 
     const observer = new ResizeObserver(sync);

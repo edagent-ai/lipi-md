@@ -1,6 +1,7 @@
 import type { Doc } from '../types';
 import type { Heading } from '../markdown';
-import { countWords, formatWhen } from '../lib/util';
+import { DocTree } from './DocTree';
+import { countWords } from '../lib/util';
 
 interface SidebarProps {
   docs: Doc[];
@@ -11,6 +12,7 @@ interface SidebarProps {
   onCreate(): void;
   onRequestDelete(doc: Doc): void;
   onRequestReset(doc: Doc): void;
+  onRequestMove(doc: Doc): void;
   onDuplicate(id: string): void;
   onImport(): void;
   onJumpToLine(line: number): void;
@@ -25,6 +27,7 @@ export function Sidebar({
   onCreate,
   onRequestDelete,
   onRequestReset,
+  onRequestMove,
   onDuplicate,
   onImport,
   onJumpToLine,
@@ -58,53 +61,15 @@ export function Sidebar({
           </div>
         </div>
 
-        <ul className="doc-list">
-          {docs.map((doc) => (
-            <li key={doc.id}>
-              <button
-                type="button"
-                className={`doc-item${doc.id === currentId ? ' is-active' : ''}`}
-                onClick={() => onSelect(doc.id)}
-              >
-                <span className="doc-title">{doc.title || 'Untitled'}</span>
-                <span className="doc-meta">
-                  {formatWhen(doc.updatedAt)} · {countWords(doc.text)} words
-                </span>
-              </button>
-              <div className="doc-actions">
-                <button
-                  type="button"
-                  className="icon-btn"
-                  title="Duplicate"
-                  onClick={() => onDuplicate(doc.id)}
-                >
-                  ⧉
-                </button>
-                {doc.example ? (
-                  <button
-                    type="button"
-                    className="icon-btn"
-                    title="Reset to the original"
-                    aria-label={`Reset ${doc.title || 'Untitled'} to the original`}
-                    onClick={() => onRequestReset(doc)}
-                  >
-                    ↺
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="icon-btn is-danger"
-                    title={`Delete “${doc.title || 'Untitled'}”`}
-                    aria-label={`Delete ${doc.title || 'Untitled'}`}
-                    onClick={() => onRequestDelete(doc)}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
+        <DocTree
+          docs={docs}
+          currentId={currentId}
+          onSelect={onSelect}
+          onDuplicate={onDuplicate}
+          onRequestDelete={onRequestDelete}
+          onRequestReset={onRequestReset}
+          onRequestMove={onRequestMove}
+        />
       </div>
 
       {headings.length > 0 && (

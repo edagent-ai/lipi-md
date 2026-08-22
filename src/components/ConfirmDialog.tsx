@@ -26,6 +26,7 @@ export function ConfirmDialog({
   onConfirm,
 }: ConfirmDialogProps) {
   const [typed, setTyped] = useState('');
+  const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Only surrounding whitespace is forgiven; the name itself must match.
@@ -38,6 +39,21 @@ export function ConfirmDialog({
     inputRef.current?.focus();
   }, []);
 
+  // Titles routinely carry diacritics — "Baudhāyana's theorem" is painful to
+  // retype on most keyboards — so the name can be copied rather than typed.
+  const copyName = async () => {
+    if (!requireName) return;
+    try {
+      await navigator.clipboard.writeText(requireName);
+    } catch {
+      // Clipboard blocked (insecure context, denied permission): fall back to
+      // filling the field directly, which is what the copy was for anyway.
+      setTyped(requireName);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1400);
+  };
+
   return (
     <Modal title={title} onClose={onCancel}>
       <section className="settings-group">{children}</section>
@@ -45,8 +61,13 @@ export function ConfirmDialog({
       <section className="settings-group">
         {requireName && (
           <label className="delete-confirm">
-            <span>
-              Type <strong>{requireName}</strong> to confirm:
+            <span className="delete-confirm-label">
+              <span>
+                Type <strong>{requireName}</strong> to confirm:
+              </span>
+              <button type="button" className="link-btn" onClick={() => void copyName()}>
+                {copied ? 'Copied' : 'Copy name'}
+              </button>
             </span>
             <input
               ref={inputRef}

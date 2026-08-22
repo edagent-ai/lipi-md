@@ -1,5 +1,6 @@
 import { Menu, MenuItem } from './Menu';
 import { TARGET_SCRIPTS } from '../translit/schemes';
+import { THEMES } from '../markdown/themes';
 import type { ViewMode } from '../types';
 
 export type ToolbarAction =
@@ -11,7 +12,8 @@ export type ToolbarAction =
   | { kind: 'surround'; open: string; close: string; placeholder: string }
   | { kind: 'macro'; script: string }
   | { kind: 'history'; direction: 'undo' | 'redo' }
-  | { kind: 'bumpVersion' };
+  | { kind: 'bumpVersion' }
+  | { kind: 'theme'; theme: string | null };
 
 interface ToolbarProps {
   onAction(action: ToolbarAction): void;
@@ -27,6 +29,8 @@ interface ToolbarProps {
   onOpenHelp(): void;
   canUndo: boolean;
   canRedo: boolean;
+  /** Current frontmatter version, shown on the bump button. */
+  version?: string;
 }
 
 const MOD = navigator.platform.toLowerCase().includes('mac') ? '⌘' : 'Ctrl';
@@ -45,6 +49,7 @@ export function Toolbar({
   onOpenHelp,
   canUndo,
   canRedo,
+  version,
 }: ToolbarProps) {
   const quickScripts = TARGET_SCRIPTS.slice(0, 6);
   // Read view has no editor behind it, so authoring controls would be inert.
@@ -174,7 +179,6 @@ export function Toolbar({
         <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'style' })}>
           Page style block
         </MenuItem>
-        <MenuItem onClick={() => onAction({ kind: 'bumpVersion' })}>Bump version</MenuItem>
       </Menu>
 
       <Menu label="Sketch" disabled={readOnly}>
@@ -187,6 +191,18 @@ export function Toolbar({
         <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'p5' })}>
           p5.js sketch
         </MenuItem>
+      </Menu>
+
+      <Menu label="Theme" disabled={readOnly}>
+        <MenuItem onClick={() => onAction({ kind: 'theme', theme: null })}>
+          Default (follows the app)
+        </MenuItem>
+        <hr />
+        {Object.entries(THEMES).map(([name, preset]) => (
+          <MenuItem key={name} onClick={() => onAction({ kind: 'theme', theme: name })}>
+            {preset.label} — {preset.blurb}
+          </MenuItem>
+        ))}
       </Menu>
 
       <Menu label="Script" disabled={readOnly}>
@@ -204,6 +220,17 @@ export function Toolbar({
           Transliterated block
         </MenuItem>
       </Menu>
+
+      <button
+        type="button"
+        className="icon-btn is-version"
+        disabled={readOnly}
+        title={editTitle(version ? `Bump version (now ${version})` : 'Add a version')}
+        aria-label={version ? `Bump version, currently ${version}` : 'Add a version'}
+        onClick={() => onAction({ kind: 'bumpVersion' })}
+      >
+        {version ? `v${version}` : 'v+'}
+      </button>
 
       <span className="toolbar-spacer" />
 

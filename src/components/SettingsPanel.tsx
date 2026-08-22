@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Modal } from './Modal';
 import { SOURCE_SCHEMES, TARGET_SCRIPTS } from '../translit/schemes';
+import { THEMES } from '../markdown/themes';
 import {
   getP5Meta,
   installFromFile,
@@ -51,6 +52,27 @@ export function SettingsPanel({ settings, onChange, onClose }: SettingsPanelProp
             <output>{settings.editorFontSize}px</output>
           </span>
         </label>
+
+        <label className="field">
+          <span>Document theme</span>
+          <select
+            value={settings.defaultTheme}
+            onChange={(e) => onChange({ defaultTheme: e.target.value })}
+          >
+            <option value="">Follow the app theme</option>
+            {Object.entries(THEMES).map(([name, preset]) => (
+              <option key={name} value={name}>
+                {preset.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="field-hint">
+          {settings.defaultTheme
+            ? THEMES[settings.defaultTheme]?.blurb
+            : 'Rendered pages follow the light or dark app theme.'}{' '}
+          A document that names its own <code>theme:</code> always wins.
+        </p>
 
         <label className="field field-check">
           <input

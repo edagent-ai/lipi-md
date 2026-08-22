@@ -42,6 +42,29 @@ function lineAnchors(state: StateCore): boolean {
   return true;
 }
 
+/**
+ * Puts the author and date directly under the document's title, where a byline
+ * belongs. Injected as a token rather than asked of the author, so the same
+ * frontmatter drives the preview, the exports and the PDF running header.
+ */
+function byline(state: StateCore): boolean {
+  const meta = (state.env as { byline?: { author?: string; date?: string } }).byline;
+  if (!meta?.author && !meta?.date) return true;
+
+  const { tokens } = state;
+  const index = tokens.findIndex((t) => t.type === 'heading_open' && t.tag === 'h1');
+  if (index < 0) return true;
+
+  const close = tokens.findIndex((t, i) => i > index && t.type === 'heading_close');
+  if (close < 0) return true;
+
+  const token = new state.Token('lipi_byline', 'p', 0);
+  token.block = true;
+  token.meta = meta;
+  tokens.splice(close + 1, 0, token);
+  return true;
+}
+
 /** Slug ids for headings, derived from the roman source so links stay stable. */
 function headingIds(state: StateCore): boolean {
   const used = new Map<string, number>();
@@ -124,8 +147,15 @@ export function createMarkdown(): MarkdownIt {
   md.use(sidenotePlugin);
   md.use(mediaPlugin);
   md.core.ruler.after('inline', 'lipi_heading_ids', headingIds);
+  md.core.ruler.push('lipi_byline', byline);
   md.core.ruler.push('lipi_line_anchors', lineAnchors);
   md.renderer.rules.fence = renderFence;
+
+  md.renderer.rules.lipi_byline = (tokens, idx) => {
+    const { author, date } = tokens[idx].meta as { author?: string; date?: string };
+    const parts = [author, date].filter(Boolean).map((v) => escapeHtml(String(v)));
+    return `<p class="doc-byline">${parts.join(' <span aria-hidden="true">·</span> ')}</p>\n`;
+  };
 
   // A wide table scrolls inside its own region rather than stretching the pane
   // (or the exported page) to fit. Done in the shared renderer so the preview
@@ -158,7 +188,11 @@ export function build(
   mathOutput: MathOutput = 'html',
 ): BuildResult {
   const frontmatter = parseFrontmatter(src);
-  const env = { translit, mathOutput };
+  const env = {
+    translit,
+    mathOutput,
+    byline: { author: frontmatter.author, date: frontmatter.date },
+  };
   const tokens = md.parse(src, env);
 
   const segments: Segment[] = [];

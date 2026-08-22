@@ -8,10 +8,13 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { HelpPanel } from './components/HelpPanel';
 import { AboutPanel } from './components/AboutPanel';
 import { ConfirmDialog } from './components/ConfirmDialog';
+import { MoveDialog } from './components/MoveDialog';
+import { folderPaths } from './components/DocTree';
 import { redo, undo } from '@codemirror/commands';
 import {
   bumpVersion,
   insertBlock,
+  setDocTheme,
   insertLink,
   SNIPPETS,
   surround,
@@ -30,7 +33,7 @@ import { useDocs } from './store/docs';
 import { useSettings } from './store/settings';
 import { countWords, download, slugify } from './lib/util';
 import { createScrollLock } from './preview/scrollSync';
-import { styleVars } from './markdown/docstyle';
+import { styleVars, withDefaultTheme } from './markdown/docstyle';
 import { loadMath, looksLikeMath, mathReady } from './math';
 import type { Doc, ViewMode } from './types';
 import logoUrl from './assets/logo.png';
@@ -52,6 +55,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
   const [activeHeading, setActiveHeading] = useState('');
   const [pendingDelete, setPendingDelete] = useState<Doc | null>(null);
   const [pendingReset, setPendingReset] = useState<Doc | null>(null);
+  const [pendingMove, setPendingMove] = useState<Doc | null>(null);
   const [history, setHistory] = useState({ canUndo: false, canRedo: false });
   // Bumped when KaTeX finishes loading, to re-render maths that first rendered
   // as raw TeX.
@@ -86,7 +90,10 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     [deferredText, translitEnv, mathEpoch],
   );
 
-  const docStyle = useMemo(() => styleVars(style), [style]);
+  const docStyle = useMemo(
+    () => styleVars(withDefaultTheme(style, settings.defaultTheme)),
+    [style, settings.defaultTheme],
+  );
 
   // KaTeX is fetched only when a document actually contains maths.
   useEffect(() => {
@@ -161,6 +168,9 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       case 'bumpVersion':
         bumpVersion(view);
         break;
+      case 'theme':
+        setDocTheme(view, action.theme);
+        break;
     }
   }, []);
 
@@ -202,10 +212,13 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     const sketches = await gatherSketches();
     download(
       `${slugify(docs.current.title)}.html`,
-      exportHtml(docs.current.title, docs.current.text, translitEnv, sketches, style),
+      exportHtml(docs.current.title, docs.current.text, translitEnv, sketches, withDefaultTheme(style, settings.defaultTheme), {
+        author: parseFrontmatter(docs.current.text).author,
+        date: parseFrontmatter(docs.current.text).date,
+      }),
       'text/html',
     );
-  }, [docs, gatherSketches, style, translitEnv]);
+  }, [docs, gatherSketches, settings.defaultTheme, style, translitEnv]);
 
   /**
    * PDF goes through the browser's own print pipeline rather than a JS PDF
@@ -219,7 +232,10 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     if (!docs.current) return;
     if (looksLikeMath(docs.current.text)) await loadMath();
     const sketches = await gatherSketches();
-    const html = exportHtml(docs.current.title, docs.current.text, translitEnv, sketches, style);
+    const html = exportHtml(docs.current.title, docs.current.text, translitEnv, sketches, withDefaultTheme(style, settings.defaultTheme), {
+        author: parseFrontmatter(docs.current.text).author,
+        date: parseFrontmatter(docs.current.text).date,
+      });
 
     const frame = document.createElement('iframe');
     frame.setAttribute('aria-hidden', 'true');
@@ -242,7 +258,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     });
 
     document.body.appendChild(frame);
-  }, [docs, gatherSketches, style, translitEnv]);
+  }, [docs, gatherSketches, settings.defaultTheme, style, translitEnv]);
 
   /* ------------------------------ shortcuts ------------------------------ */
 
@@ -386,6 +402,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
         onOpenHelp={() => setPanel('help')}
         canUndo={history.canUndo}
         canRedo={history.canRedo}
+        version={parseFrontmatter(text).version}
       />
 
       <div className="workspace">
@@ -399,6 +416,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             onCreate={() => void docs.create()}
             onRequestDelete={setPendingDelete}
             onRequestReset={setPendingReset}
+            onRequestMove={setPendingMove}
             onDuplicate={(id) => void docs.duplicate(id)}
             onImport={() => fileInputRef.current?.click()}
             onJumpToLine={jumpToLine}
@@ -468,6 +486,17 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             Export it first if you might want it back.
           </p>
         </ConfirmDialog>
+      )}
+      {pendingMove && (
+        <MoveDialog
+          doc={pendingMove}
+          folders={folderPaths(docs.docs)}
+          onCancel={() => setPendingMove(null)}
+          onMove={(path) => {
+            void docs.move(pendingMove.id, path);
+            setPendingMove(null);
+          }}
+        />
       )}
       {pendingReset && (
         <ConfirmDialog
@@ -563,6 +592,12 @@ function Divider({ ratio, onRatio }: { ratio: number; onRatio(ratio: number): vo
       }}
     >
       <span className="divider-grip" />
+      {/* A visible handle: the split is draggable, which a bare hairline does
+          not communicate at all. */}
+      <span className="divider-handle" aria-hidden="true">
+        <span>‹</span>
+        <span>›</span>
+      </span>
     </div>
   );
 }

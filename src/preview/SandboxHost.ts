@@ -227,6 +227,11 @@ export class SandboxHost {
 
   /** Sketches boot on first scroll into view, so a long document stays cheap. */
   private watchVisibility(): void {
+    // An observer left over from a previous spec would still fire and start a
+    // sketch the author has since marked `manual`.
+    this.observer?.disconnect();
+    this.observer = null;
+
     if (this.spec.manual || typeof IntersectionObserver === 'undefined') {
       this.showOverlay(this.spec.manual ? 'Run sketch' : null);
       if (!this.spec.manual) this.start();
@@ -331,14 +336,19 @@ export class SandboxHost {
 
   update(spec: RunSpec, code: string): void {
     const runtimeChanged = spec.runtime !== this.spec.runtime;
+    // Hosts are keyed by position, so one can be handed a different sketch —
+    // even from a different document. Without this, a `manual` fence inherited
+    // an already-running frame and ran anyway.
+    const manualChanged = spec.manual !== this.spec.manual;
     const heightChanged = spec.height !== this.spec.height;
     const codeChanged = code !== this.code;
 
     this.spec = spec;
     this.code = code;
 
-    if (runtimeChanged) {
-      // A different library must be loaded, so the frame is rebuilt.
+    if (runtimeChanged || manualChanged) {
+      // A different library must be loaded, or the sketch must stop auto-running,
+      // so the frame is rebuilt.
       this.teardownFrame();
       this.started = false;
       this.ready = false;

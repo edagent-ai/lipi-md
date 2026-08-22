@@ -13,6 +13,7 @@ scheme: optitrans_dravidian
 font: serif
 width: normal
 accent: "#bf5700"
+author: Shashank Bangalore Lakshman
 ---
 
 # Baudhāyana's theorem
@@ -235,6 +236,9 @@ theorem rather than either one alone.
 *Everything above is plain Markdown. The Sanskrit is typed in IAST and the
 Kannada in Latin letters; the scripts are painted at render time, so the file
 stays searchable in the alphabet you typed.*
+
+Compiled by **Shashank Bangalore Lakshman** —
+[shashankbl.github.io](https://shashankbl.github.io)
 `;
 
 export const BLANK_DOC = `# Untitled

@@ -35,29 +35,30 @@ p, li, blockquote, td, th, figcaption { overflow-wrap: anywhere; }
 h1, h2, h3, h4, h5, h6 {
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   line-height: 1.25; margin: 2em 0 .6em; font-weight: 700;
+  color: var(--doc-fg, var(--fg));
 }
 /* Headings scale with the viewport, so a phone is not given desktop type. */
 h1 { font-size: clamp(1.55rem, 1.15rem + 1.9vw, 2rem); margin-top: 0; }
 h1, h2, h3, h4, h5, h6 { text-align: start; }
 h2 { font-size: clamp(1.28rem, 1.05rem + 1.1vw, 1.5rem);
-     border-bottom: 1px solid var(--border); padding-bottom: .3em; }
+     border-bottom: 1px solid var(--doc-border, var(--border)); padding-bottom: .3em; }
 h3 { font-size: clamp(1.1rem, 1rem + 0.5vw, 1.2rem); }
 p, ul, ol, blockquote, table, figure { margin: 0 0 1.1em; }
 a { color: var(--doc-accent, var(--accent)); }
 blockquote {
   margin-left: 0; padding: .2em 0 .2em 1.1em;
-  border-left: 3px solid var(--border); color: var(--fg-muted);
+  border-left: 3px solid var(--doc-border, var(--border)); color: var(--doc-muted, var(--fg-muted));
 }
-hr { border: none; border-top: 1px solid var(--border); margin: 2.4em 0; }
+hr { border: none; border-top: 1px solid var(--doc-border, var(--border)); margin: 2.4em 0; }
 code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .88em; }
-code { background: var(--code-bg); padding: .15em .35em; border-radius: 4px; }
-pre { background: var(--code-bg); padding: 14px 16px; border-radius: 8px; overflow-x: auto; }
+code { background: var(--doc-code-bg, var(--code-bg)); padding: .15em .35em; border-radius: 4px; }
+pre { background: var(--doc-code-bg, var(--code-bg)); padding: 14px 16px; border-radius: 8px; overflow-x: auto; }
 pre code { background: none; padding: 0; }
-figure.code-block { margin: 0 0 1.1em; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+figure.code-block { margin: 0 0 1.1em; border: 1px solid var(--doc-border, var(--border)); border-radius: 10px; overflow: hidden; }
 figure.code-block figcaption {
   font: 600 11px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .04em;
-  text-transform: uppercase; color: var(--fg-muted);
-  padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--code-bg);
+  text-transform: uppercase; color: var(--doc-muted, var(--fg-muted));
+  padding: 8px 12px; border-bottom: 1px solid var(--doc-border, var(--border)); background: var(--doc-code-bg, var(--code-bg));
 }
 figure.code-block pre { margin: 0; border-radius: 0; }
 figure.code-block button { display: none; }
@@ -65,8 +66,8 @@ figure.code-block button { display: none; }
    the page; min-width stops columns from being crushed on a phone. */
 .table-scroll { overflow-x: auto; margin: 0 0 1.1em; -webkit-overflow-scrolling: touch; }
 table { border-collapse: collapse; width: 100%; min-width: 24rem; }
-th, td { border: 1px solid var(--border); padding: .5em .7em; text-align: left; }
-th { background: var(--code-bg); }
+th, td { border: 1px solid var(--doc-border, var(--border)); padding: .5em .7em; text-align: left; }
+th { background: var(--doc-code-bg, var(--code-bg)); }
 img { max-width: 100%; height: auto; }
 .lipi-tl, .lipi-block { font-family: inherit; }
 .lipi-block { margin: 1.4em 0; padding-left: 1em; border-left: 3px solid var(--accent); }
@@ -86,6 +87,10 @@ figure.sketch { margin: 0 0 1.3em; text-align: center; }
 figure.sketch img {
   max-width: 100%; height: auto; border: 1px solid var(--border); border-radius: 10px;
 }
+p.doc-byline {
+  margin: -.4em 0 1.6em; font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: .9em; color: var(--doc-muted, var(--fg-muted));
+}
 figure.sketch figcaption {
   margin-top: .5em; font: 12px/1.4 ui-sans-serif, system-ui, sans-serif; color: var(--fg-muted);
 }
@@ -102,7 +107,7 @@ math { font-size: 1.05em; }
 .sidenote-toggle { display: none; }
 .sidenote {
   display: none; font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: .82em; line-height: 1.55; color: var(--fg-muted); text-align: start;
+  font-size: .82em; line-height: 1.55; color: var(--doc-muted, var(--fg-muted)); text-align: start;
 }
 .sidenote-num { margin-right: .4em; color: var(--doc-accent, var(--accent)); font-weight: 650; }
 .sidenote-toggle:checked + .sidenote {
@@ -128,10 +133,17 @@ math { font-size: 1.05em; }
 .media-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .media figcaption {
   margin-top: .55em; font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: .83em; color: var(--fg-muted); text-align: center;
+  font-size: .83em; color: var(--doc-muted, var(--fg-muted)); text-align: center;
 }
 
-@page { margin: 18mm 16mm; }
+/* Chrome does render @page margin boxes, so the running header and footer can
+   be described here rather than faked with fixed elements. */
+@page {
+  margin: 20mm 16mm;
+  @top-left { content: var(--pdf-title); font: 9pt ui-sans-serif, system-ui, sans-serif; color: #555; }
+  @top-right { content: counter(page) " / " counter(pages); font: 9pt ui-sans-serif, system-ui, sans-serif; color: #555; }
+  @bottom-left { content: var(--pdf-author); font: 9pt ui-sans-serif, system-ui, sans-serif; color: #555; }
+}
 @media print {
   /* Printers get the light palette; a dark page would flood the paper with ink. */
   :root {
@@ -155,14 +167,23 @@ math { font-size: 1.05em; }
 }
 `.trim();
 
+/** Quotes a value for use inside a CSS `content:` string. */
+const cssString = (value: string) => `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+
 export function exportHtml(
   title: string,
   source: string,
   translit: TranslitEnv,
   sketches: Record<string, string> = {},
   style: DocStyle = {},
+  meta: { author?: string; date?: string } = {},
 ): string {
   const docVars = styleDeclarations(style);
+  // Running header and footer text, read by the @page margin boxes above.
+  const pdfVars = [
+    `  --pdf-title: ${cssString(title)};`,
+    `  --pdf-author: ${cssString([meta.author, meta.date].filter(Boolean).join(' · '))};`,
+  ].join('\n');
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -172,7 +193,7 @@ export function exportHtml(
 <meta name="generator" content="lipi.md">
 <style>
 ${EXPORT_CSS}
-${docVars ? `:root {\n${docVars}\n}` : ''}
+${`:root {\n${pdfVars}${docVars ? `\n${docVars}` : ''}\n}`}
 </style>
 </head>
 <body>

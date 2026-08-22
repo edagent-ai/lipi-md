@@ -9,6 +9,8 @@ export interface Doc {
    * deleted, so the reference example is always there to come back to.
    */
   example?: boolean;
+  /** Folder path from the document's frontmatter, e.g. `Music/Carnatic`. */
+  folder?: string;
 }
 
 export type ThemeMode = 'light' | 'dark' | 'auto';
@@ -28,6 +30,8 @@ export interface Settings {
   sidebarOpen: boolean;
   /** Auto-run sandboxes as you type; when false they wait for an explicit run. */
   autoRun: boolean;
+  /** Applied to documents that do not name a theme. Empty follows the app. */
+  defaultTheme: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -41,4 +45,5 @@ export const DEFAULT_SETTINGS: Settings = {
   lineNumbers: false,
   sidebarOpen: true,
   autoRun: true,
+  defaultTheme: '',
 };

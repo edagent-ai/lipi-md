@@ -1,6 +1,7 @@
 import type { EditorView } from '@codemirror/view';
 import type { ChangeSpec, EditorState } from '@codemirror/state';
 import { syntaxTree } from '@codemirror/language';
+import { upsertFrontmatterKey } from '../markdown/frontmatter';
 
 /** Toolbar and shortcut actions, all written as plain CodeMirror transactions. */
 
@@ -252,7 +253,8 @@ animate('.dot', {
   embed: '![Talk title](https://youtu.be/dQw4w9WgXcQ "Optional caption")',
 
   style:
-    '---\ntitle: My document\nfont: serif\nalign: justify\nwidth: normal\nsize: 17px\n' +
+    '---\ntitle: My document\nauthor: Your Name\ndate: 2026\ntheme: paper\n' +
+    'font: serif\nalign: justify\nwidth: normal\nsize: 17px\n' +
     'background: "#fffdf7"\ncolor: "#2b2b2b"\naccent: "#bf5700"\n---',
 } as const;
 
@@ -301,5 +303,28 @@ export function bumpVersion(view: EditorView): void {
     const at = bodyStart + body.length;
     view.dispatch({ changes: { from: at, insert: '\nversion: 1' } });
   }
+  view.focus();
+}
+
+/** Applies a change as a minimal edit, so undo stays granular and the caret holds. */
+function replaceMinimal(view: EditorView, next: string): void {
+  const text = view.state.doc.toString();
+  if (next === text) return;
+
+  let start = 0;
+  while (start < text.length && start < next.length && text[start] === next[start]) start++;
+
+  let endOld = text.length;
+  let endNew = next.length;
+  while (endOld > start && endNew > start && text[endOld - 1] === next[endNew - 1]) {
+    endOld--;
+    endNew--;
+  }
+  view.dispatch({ changes: { from: start, to: endOld, insert: next.slice(start, endNew) } });
+}
+
+/** Sets, or with null clears, the document's `theme:` preset. */
+export function setDocTheme(view: EditorView, theme: string | null): void {
+  replaceMinimal(view, upsertFrontmatterKey(view.state.doc.toString(), 'theme', theme));
   view.focus();
 }

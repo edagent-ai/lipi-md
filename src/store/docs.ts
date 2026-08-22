@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { idbAll, idbDel, idbGet, idbSet } from '../lib/idb';
 import { debounce, uid } from '../lib/util';
-import { parseFrontmatter } from '../markdown/frontmatter';
+import {
+  normalizeFolder,
+  parseFrontmatter,
+  upsertFrontmatterKey,
+} from '../markdown/frontmatter';
 import type { Doc } from '../types';
 import { BLANK_DOC, WELCOME_DOC } from './samples';
 
@@ -23,9 +27,20 @@ export function deriveTitle(text: string): string {
   return firstLine ? firstLine.replace(/[#*`_>]/g, '').trim().slice(0, 120) : 'Untitled';
 }
 
+/** Folder path a document declares in its frontmatter, normalised. */
+export const deriveFolder = (text: string): string =>
+  normalizeFolder(parseFrontmatter(text).folder ?? '');
+
 function newDoc(text: string, example = false): Doc {
   const now = Date.now();
-  const doc: Doc = { id: uid(), title: deriveTitle(text), text, createdAt: now, updatedAt: now };
+  const doc: Doc = {
+    id: uid(),
+    title: deriveTitle(text),
+    text,
+    folder: deriveFolder(text),
+    createdAt: now,
+    updatedAt: now,
+  };
   if (example) doc.example = true;
   return doc;
 }
@@ -34,6 +49,45 @@ function newDoc(text: string, example = false): Doc {
 export const isExample = (doc: Doc | undefined): boolean => doc?.example === true;
 
 const byRecency = (a: Doc, b: Doc) => b.updatedAt - a.updatedAt;
+
+/** `X (copy)`, then `X (copy 2)` … so a copy never collides with a sibling. */
+function copyTitle(taken: string[], base: string): string {
+  let candidate = `${base} (copy)`;
+  for (let n = 2; taken.includes(candidate); n++) candidate = `${base} (copy ${n})`;
+  return candidate;
+}
+
+/** Frontmatter splits on the first colon, so a title containing one is quoted. */
+const quoteTitle = (title: string) => (/[:#]/.test(title) ? JSON.stringify(title) : title);
+
+/**
+ * Retitles a copy by editing the source, because a document's title is derived
+ * from its text on every keystroke — anything stored alongside would be lost as
+ * soon as the copy was edited.
+ */
+function retitle(text: string, title: string): string {
+  const front = /^---(\r?\n)([\s\S]*?)(\r?\n---)/.exec(text);
+
+  if (front) {
+    const bodyStart = 3 + front[1].length;
+    const line = /^([ \t]*title[ \t]*:[ \t]*)(.*)$/im.exec(front[2]);
+    if (line) {
+      const from = bodyStart + line.index + line[1].length;
+      return text.slice(0, from) + quoteTitle(title) + text.slice(from + line[2].length);
+    }
+    const at = bodyStart + front[2].length;
+    return `${text.slice(0, at)}\ntitle: ${quoteTitle(title)}${text.slice(at)}`;
+  }
+
+  const heading = /^(#{1,6}[ \t]+)(.+)$/m.exec(text);
+  if (heading) {
+    const from = heading.index + heading[1].length;
+    return text.slice(0, from) + title + text.slice(from + heading[2].length);
+  }
+
+  // No title to rewrite; the sidebar falls back to the first line either way.
+  return text;
+}
 
 export function useDocs() {
   const [docs, setDocs] = useState<Doc[]>([]);
@@ -62,7 +116,11 @@ export function useDocs() {
     let cancelled = false;
 
     (async () => {
-      const stored = (await idbAll<Doc>('docs')).filter((d) => d && typeof d.text === 'string');
+      const stored = (await idbAll<Doc>('docs'))
+        .filter((d) => d && typeof d.text === 'string')
+        // Records written before folders existed carry none; derive on read so
+        // no migration write is needed.
+        .map((d) => (d.folder === undefined ? { ...d, folder: deriveFolder(d.text) } : d));
       const savedId = await idbGet<string>('kv', CURRENT_KEY);
       if (cancelled) return;
 
@@ -127,6 +185,7 @@ export function useDocs() {
           ...prev[index],
           text,
           title: deriveTitle(text),
+          folder: deriveFolder(text),
           updatedAt: Date.now(),
         };
         pending.current = updated;
@@ -222,6 +281,7 @@ export function useDocs() {
         ...target,
         text: WELCOME_DOC,
         title: deriveTitle(WELCOME_DOC),
+        folder: deriveFolder(WELCOME_DOC),
         updatedAt: Date.now(),
       };
       await idbSet('docs', id, restored);
@@ -234,13 +294,42 @@ export function useDocs() {
     [scheduleSave],
   );
 
+  /**
+   * Files a document under a folder path by rewriting its frontmatter, so the
+   * placement travels with the document through export and re-import.
+   */
+  const move = useCallback(
+    async (id: string, rawPath: string) => {
+      const target = docsRef.current.find((d) => d.id === id);
+      if (!target) return;
+
+      const folder = normalizeFolder(rawPath);
+      if (folder === (target.folder ?? '')) return;
+
+      scheduleSave.cancel();
+      if (pending.current?.id === id) pending.current = null;
+
+      const text = upsertFrontmatterKey(target.text, 'folder', folder || null);
+      const updated: Doc = { ...target, text, folder, updatedAt: Date.now() };
+      await idbSet('docs', id, updated);
+
+      const next = docsRef.current.map((d) => (d.id === id ? updated : d));
+      docsRef.current = next;
+      setDocs(next);
+      setSaveState('saved');
+    },
+    [scheduleSave],
+  );
+
   const duplicate = useCallback(
     async (id: string) => {
-      const source = docs.find((d) => d.id === id);
+      const source = docsRef.current.find((d) => d.id === id);
       if (!source) return;
-      await create(source.text);
+      const taken = docsRef.current.map((d) => d.title);
+      // A copy is never the example, so it can be deleted like any other.
+      await create(retitle(source.text, copyTitle(taken, source.title)));
     },
-    [create, docs],
+    [create],
   );
 
   const sorted = useMemo(() => docs.slice().sort(byRecency), [docs]);
@@ -256,6 +345,7 @@ export function useDocs() {
     create,
     remove,
     reset,
+    move,
     duplicate,
     saveNow: flush,
   };

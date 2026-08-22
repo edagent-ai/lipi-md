@@ -186,6 +186,17 @@ export function HelpPanel({ onClose }: HelpPanelProps) {
       </section>
 
       <section className="settings-group">
+        <h3>Themes</h3>
+        <p className="field-hint">
+          <strong>Theme</strong> in the toolbar sets a <code>theme:</code> preset — Paper,
+          Manuscript, Slate, Terminal, Blueprint or High contrast. A preset fixes its own colours
+          and type, so the page looks the same for every reader and in every export. Any of the
+          keys below written alongside it still wins, so a theme is a starting point rather than a
+          cage.
+        </p>
+      </section>
+
+      <section className="settings-group">
         <h3>Page appearance</h3>
         <pre className="cheat-block">{`---
 font: serif        sans | serif | mono

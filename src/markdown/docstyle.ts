@@ -1,4 +1,5 @@
 import type { Frontmatter } from './frontmatter';
+import { findTheme } from './themes';
 
 /**
  * Presentation settings, read from a document's own frontmatter so styling
@@ -26,6 +27,10 @@ export interface DocStyle {
   accent?: string;
   measure?: string;
   size?: string;
+  /** Set by a preset only, so code blocks and rules match the page. */
+  codeBg?: string;
+  border?: string;
+  theme?: string;
 }
 
 const FONT_STACKS: Record<string, string> = {
@@ -78,7 +83,22 @@ export function parseDocStyle(front: Frontmatter): DocStyle {
     return undefined;
   };
 
-  const style: DocStyle = {};
+  // A preset provides the base; individual keys written alongside it still win.
+  const preset = findTheme(raw.theme);
+  const style: DocStyle = preset
+    ? {
+        theme: raw.theme.trim().toLowerCase(),
+        font: FONT_STACKS[preset.font],
+        align: preset.align,
+        measure: preset.measure,
+        size: preset.size,
+        background: preset.background,
+        color: preset.color,
+        accent: preset.accent,
+        codeBg: preset.codeBg,
+        border: preset.border,
+      }
+    : {};
 
   const font = pick('font', 'typeface')?.toLowerCase();
   if (font && FONT_STACKS[font]) style.font = FONT_STACKS[font];
@@ -114,6 +134,14 @@ export function styleVars(style: DocStyle): Record<string, string> {
   if (style.accent) vars['--doc-accent'] = style.accent;
   if (style.measure) vars['--doc-measure'] = style.measure;
   if (style.size) vars['--doc-size'] = style.size;
+  if (style.codeBg) vars['--doc-code-bg'] = style.codeBg;
+  if (style.border) vars['--doc-border'] = style.border;
+  // Headings and secondary text are derived from the document's own ink, not
+  // the app theme's — otherwise a dark page inside a light app renders its
+  // headings in near-black on near-black.
+  if (style.color) {
+    vars['--doc-muted'] = `color-mix(in srgb, ${style.color} 68%, transparent)`;
+  }
   return vars;
 }
 
@@ -125,3 +153,27 @@ export function styleDeclarations(style: DocStyle): string {
 }
 
 export const hasDocStyle = (style: DocStyle) => Object.keys(styleVars(style)).length > 0;
+
+/**
+ * Applies an app-level default to a document that names no theme of its own.
+ * A document's explicit keys always win, which is why this only fills gaps.
+ */
+export function withDefaultTheme(style: DocStyle, themeName: string): DocStyle {
+  if (style.theme || !themeName) return style;
+  const preset = findTheme(themeName);
+  if (!preset) return style;
+
+  return {
+    theme: themeName,
+    font: FONT_STACKS[preset.font],
+    align: preset.align,
+    measure: preset.measure,
+    size: preset.size,
+    background: preset.background,
+    color: preset.color,
+    accent: preset.accent,
+    codeBg: preset.codeBg,
+    border: preset.border,
+    ...style,
+  };
+}

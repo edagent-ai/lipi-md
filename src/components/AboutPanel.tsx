@@ -29,6 +29,18 @@ export function AboutPanel({ onClose, onUpdate, updateReady }: AboutPanelProps) 
         </p>
       </section>
 
+      <section className="settings-group">
+        <h3>Made by</h3>
+        <p>
+          <strong>Shashank Bangalore Lakshman</strong>
+          <br />
+          <a href="https://shashankbl.github.io" target="_blank" rel="noopener noreferrer">
+            shashankbl.github.io
+          </a>
+        </p>
+        <p className="field-hint">Made in California with Claude Code and Conductor.</p>
+      </section>
+
       {updateReady && (
         <section className="settings-group">
           <p className="notice notice-ok">A new version has been downloaded.</p>

@@ -8,6 +8,12 @@ export interface Frontmatter {
   scheme?: string;
   /** Document version, bumped on demand from the toolbar. */
   version?: string;
+  /** Folder path, e.g. `Music/Carnatic`. At most three levels deep. */
+  folder?: string;
+  /** Shown as a byline under the title, and in the PDF footer. */
+  author?: string;
+  /** Shown beside the author. Free text — no date parsing is imposed. */
+  date?: string;
   /** Every key as written, for presentation settings (see `docstyle.ts`). */
   raw: Record<string, string>;
 }
@@ -32,6 +38,9 @@ export function parseFrontmatter(src: string): Frontmatter {
     else if (key === 'script' || key === 'lang' || key === 'language') out.script = value;
     else if (key === 'scheme' || key === 'input') out.scheme = value;
     else if (key === 'version') out.version = value;
+    else if (key === 'folder' || key === 'path') out.folder = value;
+    else if (key === 'author' || key === 'by') out.author = value;
+    else if (key === 'date') out.date = value;
   }
   return out;
 }
@@ -69,4 +78,56 @@ export function frontmatterPlugin(md: MarkdownIt): void {
   );
 
   md.renderer.rules.lipi_frontmatter = () => '';
+}
+
+export const MAX_FOLDER_DEPTH = 3;
+
+/**
+ * Cleans a user-typed folder path: trims each level, drops empties, strips
+ * characters that would make the path ambiguous, and caps the depth. Returns an
+ * empty string for the top level.
+ */
+export function normalizeFolder(raw: string): string {
+  return raw
+    .split('/')
+    .map((part) => part.trim().replace(/[\\:*?"<>|]/g, '').slice(0, 40))
+    .filter(Boolean)
+    .slice(0, MAX_FOLDER_DEPTH)
+    .join('/');
+}
+
+/**
+ * Inserts or replaces a frontmatter key, creating the block when there is none.
+ * Passing null removes the key. Kept as a text edit because a document's
+ * metadata lives in the document.
+ */
+export function upsertFrontmatterKey(text: string, key: string, value: string | null): string {
+  const front = /^---(\r?\n)([\s\S]*?)(\r?\n---)/.exec(text);
+  const encoded = value !== null && /[:#]/.test(value) ? JSON.stringify(value) : value;
+
+  if (!front) {
+    if (value === null) return text;
+    return `---\n${key}: ${encoded}\n---\n\n${text}`;
+  }
+
+  const bodyStart = 3 + front[1].length;
+  const body = front[2];
+  const line = new RegExp(`^([ \\t]*${key}[ \\t]*:[ \\t]*)(.*)$`, 'im').exec(body);
+
+  if (line) {
+    const from = bodyStart + line.index;
+    if (value === null) {
+      // Drop the whole line, including the newline that precedes it.
+      const lineEnd = from + line[0].length;
+      const cutFrom = from > bodyStart ? from - 1 : from;
+      const cutTo = from > bodyStart ? lineEnd : Math.min(lineEnd + 1, bodyStart + body.length);
+      return text.slice(0, cutFrom) + text.slice(cutTo);
+    }
+    const valueFrom = from + line[1].length;
+    return text.slice(0, valueFrom) + encoded + text.slice(valueFrom + line[2].length);
+  }
+
+  if (value === null) return text;
+  const at = bodyStart + body.length;
+  return `${text.slice(0, at)}\n${key}: ${encoded}${text.slice(at)}`;
 }
