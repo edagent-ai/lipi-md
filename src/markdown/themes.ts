@@ -9,8 +9,12 @@
 export interface ThemePreset {
   label: string;
   blurb: string;
-  font: 'serif' | 'sans' | 'mono';
+  font: 'serif' | 'sans' | 'mono' | 'reading';
   align?: 'left' | 'justify';
+  /** Typographic loosening, used by the dyslexia-friendly preset. */
+  lineHeight?: string;
+  letterSpacing?: string;
+  wordSpacing?: string;
   measure?: string;
   size?: string;
   background: string;
@@ -72,6 +76,26 @@ export const THEMES: Record<string, ThemePreset> = {
     accent: '#1f5fb0',
     codeBg: '#e7eef7',
     border: '#d2deeb',
+  },
+  dyslexic: {
+    label: 'Dyslexia-friendly',
+    blurb: 'Verdana, loose spacing, cream page, never justified',
+    font: 'reading',
+    // Every value here follows common dyslexia typography guidance: a plain
+    // sans face, larger text, generous line and letter spacing, a short
+    // measure, ragged-right lines, and an off-white page rather than a glaring
+    // white one.
+    align: 'left',
+    size: '19px',
+    measure: '38rem',
+    lineHeight: '1.9',
+    letterSpacing: '0.035em',
+    wordSpacing: '0.16em',
+    background: '#fbf7ee',
+    color: '#33302b',
+    accent: '#0f5c8c',
+    codeBg: '#f1ebdd',
+    border: '#ddd4c2',
   },
   contrast: {
     label: 'High contrast',

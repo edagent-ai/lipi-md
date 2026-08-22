@@ -1,4 +1,4 @@
-import { renderStatic, type TranslitEnv } from '../markdown';
+import { renderStatic, type DocDates, type TranslitEnv } from '../markdown';
 import { styleDeclarations, type DocStyle } from '../markdown/docstyle';
 import { escapeHtml } from '../lib/util';
 
@@ -13,6 +13,10 @@ const EXPORT_CSS = `
   --fg: #1b1f24; --fg-muted: #59636e; --bg: #ffffff; --border: #d8dee4;
   --accent: #2f6feb; --code-bg: #f5f7fa;
   color-scheme: light dark;
+  --font-serif: ui-serif, Georgia, "Times New Roman", serif;
+  --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-reading: Verdana, Tahoma, "Trebuchet MS", "DejaVu Sans", ui-sans-serif, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root { --fg: #e7ecf2; --fg-muted: #9aa6b2; --bg: #0e1116; --border: #262c36;
@@ -25,7 +29,9 @@ body {
   background: var(--doc-bg, var(--bg)); color: var(--doc-fg, var(--fg));
   font-family: var(--doc-font, ui-serif, Georgia, "Times New Roman", serif);
   font-size: var(--doc-size, clamp(15px, 0.95rem + 0.15vw, 17px));
-  line-height: 1.7;
+  line-height: var(--doc-line-height, 1.7);
+  letter-spacing: var(--doc-letter-spacing, normal);
+  word-spacing: var(--doc-word-spacing, normal);
   text-align: var(--doc-align, start);
   -webkit-text-size-adjust: 100%;
 }
@@ -69,7 +75,7 @@ table { border-collapse: collapse; width: 100%; min-width: 24rem; }
 th, td { border: 1px solid var(--doc-border, var(--border)); padding: .5em .7em; text-align: left; }
 th { background: var(--doc-code-bg, var(--code-bg)); }
 img { max-width: 100%; height: auto; }
-.lipi-tl, .lipi-block { font-family: inherit; }
+.lipi-tl, .lipi-block { font-family: inherit; letter-spacing: normal; word-spacing: normal; }
 .lipi-block { margin: 1.4em 0; padding-left: 1em; border-left: 3px solid var(--accent); }
 .tok-keyword, .tok-modifier { color: #cf222e; }
 .tok-string, .tok-string2 { color: #0a3069; }
@@ -91,6 +97,7 @@ p.doc-byline {
   margin: -.4em 0 1.6em; font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: .9em; color: var(--doc-muted, var(--fg-muted));
 }
+.doc-byline-label { font-weight: 600; opacity: .75; }
 .doc-version { font-size: .82em; font-variant-numeric: tabular-nums; letter-spacing: .02em; opacity: .85; }
 figure.sketch figcaption {
   margin-top: .5em; font: 12px/1.4 ui-sans-serif, system-ui, sans-serif; color: var(--fg-muted);
@@ -185,6 +192,7 @@ export function exportHtml(
   sketches: Record<string, string> = {},
   style: DocStyle = {},
   meta: { author?: string; date?: string } = {},
+  dates: DocDates = {},
 ): string {
   const docVars = styleDeclarations(style);
   // Running header and footer text, read by the @page margin boxes above.
@@ -205,7 +213,7 @@ ${`:root {\n${pdfVars}${docVars ? `\n${docVars}` : ''}\n}`}
 </style>
 </head>
 <body>
-${renderStatic(source, translit, sketches)}
+${renderStatic(source, translit, sketches, dates)}
 </body>
 </html>
 `;

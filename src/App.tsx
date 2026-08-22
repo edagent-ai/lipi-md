@@ -31,7 +31,7 @@ import { exportHtml } from './export/html';
 import { captureSketches } from './export/capture';
 import { useDocs } from './store/docs';
 import { useSettings } from './store/settings';
-import { countWords, download, slugify } from './lib/util';
+import { countWords, download, formatDay, slugify } from './lib/util';
 import { createScrollLock } from './preview/scrollSync';
 import { styleVars, withDefaultTheme } from './markdown/docstyle';
 import { loadMath, looksLikeMath, mathReady } from './math';
@@ -83,11 +83,20 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     };
   }, [deferredText, settings.sourceScheme, settings.defaultScript]);
 
+  // Day-granular labels, so the byline does not force a rebuild on every
+  // keystroke the way a raw `updatedAt` would.
+  const createdLabel = formatDay(docs.current?.createdAt);
+  const modifiedLabel = formatDay(docs.current?.updatedAt);
+  const docDates = useMemo(
+    () => ({ created: createdLabel, modified: modifiedLabel }),
+    [createdLabel, modifiedLabel],
+  );
+
   const { segments, headings, style } = useMemo(
-    () => build(deferredText, translitEnv),
+    () => build(deferredText, translitEnv, 'html', docDates),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mathEpoch forces
     // a rebuild once KaTeX is available.
-    [deferredText, translitEnv, mathEpoch],
+    [deferredText, translitEnv, mathEpoch, docDates],
   );
 
   const docStyle = useMemo(
@@ -215,10 +224,10 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       exportHtml(docs.current.title, docs.current.text, translitEnv, sketches, withDefaultTheme(style, settings.defaultTheme), {
         author: parseFrontmatter(docs.current.text).author,
         date: parseFrontmatter(docs.current.text).date,
-      }),
+      }, docDates),
       'text/html',
     );
-  }, [docs, gatherSketches, settings.defaultTheme, style, translitEnv]);
+  }, [docDates, docs, gatherSketches, settings.defaultTheme, style, translitEnv]);
 
   /**
    * PDF goes through the browser's own print pipeline rather than a JS PDF
@@ -235,7 +244,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     const html = exportHtml(docs.current.title, docs.current.text, translitEnv, sketches, withDefaultTheme(style, settings.defaultTheme), {
         author: parseFrontmatter(docs.current.text).author,
         date: parseFrontmatter(docs.current.text).date,
-      });
+      }, docDates);
 
     const frame = document.createElement('iframe');
     frame.setAttribute('aria-hidden', 'true');
@@ -258,7 +267,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     });
 
     document.body.appendChild(frame);
-  }, [docs, gatherSketches, settings.defaultTheme, style, translitEnv]);
+  }, [docDates, docs, gatherSketches, settings.defaultTheme, style, translitEnv]);
 
   /* ------------------------------ shortcuts ------------------------------ */
 

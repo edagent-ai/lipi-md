@@ -49,9 +49,18 @@ function lineAnchors(state: StateCore): boolean {
  */
 function byline(state: StateCore): boolean {
   const meta = (state.env as {
-    byline?: { author?: string; date?: string; version?: string; link?: string };
+    byline?: {
+      author?: string;
+      date?: string;
+      version?: string;
+      link?: string;
+      modified?: string;
+      created?: string;
+    };
   }).byline;
-  if (!meta?.author && !meta?.date && !meta?.version && !meta?.link) return true;
+  if (!meta?.author && !meta?.date && !meta?.version && !meta?.link && !meta?.modified) {
+    return true;
+  }
 
   const { tokens } = state;
   const index = tokens.findIndex((t) => t.type === 'heading_open' && t.tag === 'h1');
@@ -154,11 +163,13 @@ export function createMarkdown(): MarkdownIt {
   md.renderer.rules.fence = renderFence;
 
   md.renderer.rules.lipi_byline = (tokens, idx) => {
-    const { author, date, version, link } = tokens[idx].meta as {
+    const { author, date, version, link, modified, created } = tokens[idx].meta as {
       author?: string;
       date?: string;
       version?: string;
       link?: string;
+      modified?: string;
+      created?: string;
     };
 
     // Only http(s) reaches an href; anything else is shown as plain text so a
@@ -173,12 +184,28 @@ export function createMarkdown(): MarkdownIt {
     } else if (!who && link) {
       who = escapeHtml(String(link));
     }
+    // Labelled only when there is a name to label; a bare site link is not an
+    // author, and the label would be a lie.
+    if (author && who) who = `<span class="doc-byline-label">Author:</span> ${who}`;
 
-    const parts = [who, date ? escapeHtml(String(date)) : ''].filter(Boolean);
-    // The version is set smaller again: it is a stamp on the document rather
-    // than part of the byline proper.
-    if (version) parts.push(`<span class="doc-version">v${escapeHtml(String(version))}</span>`);
-    return `<p class="doc-byline">${parts.join(' <span aria-hidden="true">·</span> ')}</p>\n`;
+    // Version sits directly after the name, then the date: it identifies which
+    // revision of the document this is, so it belongs with its author.
+    const parts = [who];
+    if (version) {
+      parts.push(`<span class="doc-version">v${escapeHtml(String(version))}</span>`);
+    }
+    // An explicit `date:` is the author's own statement and wins; otherwise the
+    // document's own modified date stands in, falling back to when it was made.
+    if (date) {
+      parts.push(escapeHtml(String(date)));
+    } else if (modified || created) {
+      const when = modified || created;
+      const label = modified ? 'Updated' : 'Created';
+      parts.push(`<span class="doc-date">${label} ${escapeHtml(String(when))}</span>`);
+    }
+    return `<p class="doc-byline">${parts
+      .filter(Boolean)
+      .join(' <span aria-hidden="true">·</span> ')}</p>\n`;
   };
 
   // A wide table scrolls inside its own region rather than stretching the pane
@@ -206,10 +233,17 @@ export function createMarkdown(): MarkdownIt {
 
 const md = createMarkdown();
 
+/** Pre-formatted day labels, so the markdown layer never formats dates itself. */
+export interface DocDates {
+  created?: string;
+  modified?: string;
+}
+
 export function build(
   src: string,
   translit: TranslitEnv,
   mathOutput: MathOutput = 'html',
+  dates: DocDates = {},
 ): BuildResult {
   const frontmatter = parseFrontmatter(src);
   const env = {
@@ -220,6 +254,8 @@ export function build(
       date: frontmatter.date,
       version: frontmatter.version,
       link: frontmatter.link,
+      modified: dates.modified,
+      created: dates.created,
     },
   };
   const tokens = md.parse(src, env);
@@ -285,10 +321,11 @@ export function renderStatic(
   src: string,
   translit: TranslitEnv,
   sketches: Record<string, string> = {},
+  dates: DocDates = {},
 ): string {
   // MathML in exports: no stylesheet and no webfonts, so the file stays
   // self-contained.
-  const { segments } = build(src, translit, 'mathml');
+  const { segments } = build(src, translit, 'mathml', dates);
 
   return segments
     .map((seg) => {

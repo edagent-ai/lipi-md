@@ -6,6 +6,9 @@
   --font-ui: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-serif: ui-serif, 'Iowan Old Style', Georgia, 'Times New Roman', serif;
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  /* Plain, wide-apertured faces that read well for dyslexic readers, and that
+     ship with the OS — downloading a webfont would break offline-first. */
+  --font-reading: Verdana, Tahoma, 'Trebuchet MS', 'DejaVu Sans', ui-sans-serif, sans-serif;
 
   /* System Indic faces only — downloading webfonts would break offline-first. */
   --font-indic:
@@ -756,9 +759,19 @@ body.is-resizing iframe {
   overflow-wrap: anywhere;
   font-family: var(--doc-font, var(--font-serif));
   font-size: var(--doc-size, 16.5px);
-  line-height: 1.72;
+  line-height: var(--doc-line-height, 1.72);
+  letter-spacing: var(--doc-letter-spacing, normal);
+  word-spacing: var(--doc-word-spacing, normal);
   color: var(--doc-fg, var(--fg));
   text-align: var(--doc-align, start);
+}
+
+/* Letter-spacing separates the glyph clusters of Indic scripts, which breaks
+   their conjuncts, so transliterated text keeps its natural spacing. */
+.markdown .lipi-tl,
+.markdown .lipi-block {
+  letter-spacing: normal;
+  word-spacing: normal;
 }
 
 /* Justification is for prose only; code, tables and captions keep their own
@@ -905,6 +918,11 @@ body.is-resizing iframe {
   font-family: var(--font-ui);
   font-size: 0.9em;
   color: var(--doc-muted, var(--fg-muted));
+}
+
+.doc-byline-label {
+  font-weight: 600;
+  opacity: 0.75;
 }
 
 .doc-version {

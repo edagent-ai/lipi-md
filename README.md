@@ -70,6 +70,13 @@ An assertion.^[A margin note, which may hold *emphasis* and [links](https://…)
 Sidenotes sit in the margin when the pane is wide enough, and collapse behind a
 tappable number when it is not.
 
+**Themes.** Seven presets — Paper, Manuscript, Slate, Terminal, Blueprint, High
+contrast and Dyslexia-friendly — set from the toolbar or as a default in
+Settings. The dyslexia-friendly one follows the usual guidance: a plain sans
+face, larger text, loosened line, letter and word spacing, a short measure,
+ragged-right lines and an off-white page. Letter-spacing is suppressed on Indic
+text, where it would break conjuncts.
+
 **Per-document styling,** declared in the file itself so it travels with it and
 carries through to exports:
 

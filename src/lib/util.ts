@@ -76,3 +76,17 @@ export function countWords(text: string): number {
   const m = text.trim().match(/[\p{L}\p{N}'’-]+/gu);
   return m ? m.length : 0;
 }
+
+/**
+ * Day-granular date label. Returned as a stable string so a byline that shows
+ * it does not invalidate the render on every keystroke — only when the day
+ * actually rolls over.
+ */
+export function formatDay(ts: number | undefined): string {
+  if (!ts) return '';
+  return new Date(ts).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}

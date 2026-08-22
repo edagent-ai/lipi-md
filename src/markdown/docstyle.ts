@@ -30,6 +30,9 @@ export interface DocStyle {
   /** Set by a preset only, so code blocks and rules match the page. */
   codeBg?: string;
   border?: string;
+  lineHeight?: string;
+  letterSpacing?: string;
+  wordSpacing?: string;
   theme?: string;
 }
 
@@ -38,6 +41,7 @@ const FONT_STACKS: Record<string, string> = {
   sans: 'var(--font-ui)',
   mono: 'var(--font-mono)',
   system: 'var(--font-ui)',
+  reading: 'var(--font-reading)',
 };
 
 const ALIGN = new Set(['left', 'justify', 'center', 'right', 'start', 'end']);
@@ -97,6 +101,9 @@ export function parseDocStyle(front: Frontmatter): DocStyle {
         accent: preset.accent,
         codeBg: preset.codeBg,
         border: preset.border,
+        lineHeight: preset.lineHeight,
+        letterSpacing: preset.letterSpacing,
+        wordSpacing: preset.wordSpacing,
       }
     : {};
 
@@ -136,6 +143,9 @@ export function styleVars(style: DocStyle): Record<string, string> {
   if (style.size) vars['--doc-size'] = style.size;
   if (style.codeBg) vars['--doc-code-bg'] = style.codeBg;
   if (style.border) vars['--doc-border'] = style.border;
+  if (style.lineHeight) vars['--doc-line-height'] = style.lineHeight;
+  if (style.letterSpacing) vars['--doc-letter-spacing'] = style.letterSpacing;
+  if (style.wordSpacing) vars['--doc-word-spacing'] = style.wordSpacing;
   // Headings and secondary text are derived from the document's own ink, not
   // the app theme's — otherwise a dark page inside a light app renders its
   // headings in near-black on near-black.
@@ -174,6 +184,9 @@ export function withDefaultTheme(style: DocStyle, themeName: string): DocStyle {
     accent: preset.accent,
     codeBg: preset.codeBg,
     border: preset.border,
+    lineHeight: preset.lineHeight,
+    letterSpacing: preset.letterSpacing,
+    wordSpacing: preset.wordSpacing,
     ...style,
   };
 }

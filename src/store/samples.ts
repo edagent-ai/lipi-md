@@ -15,6 +15,7 @@ width: normal
 accent: "#bf5700"
 author: Shashank Bangalore Lakshman
 link: https://shashankbl.github.io
+version: 1.0
 ---
 
 # Baudhāyana's theorem
