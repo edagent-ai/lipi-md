@@ -1031,11 +1031,17 @@ body.is-resizing iframe {
   border-bottom: 1px solid var(--border);
   background: var(--bg-raised);
   box-shadow: var(--shadow);
+  /* One row at every width. The note beside the field shrinks away to nothing
+     before anything else gives, so the bar never changes height under the
+     reader's hands while they are typing into it. */
+  flex-wrap: nowrap;
 }
 
 .findbar-input {
-  flex: 1;
-  min-width: 0;
+  /* Never allowed to collapse: the note used to take the whole line and leave
+     the field a few pixels wide the moment a match was found by sound. */
+  flex: 1 1 12rem;
+  min-width: 9rem;
   padding: 5px 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -1059,10 +1065,23 @@ body.is-resizing iframe {
   color: var(--fg-muted);
 }
 
+/* The status beside the field keeps a slot of its own whether or not it has
+   anything to say, so the field it sits next to never changes width mid-typing.
+   On a pane too narrow to spare the room it is dropped entirely rather than
+   allowed to start pushing things about. */
 .findbar-note {
-  flex-basis: 100%;
+  display: none;
+  flex: 0 0 6.5em;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   font-size: 11px;
   color: var(--fg-muted);
+}
+
+.preview.is-roomy .findbar-note {
+  display: block;
 }
 
 /* transliterated text */

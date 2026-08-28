@@ -70,6 +70,15 @@ export function FindBar({ bodyRef, scrollerRef, sourceScheme, revision, onClose 
     [count],
   );
 
+  const status = !supported
+    ? { short: 'no highlighting', full: 'This browser cannot highlight matches' }
+    : result.approximate > 0
+      ? {
+          short: `${result.approximate} by sound`,
+          full: `${result.approximate} matched by sound, shown whole`,
+        }
+      : { short: '', full: '' };
+
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') {
       event.preventDefault();
@@ -95,6 +104,11 @@ export function FindBar({ bodyRef, scrollerRef, sourceScheme, revision, onClose 
         }}
         onKeyDown={onKeyDown}
       />
+      {/* Always rendered, so its slot is reserved and the field beside it does
+          not jump the moment there is something to report. */}
+      <span className="findbar-note" title={status.full}>
+        {status.short}
+      </span>
       <span className="findbar-count" aria-live="polite">
         {query.trim() ? (count ? `${current + 1} / ${count}` : 'none') : ''}
       </span>
@@ -121,12 +135,6 @@ export function FindBar({ bodyRef, scrollerRef, sourceScheme, revision, onClose 
       <button type="button" className="icon-btn" onClick={onClose} title="Close" aria-label="Close">
         ✕
       </button>
-      {result.approximate > 0 && (
-        <span className="findbar-note">
-          {result.approximate} matched by sound, shown whole
-        </span>
-      )}
-      {!supported && <span className="findbar-note">This browser cannot highlight matches</span>}
     </div>
   );
 }
