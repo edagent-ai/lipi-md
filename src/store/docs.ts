@@ -332,6 +332,47 @@ export function useDocs() {
     [create],
   );
 
+  /**
+   * Brings documents in from a folder or a backup file.
+   *
+   * Matched by id and replaced in place, so restoring the same folder twice
+   * updates the library rather than doubling it. Ids the library has never seen
+   * are added. Nothing is deleted: a restore should never be the reason a
+   * document disappears.
+   */
+  const importDocs = useCallback(
+    async (incoming: Doc[]): Promise<number> => {
+      if (!incoming.length) return 0;
+      scheduleSave.cancel();
+      await flush();
+
+      const byId = new Map(docsRef.current.map((d) => [d.id, d]));
+      for (const doc of incoming) {
+        const clean: Doc = {
+          ...doc,
+          title: deriveTitle(doc.text),
+          folder: doc.folder ?? deriveFolder(doc.text),
+        };
+        byId.set(clean.id, clean);
+        await idbSet('docs', clean.id, clean);
+      }
+
+      const next = [...byId.values()];
+      docsRef.current = next;
+      setDocs(next);
+
+      if (!next.some((d) => d.id === currentId)) {
+        const first = next[0];
+        if (first) {
+          setCurrentId(first.id);
+          await idbSet('kv', CURRENT_KEY, first.id);
+        }
+      }
+      return incoming.length;
+    },
+    [currentId, flush, scheduleSave],
+  );
+
   const sorted = useMemo(() => docs.slice().sort(byRecency), [docs]);
 
   return {
@@ -347,6 +388,7 @@ export function useDocs() {
     reset,
     move,
     duplicate,
+    importDocs,
     saveNow: flush,
   };
 }

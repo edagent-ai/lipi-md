@@ -12,15 +12,42 @@ import {
   type P5Meta,
 } from '../sandbox/p5addon';
 import { usingFallback } from '../lib/idb';
-import type { Settings } from '../types';
+import { download, formatWhen } from '../lib/util';
+import {
+  backupJson,
+  parseBackup,
+  persistenceGranted,
+  requestPersistence,
+  storageUsed,
+  type VaultState,
+} from '../store/vault';
+import type { Doc, Settings } from '../types';
+
+type Vault = VaultState & {
+  connect(docs: Doc[]): Promise<void>;
+  unlock(docs: Doc[]): Promise<void>;
+  disconnect(): Promise<void>;
+  sync(docs: Doc[], loud?: boolean): Promise<void>;
+  restore(): Promise<Doc[] | null>;
+};
 
 interface SettingsPanelProps {
   settings: Settings;
   onChange(patch: Partial<Settings>): void;
   onClose(): void;
+  vault: Vault;
+  docs: Doc[];
+  onImport(docs: Doc[]): Promise<number>;
 }
 
-export function SettingsPanel({ settings, onChange, onClose }: SettingsPanelProps) {
+export function SettingsPanel({
+  settings,
+  onChange,
+  onClose,
+  vault,
+  docs,
+  onImport,
+}: SettingsPanelProps) {
   return (
     <Modal title="Settings" onClose={onClose} wide>
       <section className="settings-group">
@@ -148,6 +175,14 @@ export function SettingsPanel({ settings, onChange, onClose }: SettingsPanelProp
         </p>
       </section>
 
+      <DataSection
+        vault={vault}
+        docs={docs}
+        onImport={onImport}
+        settings={settings}
+        onChange={onChange}
+      />
+
       <P5AddonSection />
 
       {usingFallback() && (
@@ -160,6 +195,226 @@ export function SettingsPanel({ settings, onChange, onClose }: SettingsPanelProp
         </section>
       )}
     </Modal>
+  );
+}
+
+interface DataSectionProps {
+  vault: Vault;
+  docs: Doc[];
+  onImport(docs: Doc[]): Promise<number>;
+  settings: Settings;
+  onChange(patch: Partial<Settings>): void;
+}
+
+/**
+ * Where the reader's writing actually lives, and how to stop the browser being
+ * the only copy of it.
+ */
+function DataSection({ vault, docs, onImport, settings, onChange }: DataSectionProps) {
+  const [durable, setDurable] = useState<boolean | null>(null);
+  const [used, setUsed] = useState(0);
+  const [note, setNote] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const refresh = () => {
+    void persistenceGranted().then(setDurable);
+    void storageUsed().then(setUsed);
+  };
+  useEffect(refresh, []);
+
+  const askDurable = async () => {
+    onChange({ keepData: 'yes' });
+    const granted = await requestPersistence();
+    setDurable(granted);
+    setNote(
+      granted
+        ? 'The browser agreed to keep these documents.'
+        : 'The browser declined for now. It often grants this once the app has been used a few times or installed; nothing else changes in the meantime.',
+    );
+  };
+
+  const declineDurable = () => {
+    onChange({ keepData: 'no' });
+    setNote(null);
+  };
+
+  const connect = async () => {
+    await vault.connect(docs);
+    refresh();
+  };
+
+  const restoreFolder = async () => {
+    const found = await vault.restore();
+    if (!found) return;
+    const n = await onImport(found);
+    setNote(`${n} document${n === 1 ? '' : 's'} read back from the folder.`);
+    refresh();
+  };
+
+  const downloadBackup = () => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    download(`lipi-md-backup-${stamp}.json`, backupJson(docs), 'application/json');
+  };
+
+  const restoreFile = async (file: File) => {
+    try {
+      const n = await onImport(parseBackup(await file.text()));
+      setNote(`${n} document${n === 1 ? '' : 's'} restored from the backup.`);
+    } catch (err) {
+      setNote(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  // KB below a megabyte: "0.0 MB" reads like nothing is stored at all.
+  const size =
+    used >= 1048576 ? `${(used / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(used / 1024))} KB`;
+
+  return (
+    <section className="settings-group">
+      <h3>Your data</h3>
+
+      <p className={`notice ${durable ? 'notice-ok' : 'notice-warn'}`}>
+        {durable === null
+          ? 'Checking how this browser is storing your documents…'
+          : durable
+            ? `Documents are stored on this device and marked durable — ${size} used.`
+            : `Documents are stored on this device as best-effort — ${size} used. The browser may evict them if it runs short of space, and clearing site data erases them.`}
+      </p>
+      {durable === false && settings.keepData === 'ask' && (
+        <div className="settings-ask">
+          <p>
+            Shall lipi.md ask this browser to keep your documents? It makes them far less likely
+            to be thrown away when the device runs short of space. Nothing is uploaded either
+            way — this only changes how the browser treats what is already on your machine.
+          </p>
+          <div className="button-row">
+            <button type="button" className="btn btn-primary" onClick={() => void askDurable()}>
+              Keep my documents
+            </button>
+            <button type="button" className="btn" onClick={declineDurable}>
+              Not now
+            </button>
+          </div>
+        </div>
+      )}
+
+      {durable === false && settings.keepData !== 'ask' && (
+        <div className="button-row">
+          <button type="button" className="btn" onClick={() => void askDurable()}>
+            {settings.keepData === 'no' ? 'Ask the browser to keep it' : 'Try again'}
+          </button>
+        </div>
+      )}
+
+      <h4 className="settings-sub">Folder on this computer</h4>
+      {vault.status === 'unsupported' ? (
+        <p className="field-hint">
+          This browser cannot write to a folder — that needs Chrome, Edge or another Chromium
+          browser. The backup file below does the same job by hand.
+        </p>
+      ) : (
+        <>
+          <p className="field-hint">
+            Keeps a copy of every document as an ordinary <code>.md</code> file in a folder you
+            choose. Those files outlive this browser entirely: they open in any editor, and go
+            wherever your usual backups go. Writing only goes one way — the app saves into the
+            folder, and reads back when you ask it to.
+          </p>
+          {vault.status === 'ready' && (
+            <p className="notice notice-ok">
+              Saving into <strong>{vault.folderName}</strong>
+              {vault.lastSync ? ` · written ${formatWhen(vault.lastSync)}` : ''}
+            </p>
+          )}
+          {vault.status === 'locked' && (
+            <p className="notice notice-warn">
+              <strong>{vault.folderName}</strong> is remembered, but the browser drops folder
+              permission when it restarts. Reconnect to resume saving.
+            </p>
+          )}
+          <div className="button-row">
+            {vault.status === 'off' && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={vault.busy}
+                onClick={() => void connect()}
+              >
+                Choose a folder
+              </button>
+            )}
+            {vault.status === 'locked' && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={vault.busy}
+                onClick={() => void vault.unlock(docs)}
+              >
+                Reconnect
+              </button>
+            )}
+            {vault.status === 'ready' && (
+              <>
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={vault.busy}
+                  onClick={() => void vault.sync(docs, true)}
+                >
+                  Save now
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={vault.busy}
+                  onClick={() => void restoreFolder()}
+                >
+                  Read back
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={vault.busy}
+                  onClick={() => void vault.disconnect()}
+                >
+                  Stop
+                </button>
+              </>
+            )}
+          </div>
+        </>
+      )}
+
+      <h4 className="settings-sub">Backup file</h4>
+      <p className="field-hint">
+        Every document in one file, for moving to another browser or keeping somewhere safe.
+        Restoring matches documents by identity, so the same file can be restored twice without
+        duplicating anything.
+      </p>
+      <div className="button-row">
+        <button type="button" className="btn" onClick={downloadBackup}>
+          Download backup
+        </button>
+        <button type="button" className="btn" onClick={() => fileRef.current?.click()}>
+          Restore from backup
+        </button>
+      </div>
+
+      {vault.error && <p className="notice notice-error">{vault.error}</p>}
+      {note && <p className="field-hint">{note}</p>}
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="application/json,.json"
+        hidden
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = '';
+          if (file) void restoreFile(file);
+        }}
+      />
+    </section>
   );
 }
 

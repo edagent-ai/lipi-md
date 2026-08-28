@@ -30,6 +30,12 @@ export interface Settings {
   sidebarOpen: boolean;
   /** Auto-run sandboxes as you type; when false they wait for an explicit run. */
   autoRun: boolean;
+  /**
+   * Whether to ask the browser to keep documents durably. `ask` means the
+   * reader has not been asked yet — the decision is theirs, so it is never
+   * made on their behalf.
+   */
+  keepData: 'ask' | 'yes' | 'no';
   /** Applied to documents that do not name a theme. Empty follows the app. */
   defaultTheme: string;
 }
@@ -48,4 +54,5 @@ export const DEFAULT_SETTINGS: Settings = {
   sidebarOpen: true,
   autoRun: true,
   defaultTheme: '',
+  keepData: 'ask',
 };

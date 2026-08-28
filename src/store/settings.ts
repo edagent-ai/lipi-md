@@ -5,13 +5,24 @@ const KEY = 'lipi.settings';
 /** Read by the inline script in index.html to avoid a flash of the wrong theme. */
 const THEME_KEY = 'lipi.theme';
 
+/**
+ * Below 900px the sidebar is an overlay across the workspace, so starting it
+ * open means a phone opens onto a file list covering the editor with no hint
+ * that anything is behind it. Only applied when nothing is stored: once a
+ * reader has an opinion, it is theirs.
+ */
+function firstRunDefaults(): Settings {
+  const wide = typeof window === 'undefined' || window.innerWidth > 900;
+  return wide ? DEFAULT_SETTINGS : { ...DEFAULT_SETTINGS, sidebarOpen: false };
+}
+
 export function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return DEFAULT_SETTINGS;
+    if (!raw) return firstRunDefaults();
     return { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<Settings>) };
   } catch {
-    return DEFAULT_SETTINGS;
+    return firstRunDefaults();
   }
 }
 

@@ -211,7 +211,35 @@ everything else.
 Nothing is uploaded. The only network request the app makes on its own is
 fetching itself; the optional p5.js download is the sole exception, and only when
 you ask for it. Documents live in this browser's IndexedDB (with a localStorage
-fallback where IndexedDB is blocked) and never leave the device.
+fallback where IndexedDB is blocked) and never leave the device. If you point the
+app at a folder (see below), it writes copies there too — still on your machine,
+still nowhere else.
+
+## Keeping your documents
+
+Documents live in this browser's IndexedDB, which is convenient and not durable:
+the browser is entitled to evict it under storage pressure, and "clear site data"
+erases it without warning. **Settings → Your data** offers three defences, and
+reports honestly which of them are actually in effect.
+
+- **Durable storage.** Asks the browser to stop treating the library as
+  disposable. Chrome decides from engagement and whether the app is installed and
+  never prompts; Firefox asks. The panel says plainly whether the answer was yes.
+- **A folder on your computer.** Every document is also written out as an
+  ordinary `.md` file into a directory you pick, laid out in the folders you
+  filed them under. Those files outlive the browser profile entirely, open in any
+  editor, and go wherever your usual backups already go. A small `.lipi-md.json`
+  manifest beside them records identity and timestamps, so reading the folder
+  back updates documents in place instead of duplicating them — and Markdown you
+  wrote elsewhere and dropped into the folder is picked up as a new document.
+  Needs the File System Access API, so Chromium browsers only.
+- **A backup file.** The whole library as one file, for moving between browsers
+  or for anywhere the folder option is unavailable. Restoring the same file twice
+  changes nothing the second time.
+
+The folder mirror is deliberately one-way: the app writes into it, and reads back
+only when asked. Two-way sync needs conflict resolution, and silently guessing
+which side won is a good way to lose the writing this exists to protect.
 
 ## Known limitations
 

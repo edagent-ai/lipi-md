@@ -216,8 +216,22 @@ math { font-size: 1.05em; }
 }
 `.trim();
 
-/** Quotes a value for use inside a CSS `content:` string. */
-const cssString = (value: string) => `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+/**
+ * Quotes a value for use inside a CSS `content:` string.
+ *
+ * Angle brackets are escaped as well as quotes and backslashes. These strings
+ * sit inside a `<style>` element, and nothing but `</style` ends that element —
+ * so a document titled `</style><script>…` would close the stylesheet and have
+ * the rest of itself parsed as HTML by whoever opened the exported file. A CSS
+ * escape keeps the character but leaves the HTML parser nothing to act on.
+ */
+const cssString = (value: string) =>
+  `"${value
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/</g, '\\3c ')
+    .replace(/>/g, '\\3e ')
+    .replace(/[\r\n]+/g, ' ')}"`;
 
 export function exportHtml(
   title: string,

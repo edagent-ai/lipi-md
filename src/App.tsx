@@ -32,7 +32,8 @@ import { captureSketches } from './export/capture';
 import { openDyslexicFaces } from './export/fonts';
 import { useDocs } from './store/docs';
 import { useSettings } from './store/settings';
-import { countWords, download, formatDay, slugify } from './lib/util';
+import { useVault } from './store/vault';
+import { countWords, debounce, download, formatDay, slugify } from './lib/util';
 import { createScrollLock } from './preview/scrollSync';
 import { styleVars, withDefaultTheme } from './markdown/docstyle';
 import { loadMath, looksLikeMath, mathReady } from './math';
@@ -51,6 +52,7 @@ interface AppProps {
 export default function App({ updateReady, onUpdate }: AppProps) {
   const { settings, update: updateSettings, dark } = useSettings();
   const docs = useDocs();
+  const vault = useVault();
   const [panel, setPanel] = useState<Panel>(null);
   const [online, setOnline] = useState(() => navigator.onLine);
   const [activeHeading, setActiveHeading] = useState('');
@@ -378,6 +380,29 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [settings.viewMode]);
 
+  /* Mirror into the reader's folder after the dust settles. Debounced well
+     past the autosave so a burst of typing costs one write, not one per
+     keystroke, and never runs before the library has finished loading. */
+  const mirrorSoon = useMemo(
+    () => debounce((list: Doc[]) => void vault.sync(list), 2000),
+    [vault.sync],
+  );
+
+  useEffect(() => {
+    if (docs.loading || vault.status !== 'ready') return;
+    mirrorSoon(docs.docs);
+  }, [docs.docs, docs.loading, vault.status, mirrorSoon]);
+
+  const docsRef = useRef(docs.docs);
+  docsRef.current = docs.docs;
+
+  // A tab closing mid-debounce would leave the folder a few edits behind.
+  useEffect(() => {
+    const onHide = () => mirrorSoon.flush(docsRef.current);
+    window.addEventListener('pagehide', onHide);
+    return () => window.removeEventListener('pagehide', onHide);
+  }, [mirrorSoon]);
+
   /* -------------------------------- render ------------------------------- */
 
   if (docs.loading) {
@@ -402,6 +427,13 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       dark={dark}
     />
   );
+
+  /* On a phone the sidebar covers the workspace, so choosing a document has
+     to close it — otherwise the reader picks a file and still sees the list. */
+  const selectDoc = (id: string) => {
+    docs.select(id);
+    if (window.innerWidth <= 900) updateSettings({ sidebarOpen: false });
+  };
 
   const previewPane = (
     <Preview
@@ -472,7 +504,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             currentId={docs.currentId}
             headings={headings}
             activeHeading={activeHeading}
-            onSelect={docs.select}
+            onSelect={selectDoc}
             onCreate={() => void docs.create()}
             onRequestDelete={setPendingDelete}
             onRequestReset={setPendingReset}
@@ -522,6 +554,9 @@ export default function App({ updateReady, onUpdate }: AppProps) {
           settings={settings}
           onChange={updateSettings}
           onClose={() => setPanel(null)}
+          vault={vault}
+          docs={docs.docs}
+          onImport={docs.importDocs}
         />
       )}
       {panel === 'help' && <HelpPanel onClose={() => setPanel(null)} />}
