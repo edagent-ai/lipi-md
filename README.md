@@ -233,6 +233,11 @@ reports honestly which of them are actually in effect.
   back updates documents in place instead of duplicating them — and Markdown you
   wrote elsewhere and dropped into the folder is picked up as a new document.
   Needs the File System Access API, so Chromium browsers only.
+- **A zip of the Markdown.** Every document as a `.md` file in the folders you
+  filed it under, plus the manifest — so unzipping it and pointing *Choose a
+  folder* at the result reads the library back with dates and identities intact.
+  Written with the browser's own `CompressionStream`, so no compressor is
+  bundled to produce it.
 - **A backup file.** The whole library as one file, for moving between browsers
   or for anywhere the folder option is unavailable. Restoring the same file twice
   changes nothing the second time.

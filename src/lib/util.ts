@@ -26,11 +26,31 @@ export function download(filename: string, text: string, mime: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/** As `download`, for content that is already binary. */
+export function downloadBlob(filename: string, blob: Blob): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/**
+ * A filename- and anchor-safe form of a title.
+ *
+ * Combining marks are kept alongside letters and digits. In Indic scripts the
+ * vowel signs, anusvara and virama are marks rather than letters, so dropping
+ * them shredded exactly the titles this app exists to write: `ಸಂಸ್ಕೃತ ಟಿಪ್ಪಣಿ`
+ * came out as `ಸ-ಸ-ಕ-ತ-ಟ-ಪ-ಪಣ`, with a dash where every vowel had been.
+ */
 export function slugify(title: string): string {
   const s = title
     .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/[^\p{L}\p{N}\p{M}]+/gu, '-')
+    .replace(/^[-\p{M}]+|-+$/gu, '');
   return s || 'untitled';
 }
 

@@ -187,6 +187,44 @@ function assignPaths(docs: Doc[], before: Map<string, ManifestEntry>): Map<strin
   return paths;
 }
 
+function manifestFor(docs: Doc[], paths: Map<string, string>): Manifest {
+  return {
+    app: 'lipi.md',
+    version: MANIFEST_VERSION,
+    savedAt: Date.now(),
+    docs: docs.map((d) => ({
+      id: d.id,
+      path: paths.get(d.id) as string,
+      title: d.title,
+      createdAt: d.createdAt,
+      updatedAt: d.updatedAt,
+      folder: d.folder,
+      example: d.example,
+    })),
+  };
+}
+
+/**
+ * The library as a set of files, laid out exactly as the folder mirror writes
+ * it — the manifest included, so an archive of these can be unzipped, pointed
+ * at with "Choose a folder" and read back with every document's identity and
+ * dates intact.
+ */
+export function libraryFiles(docs: Doc[]): Array<{ path: string; text: string; modified: number }> {
+  const paths = assignPaths(docs, new Map());
+  const files = docs.map((doc) => ({
+    path: paths.get(doc.id) as string,
+    text: doc.text,
+    modified: doc.updatedAt,
+  }));
+  files.push({
+    path: MANIFEST,
+    text: JSON.stringify(manifestFor(docs, paths), null, 2),
+    modified: Date.now(),
+  });
+  return files;
+}
+
 async function readManifest(root: DirHandle): Promise<Manifest | null> {
   const raw = await readFile(root, MANIFEST);
   if (!raw) return null;
@@ -246,21 +284,7 @@ export async function mirror(root: DirHandle, docs: Doc[]): Promise<MirrorResult
     }
   }
 
-  const manifest: Manifest = {
-    app: 'lipi.md',
-    version: MANIFEST_VERSION,
-    savedAt: Date.now(),
-    docs: docs.map((d) => ({
-      id: d.id,
-      path: paths.get(d.id) as string,
-      title: d.title,
-      createdAt: d.createdAt,
-      updatedAt: d.updatedAt,
-      folder: d.folder,
-      example: d.example,
-    })),
-  };
-  await writeFile(root, MANIFEST, JSON.stringify(manifest, null, 2));
+  await writeFile(root, MANIFEST, JSON.stringify(manifestFor(docs, paths), null, 2));
   return result;
 }
 

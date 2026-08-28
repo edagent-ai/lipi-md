@@ -12,9 +12,11 @@ import {
   type P5Meta,
 } from '../sandbox/p5addon';
 import { usingFallback } from '../lib/idb';
-import { download, formatWhen } from '../lib/util';
+import { download, downloadBlob, formatWhen } from '../lib/util';
+import { makeZip } from '../lib/zip';
 import {
   backupJson,
+  libraryFiles,
   parseBackup,
   persistenceGranted,
   requestPersistence,
@@ -251,9 +253,21 @@ function DataSection({ vault, docs, onImport, settings, onChange }: DataSectionP
     refresh();
   };
 
+  const stampToday = () => new Date().toISOString().slice(0, 10);
+
   const downloadBackup = () => {
-    const stamp = new Date().toISOString().slice(0, 10);
-    download(`lipi-md-backup-${stamp}.json`, backupJson(docs), 'application/json');
+    download(`lipi-md-backup-${stampToday()}.json`, backupJson(docs), 'application/json');
+  };
+
+  const downloadZip = async () => {
+    setNote('Packing…');
+    try {
+      const files = libraryFiles(docs);
+      downloadBlob(`lipi-md-${stampToday()}.zip`, await makeZip(files));
+      setNote(`${files.length - 1} document${files.length === 2 ? '' : 's'} packed as Markdown.`);
+    } catch (err) {
+      setNote(err instanceof Error ? err.message : String(err));
+    }
   };
 
   const restoreFile = async (file: File) => {
@@ -385,13 +399,18 @@ function DataSection({ vault, docs, onImport, settings, onChange }: DataSectionP
         </>
       )}
 
-      <h4 className="settings-sub">Backup file</h4>
+      <h4 className="settings-sub">Download everything</h4>
       <p className="field-hint">
-        Every document in one file, for moving to another browser or keeping somewhere safe.
-        Restoring matches documents by identity, so the same file can be restored twice without
-        duplicating anything.
+        The <strong>zip</strong> holds every document as a <code>.md</code> file in the folders you
+        filed them under — readable anywhere, and if you unzip it and point “Choose a folder” at
+        the result, it reads back with dates and identities intact. The <strong>backup file</strong>
+        is the same library as a single file to restore here later; restoring matches documents by
+        identity, so the same file twice changes nothing the second time.
       </p>
       <div className="button-row">
+        <button type="button" className="btn btn-primary" onClick={() => void downloadZip()}>
+          Download .md files (zip)
+        </button>
         <button type="button" className="btn" onClick={downloadBackup}>
           Download backup
         </button>
