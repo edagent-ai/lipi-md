@@ -213,6 +213,96 @@ body.is-resizing iframe {
   user-select: none;
 }
 
+/* About, in the corner of the bar. Anchored to its own box so the panel hangs
+   from the right edge rather than off the end of the window. */
+.about-pop {
+  position: relative;
+  flex: none;
+}
+
+.about-trigger {
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.about-trigger:hover,
+.about-trigger[aria-expanded='true'] {
+  border-color: var(--accent);
+  color: var(--fg);
+}
+
+.about-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  width: min(20rem, calc(100vw - 24px));
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+
+.about-name {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.about-desc {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--fg-muted);
+}
+
+.about-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0 0 12px;
+  font-size: 12.5px;
+}
+
+.about-facts dt {
+  color: var(--fg-muted);
+}
+
+.about-facts dd {
+  margin: 0;
+}
+
+.about-dim {
+  color: var(--fg-muted);
+}
+
+.about-links {
+  display: flex;
+  gap: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.linkish {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* Says what the app is, for anyone arriving cold. First thing to go when the
    bar gets tight: the open document's name matters more than the pitch. */
 .brand-tagline {

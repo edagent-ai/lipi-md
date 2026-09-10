@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import type { Plugin } from 'vite';
+import pkg from './package.json' with { type: 'json' };
 
 /**
  * KaTeX ships each face three times over. Every browser this app runs in takes
@@ -78,6 +79,12 @@ export default defineConfig({
       devOptions: { enabled: false },
     }),
   ],
+  /* Injected rather than imported, so the bundle carries the two strings the
+     About panel shows and not the whole of package.json. */
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)),
+  },
   server: { port: 5173 },
   build: {
     // The source is public on GitHub, so maps buy nothing here and cost ~5MB of

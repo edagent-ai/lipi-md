@@ -77,6 +77,38 @@ export const THEMES: Record<string, ThemePreset> = {
     codeBg: '#e7eef7',
     border: '#d2deeb',
   },
+  academic: {
+    label: 'Academic',
+    blurb: 'White page, justified serif — a journal article',
+    font: 'serif',
+    // Justified with a short measure and open leading: the shape a paper is
+    // read in, and narrow enough that justification does not open rivers.
+    align: 'justify',
+    measure: '40rem',
+    size: '16.5px',
+    lineHeight: '1.72',
+    background: '#ffffff',
+    color: '#1a1a1a',
+    accent: '#7a1f2b',
+    codeBg: '#f3f3f3',
+    border: '#d6d6d6',
+  },
+  technical: {
+    label: 'Technical',
+    blurb: 'Neutral sans, wide measure — specifications and reports',
+    font: 'sans',
+    // Wider than prose wants, because this is the theme for documents carrying
+    // tables, code and figures that a 46rem column would crush.
+    align: 'left',
+    measure: '52rem',
+    size: '15.5px',
+    lineHeight: '1.62',
+    background: '#fcfcfd',
+    color: '#1b2126',
+    accent: '#0d5f6b',
+    codeBg: '#eef1f5',
+    border: '#dde2e8',
+  },
   dyslexic: {
     label: 'Dyslexia-friendly',
     blurb: 'OpenDyslexic, loose spacing, cream page, never justified',

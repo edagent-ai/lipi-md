@@ -95,6 +95,18 @@ figure.sketch { margin: 0 0 1.3em; text-align: center; }
 figure.sketch img {
   max-width: 100%; height: auto; border: 1px solid var(--border); border-radius: 10px;
 }
+/* Credit for the app, kept clearly apart from the document's own colophon so
+   it never reads as something the author wrote. */
+.generated-by {
+  margin: 3em 0 0;
+  padding-top: 1em;
+  border-top: 1px solid var(--doc-border, var(--border));
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: .75em;
+  text-align: center;
+  color: var(--doc-muted, var(--fg-muted));
+}
+.generated-by a { color: inherit; }
 .doc-footer { font-size: .85em; color: var(--doc-muted, var(--fg-muted)); }
 .doc-footer p:last-child { margin-bottom: 0; }
 p.doc-byline {
@@ -216,6 +228,9 @@ math { font-size: 1.05em; }
 }
 `.trim();
 
+/** Where an exported page says it came from. */
+const APP_URL = 'https://lipi-md.vercel.app';
+
 /**
  * Quotes a value for use inside a CSS `content:` string.
  *
@@ -264,6 +279,7 @@ ${`:root {\n${pdfVars}${docVars ? `\n${docVars}` : ''}\n}`}
 </head>
 <body>
 ${renderStatic(source, translit, sketches, dates)}
+<footer class="generated-by">Generated using <a href="${APP_URL}" target="_blank" rel="noopener noreferrer">LIPI-MD</a> (${APP_URL})</footer>
 </body>
 </html>
 `;

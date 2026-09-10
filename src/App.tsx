@@ -7,6 +7,7 @@ import { StatusBar } from './components/StatusBar';
 import { SettingsPanel } from './components/SettingsPanel';
 import { HelpPanel } from './components/HelpPanel';
 import { AboutPanel } from './components/AboutPanel';
+import { AboutPopover } from './components/AboutPopover';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { MoveDialog } from './components/MoveDialog';
 import { folderPaths } from './components/DocTree';
@@ -477,6 +478,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
         <h1 className="doc-name" title={docs.current?.title}>
           {docs.current?.title || 'Untitled'}
         </h1>
+        <AboutPopover onMore={() => setPanel('about')} />
       </header>
 
       <Toolbar
