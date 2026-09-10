@@ -204,14 +204,14 @@ It is worth being exact about what is and is not being claimed.
 
 | When | Who | What |
 | --- | --- | --- |
-| c. 1800 BCE | Babylonian scribes | Plimpton 322 tabulates Pythagorean triples |
+| c. 1800 BCE | Babylonian scribes | [Plimpton 322](https://en.wikipedia.org/wiki/Plimpton_322) tabulates Pythagorean triples |
 | c. 800 BCE | Baudhāyana | earliest known general *statement* of the rule |
 | c. 570–495 BCE | Pythagoras | the name attaches, by later tradition |
 | c. 300 BCE | Euclid | first surviving deductive *proof*, *Elements* I.47 |
 | 12th c. CE | Bhāskara II | a dissection proof, with the single word *behold* |
 
 Babylonian scribes were working with triples a thousand years earlier, and their
-value for $\\sqrt{2}$ on the tablet YBC 7289 is about three and a half times more
+value for $\\sqrt{2}$ on the tablet [YBC 7289](https://en.wikipedia.org/wiki/YBC_7289) is about three and a half times more
 accurate than Baudhāyana's.^[YBC 7289 gives 1;24,51,10 in sexagesimal, that is
 1.4142129…, an error of 6 × 10⁻⁷ against Baudhāyana's 2 × 10⁻⁶.] What is
 distinctive about the Śulbasūtra is not priority over Babylon but form: a
@@ -235,6 +235,171 @@ theorem rather than either one alone.
 *Everything above is plain Markdown. The Sanskrit is typed in IAST and the
 Kannada in Latin letters; the scripts are painted at render time, so the file
 stays searchable in the alphabet you typed.*
+`;
+
+/**
+ * A tour of the syntax, seeded beside the example so the first thing a reader
+ * opens is not the only thing they know how to write. Kept deletable: it is an
+ * ordinary document, not a fixture.
+ */
+export const TOUR_DOC = `---
+title: What this editor can do
+folder: Guide
+theme: technical
+author: lipi.md
+version: 1.0
+---
+
+# What this editor can do
+
+Everything on this page is plain Markdown in the file behind it. Open the Write
+pane to see how each part is typed. Nothing here needs the network, and nothing
+leaves your device.
+
+## Writing in scripts you cannot type
+
+Type phonetically; the script is painted when the page renders. The file keeps
+the letters you typed, so it stays searchable and editable on any keyboard.
+
+Inline, in the document's own script: @lipi(namaskaara). Naming a script
+directly: @kannada(kannaDa) and @telugu(telugu). Sanskrit in IAST:
+@sa:iast(saṃskṛta).
+
+A whole block, for anything longer:
+
+:::lipi
+haggadiMda aLate maaDi chadara mattu aayatagaLannu rachisuva vidhaanagaLannu
+adu vivarisuttade.
+:::
+
+:::devanagari:iast
+vidyā dadāti vinayaṃ vinayād yāti pātratām
+:::
+
+## Formulas
+
+Inline as $e^{i\\\\pi} + 1 = 0$, or set apart:
+
+$$
+\\\\int_{0}^{\\\\infty} e^{-x^{2}} \\\\, dx = \\\\frac{\\\\sqrt{\\\\pi}}{2}
+$$
+
+## Sketches that run
+
+A fenced block naming a runtime runs instead of sitting there as code. This one
+is \`canvas\` — plain 2D drawing, with \`loop()\` for animation:
+
+\`\`\`canvas height=200 title="A rope of twelve knots"
+loop((t) => {
+  ctx.clearRect(0, 0, width, height);
+  const r = Math.min(width, height) * 0.32;
+  const cx = width / 2, cy = height / 2;
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2 + t / 2600;
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 5, 0, Math.PI * 2);
+    ctx.fillStyle = i % 4 === 0 ? '#bf5700' : '#8f9aa7';
+    ctx.fill();
+  }
+});
+\`\`\`
+
+And \`anime\`, for animating ordinary elements:
+
+\`\`\`anime height=140 title="Anime.js"
+const row = document.createElement('div');
+row.style.cssText = 'display:flex;gap:10px;justify-content:center;padding:44px 0';
+for (let i = 0; i < 5; i++) {
+  const dot = document.createElement('span');
+  dot.style.cssText = 'width:16px;height:16px;border-radius:50%;background:#0d5f6b';
+  row.appendChild(dot);
+}
+stage.appendChild(row);
+
+animate(row.children, {
+  y: [0, -22, 0],
+  delay: stagger(90),
+  duration: 900,
+  loop: true,
+  ease: 'inOutSine',
+});
+\`\`\`
+
+\`p5\` works too, but p5.js is LGPL rather than MIT, so it is an opt-in
+download in **Settings** rather than something shipped with the app.
+
+## Code that stays code
+
+A fence with an ordinary language name is highlighted and left alone:
+
+\`\`\`js
+const diagonal = (a, b) => Math.hypot(a, b);
+console.log(diagonal(3, 4)); // 5
+\`\`\`
+
+## Pictures, video and sound
+
+One syntax; the link decides what is built:
+
+![A figure, drawn inline](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAB4CAIAAAAMrLyJAAACKklEQVR42u3dsVHDQBBA0bWGToiIXQUUQAOklENKAy7AVEFM5ArIqIAOYAbku93b92IGNCf9WVkS1uHr8xJATZslAAEDAgYEDAIGBAwIGBAwCBgQMCBgEDAgYEDAgIBBwICAAQEDAgYBAwIGBAwCBgQMCBgQMAgYEDAgYEDAIGBglpsSW/n+fPvzDxxfvOWYjg5pX/D9a7RihowB/zldGSPg8unKGAGXT1fGhKvQC9Q74PdD34DH1KVhnEKvEJXTaQRceySOafj10cxv4el0aXcKPfeEdsBfV28fc/e1RynVS+E9vnUbv9feBvVqeOWA81wNdl2acBupdDMaRsBAg4BzjjtDGAETSe4K0m2/bwbd7tumYfWawPYo9nWkeJSyxOdMz0jjMzAgYEDAIOAuN1rdEEbAgIABAYOAAQEDAgYEDAIGBAwIGMKbGcK/E+7l4+3B4fUfd/dni2ACz6FeayhgR56VtJICdsxZTwGv/W01vk8HAQOLBpx5xBm/CBhYOuCcg273rXL30nqawI45rGS+gLMN4ettjyPPGsYyj1JGyicrXbvCBK5ajnoRMNAy4LkD0PhFwFUrUi/hIlYUvKYlXUzgql2pFwFXrUu9OIUueTotXQRcMmPpIuCSGUsXAReLWbQIGAhXoQEBAwIGAQMCBgQMCBgEDAgYEDAIGBAwIGBAwCBgQMCAgEHAlgAEDAgYEDAIGBAwIGBAwCBgQMCAgEHAgICBkb4BfDS5g60c4mgAAAAASUVORK5CYII= "Images take a caption in quotes")
+
+\`\`\`text
+![alt](photo.jpg "A caption")        an image
+![alt](https://youtu.be/ID)          a privacy-mode YouTube embed
+![alt](https://example.com/clip.mp4) a video player
+\`\`\`
+
+## Notes to the side
+
+A note rides along with the sentence it belongs to, and shows in the margin when
+there is room for it.^[Like this one. Notes take the same Markdown as anything
+else, including links — [the Śulba Sūtras](https://en.wikipedia.org/wiki/Shulba_Sutras)
+opens in a new tab.]
+
+## Tables
+
+| Syntax | Does |
+| --- | --- |
+| \`@kannada(…)\` | one word in another script |
+| \`:::lipi\` | a block in the document's script |
+| \`^[…]\` | a side note |
+| \`$…$\` | a formula |
+
+## Setting the page
+
+The block at the top of the file sets how the page is presented. This document
+asks for \`theme: technical\`; a document that names no theme follows whatever
+you choose in **Settings → Document theme**.
+
+\`\`\`text
+theme: academic      one of nine presets
+font: serif          serif, sans, mono, reading
+width: wide          narrow, normal, wide, full
+align: justify       left or justify
+accent: "#bf5700"    links, rules and marks
+author, date, version, link      shown under the title
+folder: Guide        where it is filed
+\`\`\`
+
+## Filing and finding
+
+\`folder:\` above is why this page sits under **Guide** in the sidebar. Folders
+nest, and a document or a whole branch can be dragged onto another folder.
+
+The field above the document list searches every document — including text you
+wrote phonetically, so *namaskaara* finds ನಮಸ್ಕಾರ. ⌘F searches the page you are
+reading, the same way.
+
+## Keeping it
+
+Documents live in this browser. **Settings → Your data** will also write them
+out as ordinary \`.md\` files into a folder you choose, hand you the whole
+library as a zip, and ask the browser to hold on to them.
+
+---
+
+*Delete this page whenever you like — it is an ordinary document. The Baudhāyana
+example beside it can be reset from the sidebar if you edit it.*
 `;
 
 export const BLANK_DOC = `# Untitled

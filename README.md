@@ -231,6 +231,10 @@ phonetic spelling the author typed, and a romanisation of native script — so
 `namaskaara`, `ನಮಸ್ಕಾರ` and `samskrta` all find what you meant regardless of how
 it was written. A library hit opens the document with the same query running.
 
+**On first run** the library holds two documents: the Baudhāyana example, and a
+tour of the syntax filed under *Guide*. The example can be reset but not
+deleted; the tour is an ordinary document and can be thrown away.
+
 ## Keeping your documents
 
 Documents live in this browser's IndexedDB, which is convenient and not durable:

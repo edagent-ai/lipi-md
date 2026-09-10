@@ -7,7 +7,7 @@ import {
   upsertFrontmatterKey,
 } from '../markdown/frontmatter';
 import type { Doc } from '../types';
-import { BLANK_DOC, WELCOME_DOC } from './samples';
+import { BLANK_DOC, TOUR_DOC, WELCOME_DOC } from './samples';
 
 export type SaveState = 'saved' | 'saving' | 'dirty';
 
@@ -125,11 +125,15 @@ export function useDocs() {
       if (cancelled) return;
 
       if (!stored.length) {
+        // Two documents: the example to read, and a tour of how it was written.
+        // The example opens first; the tour is ordinary and can be deleted.
         const welcome = newDoc(WELCOME_DOC, true);
+        const tour = newDoc(TOUR_DOC);
         await idbSet('docs', welcome.id, welcome);
+        await idbSet('docs', tour.id, tour);
         await idbSet('kv', CURRENT_KEY, welcome.id);
         if (cancelled) return;
-        setDocs([welcome]);
+        setDocs([welcome, tour]);
         setCurrentId(welcome.id);
       } else {
         // Installs seeded before the flag existed have an unmarked example.
