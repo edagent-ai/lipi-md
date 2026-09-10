@@ -10,6 +10,10 @@ interface DocTreeProps {
   onRequestDelete(doc: Doc): void;
   onRequestReset(doc: Doc): void;
   onRequestMove(doc: Doc): void;
+  /** Files a document under a folder path; empty means the top level. */
+  onMoveDoc(id: string, folder: string): void;
+  /** Moves a whole folder, and everything filed below it, under a new parent. */
+  onMoveFolder(from: string, toParent: string): void;
 }
 
 interface Node {
@@ -75,9 +79,67 @@ export function DocTree({
   onRequestDelete,
   onRequestReset,
   onRequestMove,
+  onMoveDoc,
+  onMoveFolder,
 }: DocTreeProps) {
   const tree = useMemo(() => buildTree(docs), [docs]);
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+  /** Path of the row a drag is currently over; '' is the top level. */
+  const [over, setOver] = useState<string | null>(null);
+
+
+  /* Dragging carries what is being moved, so a drop knows whether it is filing
+     a single document or re-parenting a whole branch. */
+  const startDrag = (event: React.DragEvent, kind: 'doc' | 'folder', value: string) => {
+    event.dataTransfer.setData('application/x-lipi', `${kind}:${value}`);
+    event.dataTransfer.effectAllowed = 'move';
+    event.stopPropagation();
+  };
+
+  /** Clears the highlight when a drag is abandoned rather than dropped. */
+  const endDrag = () => setOver(null);
+
+  const payload = (event: React.DragEvent): { kind: string; value: string } | null => {
+    const raw = event.dataTransfer.getData('application/x-lipi');
+    const at = raw.indexOf(':');
+    return at < 0 ? null : { kind: raw.slice(0, at), value: raw.slice(at + 1) };
+  };
+
+  /* A folder cannot be filed inside itself or anything it contains — that would
+     detach the branch from the tree and lose every document under it. */
+  const wouldSwallow = (from: string, toParent: string) =>
+    toParent === from || toParent.startsWith(`${from}/`);
+
+  const canDrop = (event: React.DragEvent, target: string) => {
+    const item = payload(event);
+    if (!item) return event.dataTransfer.types.includes('application/x-lipi');
+    if (item.kind === 'folder') {
+      const parent = item.value.split('/').slice(0, -1).join('/');
+      return !wouldSwallow(item.value, target) && target !== parent;
+    }
+    return true;
+  };
+
+  const onDrop = (event: React.DragEvent, target: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setOver(null);
+    const item = payload(event);
+    if (!item) return;
+    if (item.kind === 'doc') onMoveDoc(item.value, target);
+    else if (!wouldSwallow(item.value, target)) onMoveFolder(item.value, target);
+  };
+
+  const dropProps = (target: string) => ({
+    onDragOver: (event: React.DragEvent) => {
+      if (!canDrop(event, target)) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move' as const;
+      setOver(target);
+    },
+    onDragLeave: () => setOver((now) => (now === target ? null : now)),
+    onDrop: (event: React.DragEvent) => onDrop(event, target),
+  });
 
   const toggle = (path: string) =>
     setCollapsed((prev) => {
@@ -95,6 +157,9 @@ export function DocTree({
       <button
         type="button"
         className={`doc-item${doc.id === currentId ? ' is-active' : ''}`}
+        draggable
+        onDragStart={(event) => startDrag(event, 'doc', doc.id)}
+        onDragEnd={endDrag}
         onClick={() => onSelect(doc.id)}
       >
         <span className="doc-title">{doc.title || 'Untitled'}</span>
@@ -152,8 +217,12 @@ export function DocTree({
       <li key={node.path} className="folder" style={{ ['--depth' as string]: depth }}>
         <button
           type="button"
-          className="folder-row"
+          className={`folder-row${over === node.path ? ' is-drop' : ''}`}
           aria-expanded={!isCollapsed}
+          draggable
+          onDragStart={(event) => startDrag(event, 'folder', node.path)}
+          onDragEnd={endDrag}
+          {...dropProps(node.path)}
           onClick={() => toggle(node.path)}
         >
           <span className={`folder-chevron${isCollapsed ? '' : ' is-open'}`} aria-hidden="true">
@@ -173,9 +242,16 @@ export function DocTree({
   };
 
   return (
-    <ul className="doc-list">
-      {tree.children.map((child) => renderNode(child, 0))}
-      {tree.docs.map((doc) => renderDoc(doc, 0))}
-    </ul>
+    <div
+      className={`tree-root${over === '' ? ' is-drop' : ''}`}
+      {...dropProps('')}
+      aria-label="Documents"
+    >
+      <ul className="doc-list">
+        {tree.children.map((child) => renderNode(child, 0))}
+        {tree.docs.map((doc) => renderDoc(doc, 0))}
+      </ul>
+      <p className="tree-hint">Drag onto a folder to file it, or here for the top level.</p>
+    </div>
   );
 }

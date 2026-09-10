@@ -404,6 +404,26 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     return () => window.removeEventListener('pagehide', onHide);
   }, [mirrorSoon]);
 
+  /**
+   * Re-parents a folder by refiling every document beneath it. Folders are not
+   * stored anywhere — they exist only as the paths documents declare — so the
+   * branch moves precisely when its contents do.
+   */
+  const moveFolder = useCallback(
+    async (from: string, toParent: string) => {
+      const leaf = from.split('/').pop() as string;
+      const target = toParent ? `${toParent}/${leaf}` : leaf;
+      if (target === from) return;
+
+      for (const doc of docs.docs) {
+        const folder = doc.folder ?? '';
+        if (folder !== from && !folder.startsWith(`${from}/`)) continue;
+        await docs.move(doc.id, target + folder.slice(from.length));
+      }
+    },
+    [docs],
+  );
+
   /* -------------------------------- render ------------------------------- */
 
   if (docs.loading) {
@@ -465,20 +485,22 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             Write Markdown in many scripts — fully private, entirely in your browser.
           </p>
         </div>
-        <button
-          type="button"
-          className="icon-btn theme-toggle"
-          onClick={() => updateSettings({ theme: dark ? 'light' : 'dark' })}
-          title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-          aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-          aria-pressed={dark}
-        >
-          {dark ? '☾' : '☀'}
-        </button>
-        <h1 className="doc-name" title={docs.current?.title}>
-          {docs.current?.title || 'Untitled'}
-        </h1>
-        <AboutPopover onMore={() => setPanel('about')} />
+        <div className="appbar-end">
+          <h1 className="doc-name" title={docs.current?.title}>
+            {docs.current?.title || 'Untitled'}
+          </h1>
+          <button
+            type="button"
+            className="icon-btn theme-toggle"
+            onClick={() => updateSettings({ theme: dark ? 'light' : 'dark' })}
+            title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-pressed={dark}
+          >
+            {dark ? '☾' : '☀'}
+          </button>
+          <AboutPopover onMore={() => setPanel('about')} />
+        </div>
       </header>
 
       <Toolbar
@@ -515,6 +537,8 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             onImport={() => fileInputRef.current?.click()}
             onJumpToLine={jumpToLine}
             sourceScheme={translitEnv.sourceScheme}
+            onMoveDoc={(id, folder) => void docs.move(id, folder)}
+            onMoveFolder={(from, toParent) => void moveFolder(from, toParent)}
             onOpenMatch={(id, query) => {
               selectDoc(id);
               // After the switch has rendered, or the find bar would search the

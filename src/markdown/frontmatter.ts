@@ -83,7 +83,14 @@ export function frontmatterPlugin(md: MarkdownIt): void {
   md.renderer.rules.lipi_frontmatter = () => '';
 }
 
-export const MAX_FOLDER_DEPTH = 3;
+/**
+ * How deep folders may nest.
+ *
+ * A limit rather than none at all: the path is mirrored to a real filesystem,
+ * where very deep trees run into path-length limits, and the sidebar indents a
+ * level at a time. Eight is past anything anyone files by hand.
+ */
+export const MAX_FOLDER_DEPTH = 8;
 
 /**
  * Cleans a user-typed folder path: trims each level, drops empties, strips

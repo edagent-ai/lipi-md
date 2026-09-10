@@ -218,6 +218,13 @@ fallback where IndexedDB is blocked) and never leave the device. If you point th
 app at a folder (see below), it writes copies there too — still on your machine,
 still nowhere else.
 
+**Folders.** Documents are filed by the `folder:` path in their own frontmatter,
+so the arrangement travels with the file through export and re-import. The
+sidebar shows them as a collapsible tree, nesting up to eight deep, and a
+document or a whole branch can be dragged onto another folder — or onto the
+empty space below the tree for the top level. Folders are not stored anywhere of
+their own: they exist exactly as long as something is filed under them.
+
 **Search.** ⌘F searches the open page; the field above the document list
 searches the whole library. Both match three ways — the text as rendered, the
 phonetic spelling the author typed, and a romanisation of native script — so

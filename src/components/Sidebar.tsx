@@ -22,6 +22,8 @@ interface SidebarProps {
   sourceScheme: string;
   /** Opens a document and runs the same query inside it. */
   onOpenMatch(id: string, query: string): void;
+  onMoveDoc(id: string, folder: string): void;
+  onMoveFolder(from: string, toParent: string): void;
 }
 
 export function Sidebar({
@@ -39,6 +41,8 @@ export function Sidebar({
   onJumpToLine,
   sourceScheme,
   onOpenMatch,
+  onMoveDoc,
+  onMoveFolder,
 }: SidebarProps) {
   const current = docs.find((d) => d.id === currentId);
   const [query, setQuery] = useState('');
@@ -129,6 +133,8 @@ export function Sidebar({
             onRequestDelete={onRequestDelete}
             onRequestReset={onRequestReset}
             onRequestMove={onRequestMove}
+            onMoveDoc={onMoveDoc}
+            onMoveFolder={onMoveFolder}
           />
         )}
       </div>
