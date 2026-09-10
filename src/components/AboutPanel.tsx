@@ -54,11 +54,11 @@ export function AboutPanel({ onClose, onUpdate, updateReady }: AboutPanelProps) 
       )}
 
       <section className="settings-group">
-        <h3>Licence</h3>
+        <h3>License</h3>
         <p>
-          lipi.md is released under the <strong>MIT Licence</strong>, and every library it ships is
+          lipi.md is released under the <strong>MIT License</strong>, and every library it ships is
           MIT-licensed too — with one addition: the OpenDyslexic typeface, under the SIL Open Font
-          Licence, which permits bundling and redistribution. The source is on GitHub at{' '}
+          License, which permits bundling and redistribution. The source is on GitHub at{' '}
           <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
             {REPO_URL.replace('https://', '')}
           </a>

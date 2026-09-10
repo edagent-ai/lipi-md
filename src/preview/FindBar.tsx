@@ -9,11 +9,20 @@ interface FindBarProps {
   sourceScheme: string;
   /** Bumped whenever the preview re-renders, so matches are recomputed. */
   revision: number;
+  /** Seeds the field, when the search was started from somewhere else. */
+  initialQuery?: string;
   onClose(): void;
 }
 
-export function FindBar({ bodyRef, scrollerRef, sourceScheme, revision, onClose }: FindBarProps) {
-  const [query, setQuery] = useState('');
+export function FindBar({
+  bodyRef,
+  scrollerRef,
+  sourceScheme,
+  revision,
+  initialQuery = '',
+  onClose,
+}: FindBarProps) {
+  const [query, setQuery] = useState(initialQuery);
   const [current, setCurrent] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const supported = useMemo(canHighlight, []);

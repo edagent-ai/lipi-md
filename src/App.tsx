@@ -514,6 +514,13 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             onDuplicate={(id) => void docs.duplicate(id)}
             onImport={() => fileInputRef.current?.click()}
             onJumpToLine={jumpToLine}
+            sourceScheme={translitEnv.sourceScheme}
+            onOpenMatch={(id, query) => {
+              selectDoc(id);
+              // After the switch has rendered, or the find bar would search the
+              // document being navigated away from.
+              requestAnimationFrame(() => previewRef.current?.openFind(query));
+            }}
           />
         )}
 

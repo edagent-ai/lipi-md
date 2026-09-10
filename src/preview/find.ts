@@ -33,7 +33,7 @@ const SCRIPT_BLOCKS: Array<{ script: string; test: RegExp }> = [
  * carries two or three — Latin, Kannada and Devanagari together — and
  * romanising from only one leaves the rest unsearchable.
  */
-function scriptsIn(text: string): string[] {
+export function scriptsIn(text: string): string[] {
   return SCRIPT_BLOCKS.filter(({ test }) => test.test(text)).map(({ script }) => script);
 }
 
@@ -55,7 +55,7 @@ export function fold(text: string): string {
  * two characters and one is dropped — so a match found in the folded text can
  * only be turned back into a DOM range through this map.
  */
-function foldWithMap(text: string): { folded: string; map: number[] } {
+export function foldWithMap(text: string): { folded: string; map: number[] } {
   let folded = '';
   const map: number[] = [];
   for (let i = 0; i < text.length; i++) {

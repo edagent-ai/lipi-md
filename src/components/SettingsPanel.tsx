@@ -467,7 +467,7 @@ function P5AddonSection() {
         Install it once and the unmodified library is cached on this device for offline use. You can
         replace it at any time with your own build.{' '}
         <a href={P5_LICENSE_URL} target="_blank" rel="noopener noreferrer">
-          p5.js licence
+          p5.js license
         </a>
       </p>
 

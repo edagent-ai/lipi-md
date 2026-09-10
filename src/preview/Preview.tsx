@@ -127,8 +127,8 @@ class SegmentRenderer {
 }
 
 export interface PreviewHandle {
-  /** Opens the find bar over the rendered page. */
-  openFind(): void;
+  /** Opens the find bar over the rendered page, optionally pre-filled. */
+  openFind(query?: string): void;
   scrollToLine(line: number): void;
   topLine(): number;
   scroller(): HTMLElement | null;
@@ -160,6 +160,7 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
   // segments themselves ever changing.
   const [rendererEpoch, setRendererEpoch] = useState(0);
   const [findOpen, setFindOpen] = useState(false);
+  const [findSeed, setFindSeed] = useState('');
   // Every render replaces DOM the match ranges point into, so the find bar has
   // to recompute rather than hold on to ranges that would throw when used.
   const [revision, setRevision] = useState(0);
@@ -261,8 +262,12 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
   }, []);
 
   useImperativeHandle(ref, () => ({
-    openFind() {
-      setFindOpen(true);
+    openFind(query = '') {
+      setFindSeed(query);
+      // Remounted on a new seed, so a second search replaces the field rather
+      // than leaving the previous query sitting in it.
+      setFindOpen(false);
+      requestAnimationFrame(() => setFindOpen(true));
     },
     scrollToLine(line: number) {
       const scroller = scrollerRef.current;
@@ -327,6 +332,8 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
     >
       {findOpen ? (
         <FindBar
+          key={findSeed}
+          initialQuery={findSeed}
           bodyRef={bodyRef}
           scrollerRef={scrollerRef}
           sourceScheme={sourceScheme}

@@ -76,7 +76,7 @@ export function AboutPopover({ onMore }: AboutPopoverProps) {
                 onMore();
               }}
             >
-              Licences and privacy
+              Licenses and privacy
             </button>
             <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
               Source

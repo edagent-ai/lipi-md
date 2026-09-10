@@ -218,6 +218,12 @@ fallback where IndexedDB is blocked) and never leave the device. If you point th
 app at a folder (see below), it writes copies there too — still on your machine,
 still nowhere else.
 
+**Search.** ⌘F searches the open page; the field above the document list
+searches the whole library. Both match three ways — the text as rendered, the
+phonetic spelling the author typed, and a romanisation of native script — so
+`namaskaara`, `ನಮಸ್ಕಾರ` and `samskrta` all find what you meant regardless of how
+it was written. A library hit opens the document with the same query running.
+
 ## Keeping your documents
 
 Documents live in this browser's IndexedDB, which is convenient and not durable:
