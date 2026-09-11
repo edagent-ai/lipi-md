@@ -206,6 +206,10 @@ export function Toolbar({
         <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'p5' })}>
           p5.js sketch
         </MenuItem>
+        <hr />
+        <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'mermaid' })}>
+          Mermaid diagram
+        </MenuItem>
       </Menu>
 
       <Menu label="Theme" disabled={readOnly}>

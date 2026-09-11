@@ -245,7 +245,10 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
     // again so the find bar re-measures against what is finally on the page.
     const host = bodyRef.current;
     if (host) void drawDiagrams(host).then(() => setRevision((n) => n + 1));
-  }, [segments, rendererEpoch, syncActiveHeading]);
+    // `docStyle` is a dependency because a diagram takes its colours from the
+    // page: changing the theme has to redraw them, not only the text around
+    // them.
+  }, [segments, rendererEpoch, syncActiveHeading, docStyle]);
 
   // Sandboxes resize themselves after load, which shifts every anchor below.
   useEffect(() => {

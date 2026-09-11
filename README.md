@@ -274,11 +274,11 @@ phonetic spelling the author typed, and a romanisation of native script — so
 `namaskaara`, `ನಮಸ್ಕಾರ` and `samskrta` all find what you meant regardless of how
 it was written. A library hit opens the document with the same query running.
 
-**On first run** the library holds one document: the Baudhāyana example. It is a
-trilingual essay in English, Sanskrit and Kannada that uses most of the app in
-the course of making its argument, and it closes with a section explaining how
-each part of itself is written. It can be reset but not deleted, so it is always
-there to come back to.
+**On first run** the library holds one document: a guide. Its first half explains
+how to write each part of the app; its second is a trilingual essay in English,
+Sanskrit and Kannada — the Baudhāyana theorem — written with all of it, so the
+pieces can be seen doing actual work rather than only described. It can be reset
+but not deleted, so it is always there to come back to.
 
 **A new document** starts with the full style block — every key that changes how
 a page is presented, filled in — and a few lines of Markdown: a heading, a link,

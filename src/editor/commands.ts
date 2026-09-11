@@ -253,6 +253,13 @@ function draw() {
 }
 \`\`\``,
 
+  mermaid: `\`\`\`mermaid
+flowchart LR
+  A[Write] --> B{Render}
+  B -->|ok| C[Read]
+  B -->|error| D[Fix]
+\`\`\``,
+
   canvas: `\`\`\`canvas height=280
 loop((t) => {
   ctx.clearRect(0, 0, width, height);
