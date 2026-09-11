@@ -384,7 +384,9 @@ folder: Guide        where it is filed
 ## Filing and finding
 
 \`folder:\` above is why this page sits under **Guide** in the sidebar. Folders
-nest, and a document or a whole branch can be dragged onto another folder.
+nest, and a document or a whole branch can be dragged onto another folder. The
+folder button above the document list starts a new one, with its first page
+already inside — a folder exists exactly as long as something is filed under it.
 
 The field above the document list searches every document — including text you
 wrote phonetically, so *namaskaara* finds ನಮಸ್ಕಾರ. ⌘F searches the page you are
@@ -405,3 +407,7 @@ example beside it can be reset from the sidebar if you edit it.*
 export const BLANK_DOC = `# Untitled
 
 `;
+
+/** A first page for a new folder, carrying the path that makes the folder real. */
+export const folderDoc = (folder: string): string =>
+  `---\nfolder: ${folder}\n---\n\n# Untitled\n\n`;

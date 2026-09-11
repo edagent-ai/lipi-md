@@ -222,7 +222,8 @@ still nowhere else.
 so the arrangement travels with the file through export and re-import. The
 sidebar shows them as a collapsible tree, nesting up to eight deep, and a
 document or a whole branch can be dragged onto another folder — or onto the
-empty space below the tree for the top level. Folders are not stored anywhere of
+empty space below the tree for the top level. The folder button above the
+document list makes a new one by starting its first page. Folders are not stored anywhere of
 their own: they exist exactly as long as something is filed under them.
 
 **Search.** ⌘F searches the open page; the field above the document list

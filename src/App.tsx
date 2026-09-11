@@ -10,6 +10,8 @@ import { AboutPanel } from './components/AboutPanel';
 import { AboutPopover } from './components/AboutPopover';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { MoveDialog } from './components/MoveDialog';
+import { NewFolderDialog } from './components/NewFolderDialog';
+import { folderDoc } from './store/samples';
 import { folderPaths } from './components/DocTree';
 import { redo, undo } from '@codemirror/commands';
 import {
@@ -60,6 +62,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
   const [pendingDelete, setPendingDelete] = useState<Doc | null>(null);
   const [pendingReset, setPendingReset] = useState<Doc | null>(null);
   const [pendingMove, setPendingMove] = useState<Doc | null>(null);
+  const [newFolder, setNewFolder] = useState(false);
   const [history, setHistory] = useState({ canUndo: false, canRedo: false });
   // Bumped when KaTeX finishes loading, to re-render maths that first rendered
   // as raw TeX.
@@ -535,6 +538,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             onRequestMove={setPendingMove}
             onDuplicate={(id) => void docs.duplicate(id)}
             onImport={() => fileInputRef.current?.click()}
+            onNewFolder={() => setNewFolder(true)}
             onJumpToLine={jumpToLine}
             sourceScheme={translitEnv.sourceScheme}
             onMoveDoc={(id, folder) => void docs.move(id, folder)}
@@ -614,6 +618,16 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             Export it first if you might want it back.
           </p>
         </ConfirmDialog>
+      )}
+      {newFolder && (
+        <NewFolderDialog
+          folders={folderPaths(docs.docs)}
+          onCancel={() => setNewFolder(false)}
+          onCreate={(path) => {
+            setNewFolder(false);
+            void docs.create(folderDoc(path));
+          }}
+        />
       )}
       {pendingMove && (
         <MoveDialog
