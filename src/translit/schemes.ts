@@ -4,7 +4,12 @@
  * Two vocabularies matter here:
  *  - *source schemes* are the phonetic-roman spellings a user types (optitrans,
  *    ITRANS, IAST …). This is what stays in the `.md` file.
- *  - *target scripts* are what gets painted in the preview (Kannada, Tamil …).
+ *  - *target scripts* are what gets painted in the preview.
+ *
+ * Two scripts are offered, Kannada and Devanagari, and the macro names resolve
+ * to those alone. Sanscript can paint a dozen more, but an option that is
+ * offered is a promise to have looked at it — the fonts, the conjuncts, the
+ * punctuation — and these are the two that have been.
  */
 
 export interface TargetScript {
@@ -26,27 +31,6 @@ export interface SourceScheme {
 export const TARGET_SCRIPTS: TargetScript[] = [
   { id: 'kannada', label: 'Kannada', lang: 'kn', native: 'ಕನ್ನಡ' },
   { id: 'devanagari', label: 'Devanagari', lang: 'hi', native: 'देवनागरी' },
-  { id: 'telugu', label: 'Telugu', lang: 'te', native: 'తెలుగు' },
-  { id: 'tamil', label: 'Tamil', lang: 'ta', native: 'தமிழ்' },
-  { id: 'malayalam', label: 'Malayalam', lang: 'ml', native: 'മലയാളം' },
-  { id: 'bengali', label: 'Bengali', lang: 'bn', native: 'বাংলা' },
-  { id: 'gujarati', label: 'Gujarati', lang: 'gu', native: 'ગુજરાતી' },
-  { id: 'gurmukhi', label: 'Gurmukhi', lang: 'pa', native: 'ਗੁਰਮੁਖੀ' },
-  { id: 'oriya', label: 'Odia', lang: 'or', native: 'ଓଡ଼ିଆ' },
-  { id: 'sinhala', label: 'Sinhala', lang: 'si', native: 'සිංහල' },
-  { id: 'grantha', label: 'Grantha', lang: 'sa', native: 'grantha' },
-  { id: 'sharada', label: 'Sharada', lang: 'sa', native: 'sharada' },
-  { id: 'tibetan', label: 'Tibetan', lang: 'bo', native: 'བོད་ཡིག' },
-  { id: 'brahmi', label: 'Brahmi', lang: 'sa', native: 'brahmi' },
-  { id: 'modi', label: 'Modi', lang: 'mr', native: 'modi' },
-  { id: 'thai', label: 'Thai', lang: 'th', native: 'ไทย' },
-  { id: 'khmer', label: 'Khmer', lang: 'km', native: 'ខ្មែរ' },
-  { id: 'burmese', label: 'Burmese', lang: 'my', native: 'မြန်မာ' },
-  { id: 'urdu', label: 'Urdu', lang: 'ur', native: 'اردو' },
-  // Roman targets are useful for *normalising* casual spelling into a
-  // scholarly transcription rather than switching script.
-  { id: 'iast', label: 'IAST (roman)', lang: 'en', native: 'IAST' },
-  { id: 'iso', label: 'ISO 15919 (roman)', lang: 'en', native: 'ISO' },
 ];
 
 export const SOURCE_SCHEMES: SourceScheme[] = [
@@ -87,57 +71,11 @@ const ALIASES: Record<string, string> = {
   nepali: 'devanagari',
   dev: 'devanagari',
   devanagari: 'devanagari',
-  te: 'telugu',
-  tel: 'telugu',
-  telugu: 'telugu',
-  ta: 'tamil',
-  tam: 'tamil',
-  tamil: 'tamil',
-  ml: 'malayalam',
-  mal: 'malayalam',
-  malayalam: 'malayalam',
-  bn: 'bengali',
-  ben: 'bengali',
-  bangla: 'bengali',
-  bengali: 'bengali',
-  as: 'assamese',
-  assamese: 'assamese',
-  gu: 'gujarati',
-  guj: 'gujarati',
-  gujarati: 'gujarati',
-  pa: 'gurmukhi',
-  punjabi: 'gurmukhi',
-  gurmukhi: 'gurmukhi',
-  or: 'oriya',
-  odia: 'oriya',
-  oriya: 'oriya',
-  si: 'sinhala',
-  sinhala: 'sinhala',
-  ur: 'urdu',
-  urdu: 'urdu',
-  bo: 'tibetan',
-  tibetan: 'tibetan',
-  th: 'thai',
-  thai: 'thai',
-  km: 'khmer',
-  khmer: 'khmer',
-  my: 'burmese',
-  burmese: 'burmese',
-  grantha: 'grantha',
-  sharada: 'sharada',
-  brahmi: 'brahmi',
-  modi: 'modi',
-  iast: 'iast',
-  iso: 'iso',
-  slp1: 'slp1',
-  hk: 'hk',
-  itrans: 'itrans',
-  optitrans: 'optitrans',
 };
 
 /**
- * `lipi` is the "use whatever this document is set to" alias, so a lyric sheet
- * can be re-targeted from Kannada to Telugu without touching its body text.
+ * `lipi` is the "use whatever this document is set to" alias, so a document can
+ * be re-targeted between scripts without touching a word of its body text.
  */
 export const DEFAULT_SCRIPT_ALIAS = 'lipi';
 

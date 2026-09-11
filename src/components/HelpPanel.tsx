@@ -21,9 +21,12 @@ export function HelpPanel({ onClose }: HelpPanelProps) {
             </tr>
             <tr>
               <td>
-                <code>@te(vandanamu)</code>
+                <code>@sa(saṃskṛta)</code>
               </td>
-              <td>short codes work too — <code>kn te ta ml hi bn gu pa or si</code></td>
+              <td>
+                short codes work too — <code>kn kan kannada</code> and{' '}
+                <code>hi sa mr ne dev devanagari</code>
+              </td>
             </tr>
             <tr>
               <td>

@@ -94,7 +94,7 @@ export const markdownHighlight = HighlightStyle.define([
 ]);
 
 /**
- * Highlights transliteration macros (`@kannada(...)`, `:::telugu`) in the source
+ * Highlights transliteration macros (`@kannada(...)`, `:::devanagari`) in the source
  * so it is obvious which text will change script in the preview.
  */
 const macroMatcher = new MatchDecorator({

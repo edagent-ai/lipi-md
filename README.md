@@ -17,7 +17,7 @@ preview paints ನಮಸ್ಕಾರ. The `.md` file keeps the roman spelling, s
 searchable, diffable and editable on any keyboard.
 
 ```markdown
-Good morning is @kannada(shubhodaya), and thank you is @telugu(dhanyavaadamulu).
+Good morning is @kannada(shubhodaya), and welcome is @sa(svāgatam).
 
 :::lipi
 bhaagyada lakshmi baaramma
@@ -27,7 +27,10 @@ nammamma nee saubhaagyada lakshmi baaramma
 
 Inline macros convert one phrase. `:::` blocks convert everything inside them —
 built for lyrics and verse, so line breaks are preserved. Links, code spans and
-emphasis markers are never touched. 20+ target scripts, 11 input schemes.
+emphasis markers are never touched. Two target scripts — Kannada and Devanagari
+— and 11 input schemes. Sanscript can paint a dozen more, but offering a script
+is a promise to have looked at its fonts, conjuncts and punctuation, and these
+are the two that have been.
 
 **Typefaces.** A document can carry its own font. *Insert → Typeface from a
 file* embeds a `.woff2`, `.woff`, `.ttf` or `.otf` as a data URL in `fontsrc:`
