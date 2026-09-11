@@ -244,9 +244,10 @@ it was written. A library hit opens the document with the same query running.
 tour of the syntax filed under *Guide*. The example can be reset but not
 deleted; the tour is an ordinary document and can be thrown away.
 
-**A new document** starts with a style block and a few lines of Markdown —
-a heading, a link, a note, a list and a quotation — so the shape of a document is
-visible rather than described.
+**A new document** starts with the full style block — every key that changes how
+a page is presented, filled in — and a few lines of Markdown: a heading, a link,
+a note, a macro, a list and a quotation. Delete a line and that decision returns
+to `theme:`; delete `theme:` too and the page follows Settings.
 
 ## Keeping your documents
 

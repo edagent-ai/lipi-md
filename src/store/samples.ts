@@ -377,6 +377,7 @@ font: serif          serif, sans, mono, reading
 width: wide          narrow, normal, wide, full
 align: justify       left or justify
 accent: "#bf5700"    links, rules and marks
+heading: "#333"      headings, when they should differ from the body
 author, date, version, link      shown under the title
 folder: Guide        where it is filed
 \`\`\`
@@ -415,14 +416,28 @@ example beside it can be reset from the sidebar if you edit it.*
  */
 export const BLANK_DOC = `---
 title: Untitled
+author:
+date:
+version: 1.0
+folder:
+script: kannada
+scheme: optitrans
+theme: paper
+font: serif
+size: 17px
 width: normal
+align: left
+background: "#fdf9f2"
+color: "#2c2924"
+heading: "#2c2924"
+accent: "#8f4100"
 ---
 
 # Untitled
 
-Start writing here. The block at the top sets how the page is presented — add
-\`theme: paper\`, \`font: serif\` or \`accent: "#bf5700"\` to it and the page
-follows.
+Start writing here. Everything above the second \`---\` is the page style block:
+delete a line and that decision goes back to \`theme:\`, delete \`theme:\` too and
+it follows whatever you chose in **Settings**.
 
 ## A section
 
@@ -430,10 +445,27 @@ A **bold** word, some *emphasis*, and a [link](https://example.com). A note can
 ride alongside the sentence it belongs to.^[Notes show in the margin when the
 pane is wide enough for them.]
 
+Type phonetically to get another script: @lipi(namaskaara).
+
 - something
 - something else
 
 > A quotation, for the rule beside it.
+
+## Code and pictures
+
+A fence with a language name is highlighted and left as code; naming a runtime
+instead — \`canvas\`, \`anime\` — runs it:
+
+\`\`\`js
+const greet = (name) => \`namaskaara, \${name}\`;
+console.log(greet('world'));
+\`\`\`
+
+An image takes a caption in quotes. This one is drawn into the file itself, so
+it needs nothing from the network:
+
+![A small figure](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAABQCAIAAACoK28rAAABoklEQVR42u3dvW3CQBiA4cNiEyrqTEEGyAK0jEObBTJAMgV1KiZIxwQUNDQg4dyvv+dpI2HFeXO6O2N7dfk7J1iKySlA0CBoEDQIGkGDoEHQIGgQNIIGQYOgQdAgaAQNggZBg6DhkXWdw5wOm0c/eju6qZFsVkVvkn3SsbIZKeiXUpY1/QY9O2VZ092iMEvNGT8HQfdSoaZpGXSJ/jRNm6DLladpagddujlNUy/oOrVpmtTVlcLmPj/8S3Rn/3Xuax+68sA5b3NayqGy9uUkzKEbzWtnHNHwHG02aITGCA0LC7rVPtqrxy2xjsaiEJJ96JwDgNVhkH3otXOHOTQIGgQNgkbQEDnoVndluxscIzSChhTvQTNDfMH/5vfnPdqfdrv7Ti59L0/AlO9/8WhZT6Ms0SwHMYeOOzyHPQPTEAOn4Zl6I3Tp2tRM7SlHueb++ckxV/qRz8DU8zhqbCa1feB5xp3pvDXbhxa0J/gjaO9YwVuwpMwYQXtPIcsMGpJL3yBoBA2CBkGDoEHQCBoEDYIGQYOgETQIGgQNggZBI2gY0BUzYo9zZfYyWAAAAABJRU5ErkJggg== "Replace this with your own picture")
 `;
 
 /** A first page for a new folder, carrying the path that makes the folder real. */

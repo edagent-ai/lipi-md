@@ -208,8 +208,13 @@ export function parseDocStyle(front: Frontmatter): DocStyle {
   const color = pick('color', 'text', 'ink');
   if (color) style.color = safeColor(color) ?? style.color;
 
-  const accent = pick('accent', 'link');
+  // `link` is not an alias here: it already names the author's website in the
+  // byline, and one key cannot mean both a URL and a colour.
+  const accent = pick('accent');
   if (accent) style.accent = safeColor(accent) ?? style.accent;
+
+  const heading = pick('heading', 'headings');
+  if (heading) style.heading = safeColor(heading) ?? style.heading;
 
   const width = pick('width', 'measure')?.toLowerCase();
   if (width) style.measure = MEASURE[width] ?? safeLength(width) ?? style.measure;
