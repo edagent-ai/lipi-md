@@ -91,6 +91,7 @@ export class SandboxHost {
 
     this.el = el('div', 'sandbox');
     this.el.dataset.runtime = spec.runtime;
+    this.el.classList.toggle('is-bare', spec.bare);
 
     /* --- title bar --- */
     const bar = el('header', 'sandbox-bar');
@@ -345,6 +346,13 @@ export class SandboxHost {
 
     this.spec = spec;
     this.code = code;
+
+    // Hosts are reused by position, so anything that only describes how the
+    // sketch is presented has to be reapplied on every update. Set once in the
+    // constructor, a fence that asked to be bare inherited the chrome of
+    // whatever sketch happened to occupy that slot before it.
+    this.el.dataset.runtime = spec.runtime;
+    this.el.classList.toggle('is-bare', spec.bare);
 
     if (runtimeChanged || manualChanged) {
       // A different library must be loaded, or the sketch must stop auto-running,

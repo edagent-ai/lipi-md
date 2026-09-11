@@ -177,6 +177,10 @@ export function Toolbar({
         >
           Formula (inline)
         </MenuItem>
+        <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'pagebreak' })}>
+          Page break (in print)
+        </MenuItem>
+        <hr />
         <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'math' })}>
           Formula (block)
         </MenuItem>

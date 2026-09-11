@@ -6,6 +6,7 @@ import { runSpecFor, parseInfo, RUNTIME_LABEL, type RunSpec } from './fence';
 import { highlightCode } from './highlight';
 import { mathPlugin } from './math-plugin';
 import { mediaPlugin } from './media-plugin';
+import { pageBreakPlugin } from './pagebreak-plugin';
 import { sidenotePlugin } from './sidenote-plugin';
 import { parseDocStyle, type DocStyle } from './docstyle';
 import type { MathOutput } from '../math';
@@ -185,6 +186,7 @@ export function createMarkdown(): MarkdownIt {
   md.use(mathPlugin);
   md.use(sidenotePlugin);
   md.use(mediaPlugin);
+  md.use(pageBreakPlugin);
   md.core.ruler.after('inline', 'lipi_heading_ids', headingIds);
   md.core.ruler.push('lipi_byline', byline);
   md.core.ruler.push('lipi_footer', footer);

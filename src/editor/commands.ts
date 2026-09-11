@@ -230,6 +230,8 @@ export function wrapMacro(view: EditorView, script: string): void {
 }
 
 export const SNIPPETS = {
+  /** Only means anything on paper; see the page-break plugin. */
+  pagebreak: '\\newpage',
   p5: `\`\`\`p5 height=340
 let angle = 0;
 

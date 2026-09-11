@@ -232,6 +232,42 @@ body.is-resizing iframe {
   cursor: pointer;
 }
 
+/* A sketch asked to be bare is a figure, not an instrument: no title, no
+   buttons, no border — just what it draws. The controls are still in the
+   markup for anything that needs them, only hidden. */
+.sandbox.is-bare .sandbox-bar {
+  display: none;
+}
+
+.sandbox.is-bare {
+  border: 0;
+  background: none;
+}
+
+/* page breaks */
+
+/* Drawn while writing so the break can be seen, and weightless when printed. */
+.page-break {
+  position: relative;
+  height: 0;
+  margin: 1.6em 0;
+  border-top: 1px dashed var(--doc-border, var(--border));
+}
+
+.page-break::after {
+  content: 'page break';
+  position: absolute;
+  top: -0.72em;
+  right: 0;
+  padding: 0 6px;
+  background: var(--doc-bg, var(--bg-preview));
+  font-family: var(--font-ui);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--doc-muted, var(--fg-faint));
+}
+
 /* folder tree */
 
 .tree-root {
@@ -2305,6 +2341,17 @@ kbd {
   .app {
     display: block;
     height: auto;
+  }
+
+  /* The marker itself leaves no trace on paper; only the break survives. */
+  .page-break {
+    border-top: 0;
+    margin: 0;
+    break-after: page;
+  }
+
+  .page-break::after {
+    display: none;
   }
 
   /* Hide the editor specifically. Targeting :first-child hid the *only* pane

@@ -77,6 +77,8 @@ table { border-collapse: collapse; width: 100%; min-width: 24rem; }
 th, td { border: 1px solid var(--doc-border, var(--border)); padding: .5em .7em; text-align: left; }
 th { background: var(--doc-code-bg, var(--code-bg)); }
 img { max-width: 100%; height: auto; }
+/* A hand-placed page break: invisible on screen, a real break on paper. */
+.page-break { height: 0; margin: 1.4em 0; border-top: 1px dashed var(--doc-border, var(--border)); }
 .lipi-tl, .lipi-block { font-family: inherit; letter-spacing: normal; word-spacing: normal; }
 .lipi-block { margin: 1.4em 0; padding-left: 1em; border-left: 3px solid var(--doc-accent, var(--accent)); }
 .tok-keyword, .tok-modifier { color: var(--doc-syn-keyword, #cf222e); }
@@ -215,6 +217,7 @@ math { font-size: 1.05em; }
      whatever pixel size they happened to be captured at, and nothing is
      allowed to run off the right edge where printing would simply clip it. */
   figure.sketch img { width: 100%; }
+  .page-break { border-top: 0; margin: 0; break-after: page; }
   img, canvas, svg, video { max-width: 100%; height: auto; }
   .math-block, .table-scroll, .media { overflow: visible; }
   /* Grey is the right default on paper, but a themed page keeps the palette

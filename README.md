@@ -29,6 +29,10 @@ Inline macros convert one phrase. `:::` blocks convert everything inside them â€
 built for lyrics and verse, so line breaks are preserved. Links, code spans and
 emphasis markers are never touched. 20+ target scripts, 11 input schemes.
 
+**Page breaks.** A line holding only `\newpage` (or `\pagebreak`) starts a new
+page when the document is printed or exported as a PDF. It shows as a faint rule
+while you write and leaves no mark on paper.
+
 **Live sketches.** A fenced block with a runtime name runs instead of sitting
 there. Edit a number and it updates in place â€” the frame is never reloaded, so
 the library stays warm and there is no flash.

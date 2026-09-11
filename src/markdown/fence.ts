@@ -17,6 +17,8 @@ export interface RunSpec {
   manual: boolean;
   /** Show the source alongside the sketch. */
   showCode: boolean;
+  /** Drop the title bar and its buttons, leaving only the drawing. */
+  bare: boolean;
   title?: string;
 }
 
@@ -89,6 +91,8 @@ export function runSpecFor(info: string): RunSpec | null {
     height,
     manual: attrs.has('manual') || attrs.get('autorun') === 'false',
     showCode: attrs.has('code') || attrs.has('showcode'),
+    // For a figure that is meant to read as a figure: no chrome around it.
+    bare: attrs.has('bare') || attrs.has('nocontrols') || attrs.get('controls') === 'false',
     title: attrs.get('title') || undefined,
   };
 }

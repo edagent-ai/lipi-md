@@ -274,8 +274,10 @@ animate(row.children, {
 \`\`\`
 
 Each sketch has its own bar: pause, restart, read what it logged, or show the
-source. They run sandboxed and cannot read your documents. \`p5\` works too,
-but p5.js is LGPL rather than MIT, so it is an opt-in download in **Settings**.
+source. Add \`bare\` to the fence — \`\`\`canvas height=200 bare\`\`\` — and the bar
+goes, leaving the drawing alone as a figure. They run sandboxed and cannot read
+your documents. \`p5\` works too, but p5.js is LGPL rather than MIT, so it is an
+opt-in download in **Settings**.
 
 **Code.** A fence with an ordinary language name is highlighted and left alone:
 
@@ -329,6 +331,10 @@ sidebar. ⌘F searches the page you are reading and the field above the document
 list searches every document — both match the rendered text, the phonetic
 spelling you typed, and a romanisation of native script, so *namaskaara* and
 *ನಮಸ್ಕಾರ* find each other.
+
+**Page breaks.** A line holding only \\\\newpage starts a new page when the
+document is printed or exported as a PDF. It shows as a faint rule while you
+write, and leaves no mark on paper. \\\\pagebreak does the same thing.
 
 **Keeping and taking it.** **Settings → Your data** will write every document
 out as ordinary \`.md\` files into a folder you choose, hand you the library as
