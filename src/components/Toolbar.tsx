@@ -13,7 +13,8 @@ export type ToolbarAction =
   | { kind: 'macro'; script: string }
   | { kind: 'history'; direction: 'undo' | 'redo' }
   | { kind: 'bumpVersion' }
-  | { kind: 'theme'; theme: string | null };
+  | { kind: 'theme'; theme: string | null }
+  | { kind: 'uploadImage' };
 
 interface ToolbarProps {
   onAction(action: ToolbarAction): void;
@@ -158,6 +159,7 @@ export function Toolbar({
       </Menu>
 
       <Menu label="Insert" disabled={readOnly}>
+        <MenuItem onClick={() => onAction({ kind: 'uploadImage' })}>Picture from a file…</MenuItem>
         <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'image' })}>
           Picture from a link
         </MenuItem>

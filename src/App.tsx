@@ -12,14 +12,16 @@ import { ConfirmDialog } from './components/ConfirmDialog';
 import { MoveDialog } from './components/MoveDialog';
 import { NewFolderDialog } from './components/NewFolderDialog';
 import { folderDoc } from './store/samples';
+import { embedImage, imageLabel, isImage } from './lib/image';
 import { folderPaths } from './components/DocTree';
 import { redo, undo } from '@codemirror/commands';
 import {
+  SNIPPETS,
   bumpVersion,
   insertBlock,
-  setDocTheme,
+  insertImageReference,
   insertLink,
-  SNIPPETS,
+  setDocTheme,
   surround,
   toggleHeading,
   togglePrefix,
@@ -71,6 +73,8 @@ export default function App({ updateReady, onUpdate }: AppProps) {
   const editorRef = useRef<EditorHandle>(null);
   const previewRef = useRef<PreviewHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [imageNote, setImageNote] = useState<string | null>(null);
   const scrollLock = useRef(createScrollLock()).current;
 
   const text = docs.current?.text ?? '';
@@ -187,6 +191,32 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       case 'theme':
         setDocTheme(view, action.theme);
         break;
+      case 'uploadImage':
+        imageInputRef.current?.click();
+        break;
+    }
+  }, []);
+
+  /**
+   * Puts a picture from disk into the document.
+   *
+   * Embedded rather than linked, because a link to a file on this computer
+   * would be dead everywhere else the document goes.
+   */
+  const placeImage = useCallback(async (file: File) => {
+    const view = editorRef.current?.view();
+    if (!view) return;
+    setImageNote(`Reading ${file.name}…`);
+    try {
+      const image = await embedImage(file);
+      const label = imageLabel(view.state.doc.toString(), file.name);
+      insertImageReference(view, label, image.url, file.name.replace(/\.[^.]+$/, ''));
+      setImageNote(
+        `${file.name} placed — ${image.width}×${image.height}, ` +
+          `${(image.bytes / 1024).toFixed(0)}KB in the document${image.scaled ? ', scaled down to fit' : ''}.`,
+      );
+    } catch (err) {
+      setImageNote(err instanceof Error ? err.message : String(err));
     }
   }, []);
 
@@ -197,14 +227,23 @@ export default function App({ updateReady, onUpdate }: AppProps) {
 
   const importFiles = useCallback(
     async (files: FileList | File[]) => {
-      const markdown = Array.from(files).filter(
+      const all = Array.from(files);
+
+      // A dropped picture belongs in the open document, not as a new one.
+      const picture = all.find(isImage);
+      if (picture) {
+        await placeImage(picture);
+        return;
+      }
+
+      const markdown = all.filter(
         (file) => /\.(md|markdown|txt)$/i.test(file.name) || file.type.startsWith('text/'),
       );
       for (const file of markdown) {
         await docs.create(await file.text());
       }
     },
-    [docs],
+    [docs, placeImage],
   );
 
   const doExportMarkdown = useCallback(() => {
@@ -675,7 +714,24 @@ export default function App({ updateReady, onUpdate }: AppProps) {
         />
       )}
 
-      {dragging && <div className="drop-veil">Drop Markdown files to import</div>}
+      {dragging && <div className="drop-veil">Drop Markdown files to import, or a picture to place it</div>}
+      {imageNote && (
+        <div className="toast" role="status" onClick={() => setImageNote(null)}>
+          {imageNote}
+        </div>
+      )}
+
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = '';
+          if (file) void placeImage(file);
+        }}
+      />
 
       <input
         ref={fileInputRef}

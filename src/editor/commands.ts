@@ -152,6 +152,55 @@ export function insertBlock(view: EditorView, block: string): void {
   view.focus();
 }
 
+/**
+ * Places an uploaded picture, using a reference link.
+ *
+ * The data URL is thousands of characters long. Inline, it would bury the
+ * sentence it sits in and make the source unreadable; as a reference, the prose
+ * keeps `![caption][label]` and the bulk goes to the foot of the document where
+ * it can be ignored.
+ */
+export function insertImageReference(
+  view: EditorView,
+  label: string,
+  url: string,
+  alt: string,
+): void {
+  const { state } = view;
+  const pos = blockInsertPoint(state, state.selection.main.to);
+  const line = state.doc.lineAt(pos);
+
+  /* A picture has to stand in a paragraph of its own, or Markdown folds it into
+     the prose above and it renders as an inline image mid-sentence. The empty
+     line at the end of a document is not itself a separator: it is the position
+     just past the previous line's newline, so a blank line still has to be put
+     in unless the line before really is blank. */
+  const onEmptyLine = line.text.length === 0;
+  const insertAt = onEmptyLine ? line.from : line.to;
+  const previous = onEmptyLine && line.number > 1 ? state.doc.line(line.number - 1) : null;
+  const before = onEmptyLine ? (previous && previous.text.length > 0 ? '\n' : '') : '\n\n';
+
+  // And separated from whatever follows, for the same reason.
+  const next = line.number < state.doc.lines ? state.doc.line(line.number + 1) : null;
+  const after = onEmptyLine && next && next.text.length > 0 ? '\n' : '';
+  const usage = `![${alt}][${label}]`;
+
+  const end = state.doc.length;
+  const tail = state.doc.sliceString(Math.max(0, end - 1), end);
+  const definition = `${tail === '\n' ? '' : '\n'}\n[${label}]: ${url}\n`;
+
+  view.dispatch({
+    changes: [
+      { from: insertAt, to: insertAt, insert: `${before}${usage}\n${after}` },
+      { from: end, to: end, insert: definition },
+    ],
+    // Inside the caption, so a name can be typed straight away.
+    selection: { anchor: insertAt + before.length + 2, head: insertAt + before.length + 2 + alt.length },
+    scrollIntoView: true,
+  });
+  view.focus();
+}
+
 /** Wrap the selection in distinct opening and closing markers. */
 export function surround(
   view: EditorView,

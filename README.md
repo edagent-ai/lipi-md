@@ -57,6 +57,14 @@ Options follow the name: `height=420`, `height=auto`, `title="…"`, `manual`
 safe — `$5 and $10` stays text. Exports emit MathML, so an exported page renders
 maths with no fonts and no scripts.
 
+**Pictures from your own machine.** *Insert → Picture from a file*, or drop one
+on the window, embeds it in the document as a data URL — scaled to 1600px and
+re-encoded if it is large. It goes in as a reference link, so the prose keeps
+`![caption][label]` and the long URL sits at the foot of the file. Embedding
+rather than linking is what lets a document stay one file that works offline and
+survives export, the zip and the mirrored folder; the cost is that a picture
+adds its own weight to the Markdown.
+
 **Pictures, video and sidenotes.** One syntax; the link decides the player:
 
 ```markdown
