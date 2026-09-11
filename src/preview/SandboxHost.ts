@@ -101,10 +101,13 @@ export class SandboxHost {
 
     this.playBtn = this.action('▮▮', 'Pause', () => this.togglePause());
     const restartBtn = this.action('↻', 'Restart', () => this.restart());
-    this.consoleBtn = this.action('Console', 'Show console', () => this.toggleConsole());
-    this.consoleBtn.classList.add('is-text');
-    this.sourceBtn = this.action('Source', 'Show source', () => this.toggleSource());
-    this.sourceBtn.classList.add('is-text');
+    // Icons rather than words: the bar sits above someone's figure, and four
+    // labelled buttons read as an application where a row of marks reads as a
+    // control strip. Every one keeps its title and label for anyone who needs
+    // to be told which is which.
+    this.consoleBtn = this.action('⌗', 'Show console', () => this.toggleConsole());
+    this.sourceBtn = this.action('</>', 'Show source', () => this.toggleSource());
+    this.sourceBtn.classList.add('is-glyph');
     this.expandBtn = this.action('⤢', 'Expand', () => {
       const expanded = this.el.classList.toggle('is-expanded');
       this.expandBtn.setAttribute('aria-pressed', String(expanded));
@@ -197,11 +200,10 @@ export class SandboxHost {
     this.playBtn.setAttribute('aria-label', paused ? 'Resume' : 'Pause');
     this.playBtn.disabled = !this.started || this.status === 'error';
 
-    this.consoleBtn.textContent = this.errorCount
-      ? `Console (${this.errorCount})`
-      : this.logCount
-        ? `Console ${this.logCount}`
-        : 'Console';
+    // The count is the part worth reading; the word was not. Errors keep their
+    // own colour, so a number beside the mark is enough to say which it is.
+    const logged = this.errorCount || this.logCount;
+    this.consoleBtn.textContent = logged ? `⌗ ${logged}` : '⌗';
     this.consoleBtn.classList.toggle('has-errors', this.errorCount > 0);
     this.consoleBtn.setAttribute('aria-expanded', String(!this.consoleEl.hidden));
     this.consoleBtn.setAttribute(

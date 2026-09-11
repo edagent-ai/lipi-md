@@ -46,8 +46,13 @@ export const RUNTIMES: Record<RuntimeId, RuntimeDescriptor> = {
 
 function sandboxCss(autoHeight: boolean): string {
   return `
-html,body{margin:0;padding:0;background:transparent;
-  color-scheme:light dark;
+/* A drawing surface is always white, whatever the app or the document is set
+   to. A sketch picks its own colours and cannot ask what it is being drawn on,
+   so the usual black strokes have to land on something pale or they land on
+   nothing at all. The colour scheme is pinned for the same reason: it decides
+   the default ink, and a sketch that never sets a fill should still be seen. */
+html,body{margin:0;padding:0;background:#fff;color:#111;
+  color-scheme:light;
   font:13px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;}
 html,body{height:${autoHeight ? 'auto' : '100%'};}
 body{overflow:${autoHeight ? 'visible' : 'hidden'};}

@@ -96,6 +96,11 @@ img { max-width: 100%; height: auto; }
 figure.sketch { margin: 0 0 1.3em; text-align: center; }
 figure.sketch img {
   max-width: 100%; height: auto; border: 1px solid var(--border); border-radius: 10px;
+  /* A snapshot of a canvas is transparent wherever nothing was drawn, and the
+     surface it was drawn on is always white. Without this the exported figure
+     would take the page's colour instead, and black strokes on a dark theme
+     would come out invisible. */
+  background: #fff;
 }
 /* Credit for the app, kept clearly apart from the document's own colophon so
    it never reads as something the author wrote. */

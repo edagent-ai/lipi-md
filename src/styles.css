@@ -1609,8 +1609,11 @@ body.is-resizing iframe {
   cursor: pointer;
 }
 
-.sandbox-btn.is-text {
+/* The source button is two glyphs wide rather than one; keep it from looking
+   cramped beside the single marks either side of it. */
+.sandbox-btn.is-glyph {
   font-size: 11px;
+  letter-spacing: -0.04em;
 }
 
 .sandbox-btn:hover:not(:disabled) {
@@ -1630,7 +1633,8 @@ body.is-resizing iframe {
 .sandbox-stage {
   position: relative;
   min-height: 48px;
-  background: var(--bg-preview);
+  /* Matches the sandbox document behind it, which is always light. */
+  background: #fff;
 }
 
 .sandbox-frame {
