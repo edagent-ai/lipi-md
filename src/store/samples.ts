@@ -230,190 +230,118 @@ theorem rather than either one alone.
 - George Gheverghese Joseph, *The Crest of the Peacock*, 3rd ed. (Princeton
   University Press, 2011).
 
----
+## How this page is made
 
-*Everything above is plain Markdown. The Sanskrit is typed in IAST and the
-Kannada in Latin letters; the scripts are painted at render time, so the file
-stays searchable in the alphabet you typed.*
-`;
+Everything above is plain Markdown, and this section is the guide to it. Open
+the **Write** pane and read the two side by side.
 
-/**
- * A tour of the syntax, seeded beside the example so the first thing a reader
- * opens is not the only thing they know how to write. Kept deletable: it is an
- * ordinary document, not a fixture.
- */
-export const TOUR_DOC = `---
-title: What this editor can do
-folder: Guide
-theme: technical
-author: lipi.md
-version: 1.0
----
+**Scripts.** The Sanskrit is typed in IAST and the Kannada in Latin letters;
+both are painted at render time, so the file stays searchable in the alphabet
+you typed. Inline as \`@lipi(namaskaara)\` → @lipi(namaskaara), naming a script
+as \`@kannada(kannaDa)\` → @kannada(kannaDa), or a whole \`:::lipi\` block.
+\`script:\` and \`scheme:\` at the top of the file decide which script bare
+macros use and which romanisation you type.
 
-# What this editor can do
+**Formulas.** Inline as \`$a^2+b^2=c^2$\`, or set apart between \`$$\`. They
+export as MathML, so a saved page needs no fonts fetched from anywhere.
 
-Everything on this page is plain Markdown in the file behind it. Open the Write
-pane to see how each part is typed. Nothing here needs the network, and nothing
-leaves your device.
+**Notes.** \`^[…]\` makes a note that rides with its sentence and shows in the
+margin when there is room — the citations above are all notes. Every one is
+printed on paper, since a reader cannot click one open.
 
-## Writing in scripts you cannot type
+**Sketches.** A fence naming a runtime runs instead of sitting there as code.
+The diagram above is \`canvas\`; \`anime\` animates ordinary elements:
 
-Type phonetically; the script is painted when the page renders. The file keeps
-the letters you typed, so it stays searchable and editable on any keyboard.
-
-Inline, in the document's own script: @lipi(namaskaara). Naming a script
-directly: @kannada(kannaDa) and @telugu(telugu). Sanskrit in IAST:
-@sa:iast(saṃskṛta).
-
-A whole block, for anything longer:
-
-:::lipi
-haggadiMda aLate maaDi chadara mattu aayatagaLannu rachisuva vidhaanagaLannu
-adu vivarisuttade.
-:::
-
-:::devanagari:iast
-vidyā dadāti vinayaṃ vinayād yāti pātratām
-:::
-
-## Formulas
-
-Inline as $e^{i\\\\pi} + 1 = 0$, or set apart:
-
-$$
-\\\\int_{0}^{\\\\infty} e^{-x^{2}} \\\\, dx = \\\\frac{\\\\sqrt{\\\\pi}}{2}
-$$
-
-## Sketches that run
-
-A fenced block naming a runtime runs instead of sitting there as code. This one
-is \`canvas\` — plain 2D drawing, with \`loop()\` for animation:
-
-\`\`\`canvas height=200 title="A rope of twelve knots"
-loop((t) => {
-  ctx.clearRect(0, 0, width, height);
-  const r = Math.min(width, height) * 0.32;
-  const cx = width / 2, cy = height / 2;
-  for (let i = 0; i < 12; i++) {
-    const a = (i / 12) * Math.PI * 2 + t / 2600;
-    ctx.beginPath();
-    ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 5, 0, Math.PI * 2);
-    ctx.fillStyle = i % 4 === 0 ? '#bf5700' : '#8f9aa7';
-    ctx.fill();
-  }
-});
-\`\`\`
-
-And \`anime\`, for animating ordinary elements:
-
-\`\`\`anime height=140 title="Anime.js"
+\`\`\`anime height=130 title="Twelve knots in a rope"
 const row = document.createElement('div');
-row.style.cssText = 'display:flex;gap:10px;justify-content:center;padding:44px 0';
-for (let i = 0; i < 5; i++) {
-  const dot = document.createElement('span');
-  dot.style.cssText = 'width:16px;height:16px;border-radius:50%;background:#0d5f6b';
-  row.appendChild(dot);
+row.style.cssText = 'display:flex;gap:9px;justify-content:center;padding:42px 0';
+for (let i = 0; i < 12; i++) {
+  const knot = document.createElement('span');
+  knot.style.cssText =
+    'width:13px;height:13px;border-radius:50%;background:' +
+    (i % 4 === 0 ? '#bf5700' : '#c9b8a0');
+  row.appendChild(knot);
 }
 stage.appendChild(row);
 
 animate(row.children, {
-  y: [0, -22, 0],
-  delay: stagger(90),
-  duration: 900,
+  y: [0, -14, 0],
+  delay: stagger(70),
+  duration: 1000,
   loop: true,
   ease: 'inOutSine',
 });
 \`\`\`
 
-\`p5\` works too, but p5.js is LGPL rather than MIT, so it is an opt-in
-download in **Settings** rather than something shipped with the app.
+Each sketch has its own bar: pause, restart, read what it logged, or show the
+source. They run sandboxed and cannot read your documents. \`p5\` works too,
+but p5.js is LGPL rather than MIT, so it is an opt-in download in **Settings**.
 
-## Code that stays code
-
-A fence with an ordinary language name is highlighted and left alone:
+**Code.** A fence with an ordinary language name is highlighted and left alone:
 
 \`\`\`js
-const diagonal = (a, b) => Math.hypot(a, b);
-console.log(diagonal(3, 4)); // 5
+const triples = [[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25], [12, 35, 37]];
+triples.every(([a, b, c]) => a * a + b * b === c * c); // true
 \`\`\`
 
-## Pictures, video and sound
+**Pictures.** *Insert → Picture from a file*, or drop one on the window, embeds
+it as base64 — so it travels with the document into the zip, the exported page
+and the PDF, needing nothing from the network.
 
-One syntax; the link decides what is built:
+![A figure, drawn into the file itself](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAABQCAIAAACoK28rAAABoklEQVR42u3dvW3CQBiA4cNiEyrqTEEGyAK0jEObBTJAMgV1KiZIxwQUNDQg4dyvv+dpI2HFeXO6O2N7dfk7J1iKySlA0CBoEDQIGkGDoEHQIGgQNIIGQYOgQdAgaAQNggZBg6DhkXWdw5wOm0c/eju6qZFsVkVvkn3SsbIZKeiXUpY1/QY9O2VZ092iMEvNGT8HQfdSoaZpGXSJ/jRNm6DLladpagddujlNUy/oOrVpmtTVlcLmPj/8S3Rn/3Xuax+68sA5b3NayqGy9uUkzKEbzWtnHNHwHG02aITGCA0LC7rVPtqrxy2xjsaiEJJ96JwDgNVhkH3otXOHOTQIGgQNgkbQEDnoVndluxscIzSChhTvQTNDfMH/5vfnPdqfdrv7Ti59L0/AlO9/8WhZT6Ms0SwHMYeOOzyHPQPTEAOn4Zl6I3Tp2tRM7SlHueb++ckxV/qRz8DU8zhqbCa1feB5xp3pvDXbhxa0J/gjaO9YwVuwpMwYQXtPIcsMGpJL3yBoBA2CBkGDoEHQCBoEDYIGQYOgETQIGgQNggZBI2gY0BUzYo9zZfYyWAAAAABJRU5ErkJggg== "Pictures take a caption in quotes")
 
-![A figure, drawn inline](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAB4CAIAAAAMrLyJAAACKklEQVR42u3dsVHDQBBA0bWGToiIXQUUQAOklENKAy7AVEFM5ArIqIAOYAbku93b92IGNCf9WVkS1uHr8xJATZslAAEDAgYEDAIGBAwIGBAwCBgQMCBgEDAgYEDAgIBBwICAAQEDAgYBAwIGBAwCBgQMCBgQMAgYEDAgYEDAIGBglpsSW/n+fPvzDxxfvOWYjg5pX/D9a7RihowB/zldGSPg8unKGAGXT1fGhKvQC9Q74PdD34DH1KVhnEKvEJXTaQRceySOafj10cxv4el0aXcKPfeEdsBfV28fc/e1RynVS+E9vnUbv9feBvVqeOWA81wNdl2acBupdDMaRsBAg4BzjjtDGAETSe4K0m2/bwbd7tumYfWawPYo9nWkeJSyxOdMz0jjMzAgYEDAIOAuN1rdEEbAgIABAYOAAQEDAgYEDAIGBAwIGMKbGcK/E+7l4+3B4fUfd/dni2ACz6FeayhgR56VtJICdsxZTwGv/W01vk8HAQOLBpx5xBm/CBhYOuCcg273rXL30nqawI45rGS+gLMN4ettjyPPGsYyj1JGyicrXbvCBK5ajnoRMNAy4LkD0PhFwFUrUi/hIlYUvKYlXUzgql2pFwFXrUu9OIUueTotXQRcMmPpIuCSGUsXAReLWbQIGAhXoQEBAwIGAQMCBgQMCBgEDAgYEDAIGBAwIGBAwCBgQMCAgEHAlgAEDAgYEDAIGBAwIGBAwCBgQMCAgEHAgICBkb4BfDS5g60c4mgAAAAASUVORK5CYII= "Images take a caption in quotes")
+The same syntax covers the rest; the link decides what is built:
 
 \`\`\`text
-![alt](photo.jpg "A caption")        an image
-![alt](https://youtu.be/ID)          a privacy-mode YouTube embed
-![alt](https://example.com/clip.mp4) a video player
+![alt](photo.jpg "A caption")           an image
+![alt](https://youtu.be/ID)             a privacy-mode YouTube embed
+![alt](https://example.com/clip.mp4)    a video player
+![alt](https://example.com/song.mp3)    an audio player
 \`\`\`
 
-## Notes to the side
-
-A note rides along with the sentence it belongs to, and shows in the margin when
-there is room for it.^[Like this one. Notes take the same Markdown as anything
-else, including links — [the Śulba Sūtras](https://en.wikipedia.org/wiki/Shulba_Sutras)
-opens in a new tab.]
-
-## Tables
-
-| Syntax | Does |
-| --- | --- |
-| \`@kannada(…)\` | one word in another script |
-| \`:::lipi\` | a block in the document's script |
-| \`^[…]\` | a side note |
-| \`$…$\` | a formula |
-
-## Setting the page
-
-The block at the top of the file sets how the page is presented. This document
-asks for \`theme: technical\`; a document that names no theme follows whatever
-you choose in **Settings → Document theme**.
+**The page.** The block at the top sets how a document is presented. This one
+names none of the styling keys, so it follows whatever you choose in **Settings
+→ Document theme** — try Terminal or Academic and watch it change. A document
+that wants its own look writes them out:
 
 \`\`\`text
-theme: academic      one of nine presets
-font: serif          serif, sans, mono, reading
-width: wide          narrow, normal, wide, full
-align: justify       left or justify
-accent: "#bf5700"    links, rules and marks
-heading: "#333"      headings, when they should differ from the body
-author, date, version, link      shown under the title
-folder: Guide        where it is filed
+theme: paper          one of the nine presets
+font: serif           serif, sans, mono, reading
+size: 17px            any length
+width: normal         narrow, normal, wide, full
+align: justify        left or justify
+background: "#fdf9f2" the page
+color: "#2c2924"      the ink
+heading: "#7a1f2b"    headings, when they should differ
+accent: "#8f4100"     links, rules and marks
+title, author, date, version, link    the byline under the title
+script, scheme        which script, and how you type it
+folder: Notes/Vedic   where it is filed
 \`\`\`
 
-## Filing and finding
+The nine themes are **Paper**, **Manuscript**, **Slate**, **Terminal**,
+**Blueprint**, **Academic**, **Technical**, **High contrast** and
+**Dyslexia-friendly**.
 
-\`folder:\` above is why this page sits under **Guide** in the sidebar. Folders
-nest, and a document or a whole branch can be dragged onto another folder. The
-folder button above the document list starts a new one, with its first page
-already inside — a folder exists exactly as long as something is filed under it.
+**Filing and finding.** \`folder:\` decides where a document sits; folders
+nest, and a document or a whole branch can be dragged onto another in the
+sidebar. ⌘F searches the page you are reading and the field above the document
+list searches every document — both match the rendered text, the phonetic
+spelling you typed, and a romanisation of native script, so *namaskaara* and
+*ನಮಸ್ಕಾರ* find each other.
 
-The field above the document list searches every document — including text you
-wrote phonetically, so *namaskaara* finds ನಮಸ್ಕಾರ. ⌘F searches the page you are
-reading, the same way.
+**Keeping and taking it.** **Settings → Your data** will write every document
+out as ordinary \`.md\` files into a folder you choose, hand you the library as
+a zip, and ask the browser to hold on to them. **Export** gives you the
+Markdown, a standalone web page, or a PDF that keeps this page's own colours.
 
-## Keeping it
-
-Documents live in this browser. **Settings → Your data** will also write them
-out as ordinary \`.md\` files into a folder you choose, hand you the whole
-library as a zip, and ask the browser to hold on to them.
 
 ---
 
-*Delete this page whenever you like — it is an ordinary document. The Baudhāyana
-example beside it can be reset from the sidebar if you edit it.*
+*Compiled with lipi.md — type text, render worlds. This page cannot be deleted,
+only **reset** from the sidebar, so it is always here to come back to.*
 `;
 
-/**
- * What a new document starts as.
- *
- * A style block and a few lines of ordinary Markdown, so the first thing a
- * reader meets is an example of the shape rather than an empty page. `width` is
- * the only presentation key set: anything more would quietly outrank whatever
- * theme they picked in Settings, which is the sort of thing that looks like a
- * bug from the outside.
- */
 export const BLANK_DOC = `---
 title: Untitled
 author:

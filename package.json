@@ -1,6 +1,6 @@
 {
   "name": "lipi-md",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Type text. Render worlds. An offline-first Markdown PWA with live code execution and Indic transliteration.",
   "main": "index.js",
   "scripts": {
