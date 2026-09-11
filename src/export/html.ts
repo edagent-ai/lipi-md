@@ -261,6 +261,8 @@ export function exportHtml(
   dates: DocDates = {},
   /** Extra CSS prepended to the stylesheet — used to embed webfonts. */
   extraCss = '',
+  /** Diagrams already drawn by the preview, keyed by their description. */
+  diagrams: Record<string, string> = {},
 ): string {
   const docVars = styleDeclarations(style);
   // Running header and footer text, read by the @page margin boxes above.
@@ -281,7 +283,7 @@ ${`:root {\n${pdfVars}${docVars ? `\n${docVars}` : ''}\n}`}
 </style>
 </head>
 <body>
-${renderStatic(source, translit, sketches, dates)}
+${renderStatic(source, translit, sketches, dates, diagrams)}
 <footer class="generated-by">Made with LIPI-MD</footer>
 </body>
 </html>

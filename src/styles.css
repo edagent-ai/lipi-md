@@ -244,6 +244,44 @@ body.is-resizing iframe {
   background: none;
 }
 
+/* mermaid diagrams */
+
+.mermaid-figure {
+  margin: 0 0 1.3em;
+  text-align: center;
+}
+
+.mermaid-figure svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Until the library arrives, and if it never does, the description is still
+   worth reading — it is what the author wrote. */
+.mermaid-pending {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--doc-border, var(--border));
+  border-radius: var(--radius);
+  background: var(--doc-code-bg, var(--code-bg));
+  overflow-x: auto;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  color: var(--doc-muted, var(--fg-muted));
+}
+
+.mermaid-figure.is-broken .mermaid-pending {
+  border-color: var(--danger, #c0392b);
+}
+
+.mermaid-error {
+  margin-top: 6px;
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  color: var(--danger, #c0392b);
+}
+
 /* page breaks */
 
 /* Drawn while writing so the break can be seen, and weightless when printed. */

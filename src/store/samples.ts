@@ -279,6 +279,21 @@ goes, leaving the drawing alone as a figure. They run sandboxed and cannot read
 your documents. \`p5\` works too, but p5.js is LGPL rather than MIT, so it is an
 opt-in download in **Settings**.
 
+**Diagrams.** A \`mermaid\` fence is drawn as a diagram — flowcharts, sequences,
+state machines, Gantt charts and the rest:
+
+\`\`\`mermaid
+flowchart LR
+  A[Write] --> B{Render}
+  B -->|ok| C[Read]
+  B -->|error| D[Fix]
+\`\`\`
+
+It renders to SVG, so it stays sharp in the exported page and the PDF with
+nothing to fetch. Mermaid is large, so it is downloaded the first time a
+document asks for a diagram — about 640KB, once — and kept from then on. Until
+it arrives, and if it never does, the description you wrote is shown instead.
+
 **Code.** A fence with an ordinary language name is highlighted and left alone:
 
 \`\`\`js

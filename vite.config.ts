@@ -71,6 +71,28 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,json}'],
+        /* Mermaid is larger than the rest of the app put together, and most
+           documents never draw a diagram. Precaching it would take the offline
+           install from 2MB to nearly 7MB for a feature most readers will not
+           use, so its chunks go to a directory of their own and are left out —
+           picked up on first use, and kept by the runtime cache below.
+
+           Excluded by where they come from rather than by what they are
+           called: Mermaid's chunks arrive named `swimlanes`, `cose-bilkent`,
+           `rough.esm` and `_baseUniq`, and a list of patterns would have missed
+           them and quietly grown the install again. */
+        globIgnores: ['diagrams/**'],
+        runtimeCaching: [
+          {
+            urlPattern: ({ sameOrigin, url }: { sameOrigin: boolean; url: URL }) =>
+              sameOrigin && url.pathname.startsWith('/diagrams/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'lipi-lazy-chunks',
+              expiration: { maxEntries: 250 },
+            },
+          },
+        ],
         // p5.js add-on and large runtime bundles need headroom.
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         navigateFallback: 'index.html',
@@ -94,6 +116,15 @@ export default defineConfig({
       output: {
         // Split the big, rarely-changing dependencies out of the app chunk so a
         // code update only invalidates a small precache entry.
+        /** Anything that only exists to draw a diagram, kept apart. */
+        chunkFileNames(chunk: { moduleIds?: string[]; name: string }) {
+          const drawing = chunk.moduleIds?.some((id) =>
+            /node_modules[/\\](mermaid|cytoscape|elkjs|dagre|dagre-d3|d3|d3-[a-z-]+|internmap|delaunator|robust-predicates|lodash-es|khroma|roughjs|points-on-|path-data-parser|@braintree|langium|chevrotain|ts-dedent|@iconify|@mermaid-js|marked|katex-|uuid|graphlib|web-worker)[/\\]/.test(
+              id,
+            ),
+          );
+          return drawing ? 'diagrams/[name]-[hash].js' : 'assets/[name]-[hash].js';
+        },
         manualChunks(id: string) {
           if (id.includes('@codemirror') || id.includes('@lezer')) return 'editor';
           if (id.includes('sanscript')) return 'translit';

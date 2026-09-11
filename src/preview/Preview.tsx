@@ -11,6 +11,7 @@ import { SandboxHost, type SandboxDeps } from './SandboxHost';
 import { collectAnchors, lineForOffset, offsetForLine, type Anchor } from './scrollSync';
 import { FindBar } from './FindBar';
 import { clearPaint } from './find';
+import { diagramSvgs, drawDiagrams } from './mermaid';
 
 /**
  * Narrowest pane that can carry a text column and a sidenote column side by
@@ -129,6 +130,8 @@ class SegmentRenderer {
 export interface PreviewHandle {
   /** Opens the find bar over the rendered page, optionally pre-filled. */
   openFind(query?: string): void;
+  /** Diagrams the preview has drawn, keyed by their description. */
+  diagrams(): Record<string, string>;
   scrollToLine(line: number): void;
   topLine(): number;
   scroller(): HTMLElement | null;
@@ -237,6 +240,11 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
     rendererRef.current?.update(segments);
     syncActiveHeading();
     setRevision((n) => n + 1);
+
+    // Diagrams are drawn after the text is in place, and bump the revision
+    // again so the find bar re-measures against what is finally on the page.
+    const host = bodyRef.current;
+    if (host) void drawDiagrams(host).then(() => setRevision((n) => n + 1));
   }, [segments, rendererEpoch, syncActiveHeading]);
 
   // Sandboxes resize themselves after load, which shifts every anchor below.
@@ -262,6 +270,10 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
   }, []);
 
   useImperativeHandle(ref, () => ({
+    diagrams() {
+      const host = bodyRef.current;
+      return host ? Object.fromEntries(diagramSvgs(host)) : {};
+    },
     openFind(query = '') {
       setFindSeed(query);
       // Remounted on a new seed, so a second search replaces the field rather

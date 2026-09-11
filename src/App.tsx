@@ -376,7 +376,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       exportHtml(docs.current.title, docs.current.text, translitEnv, sketches, withDefaultTheme(style, settings.defaultTheme), {
         author: parseFrontmatter(docs.current.text).author,
         date: parseFrontmatter(docs.current.text).date,
-      }, docDates, fonts),
+      }, docDates, fonts, previewRef.current?.diagrams() ?? {}),
       'text/html',
     );
   }, [docDates, docs, embeddedFonts, gatherSketches, settings.defaultTheme, style, translitEnv]);
@@ -406,6 +406,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       },
       docDates,
       fonts,
+      previewRef.current?.diagrams() ?? {},
     );
 
     const frame = document.createElement('iframe');

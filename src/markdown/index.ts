@@ -148,11 +148,33 @@ function inlineText(token: Token | undefined): string {
   return out.trim() || token.content;
 }
 
-function renderFence(tokens: Token[], idx: number): string {
+function renderFence(tokens: Token[], idx: number, _options: unknown, env?: unknown): string {
+  const drawnDiagrams = (env as { diagrams?: Record<string, string> } | undefined)?.diagrams;
   const token = tokens[idx];
   const { lang } = parseInfo(token.info);
   const code = token.content.replace(/\n$/, '');
   const line = token.attrGet('data-line')?.toString() ?? null;
+
+  /* A diagram is described here and drawn later: Mermaid needs a DOM and a
+     library that is only fetched when a document actually asks for one, so the
+     source is parked in an attribute and the preview fills it in. It renders to
+     SVG, which is why a diagram needs no snapshotting to survive an export the
+     way a canvas sketch does. */
+  if (lang === 'mermaid') {
+    // An export is handed the SVG the preview already drew, so a diagram
+    // arrives finished rather than as a description waiting for a library that
+    // a saved file has no way to fetch.
+    const drawn = drawnDiagrams?.[code];
+    if (drawn) {
+      return `<figure class="mermaid-figure"${line ? ` data-line="${escapeHtml(line)}"` : ''}>${drawn}</figure>\n`;
+    }
+    return (
+      `<figure class="mermaid-figure" data-mermaid="${escapeHtml(code)}"` +
+      `${line ? ` data-line="${escapeHtml(line)}"` : ''}>` +
+      `<pre class="mermaid-pending">${escapeHtml(code)}</pre>` +
+      '</figure>\n'
+    );
+  }
 
   // A runnable fence only reaches this renderer when it is nested inside a
   // quote or list, where it cannot get its own sandbox host.
@@ -285,11 +307,13 @@ export function build(
   translit: TranslitEnv,
   mathOutput: MathOutput = 'html',
   dates: DocDates = {},
+  diagrams: Record<string, string> = {},
 ): BuildResult {
   const frontmatter = parseFrontmatter(src);
   const env = {
     translit,
     mathOutput,
+    diagrams,
     byline: {
       author: frontmatter.author,
       date: frontmatter.date,
@@ -363,10 +387,11 @@ export function renderStatic(
   translit: TranslitEnv,
   sketches: Record<string, string> = {},
   dates: DocDates = {},
+  diagrams: Record<string, string> = {},
 ): string {
   // MathML in exports: no stylesheet and no webfonts, so the file stays
   // self-contained.
-  const { segments } = build(src, translit, 'mathml', dates);
+  const { segments } = build(src, translit, 'mathml', dates, diagrams);
 
   return segments
     .map((seg) => {

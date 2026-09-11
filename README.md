@@ -43,6 +43,13 @@ one, and neither does a reader of the exported page. A stylesheet link, by
 contrast, would report every reader to Google forever and leave the document
 looking wrong with no network.
 
+**Diagrams.** A ```` ```mermaid ```` fence is drawn with Mermaid (MIT), to SVG,
+so it stays sharp in exports and the PDF with nothing fetched at read time. The
+library is larger than the rest of the app put together, so it is deliberately
+not precached: it is fetched the first time a document asks for a diagram —
+about 640KB over the wire — and the service worker keeps it, so diagrams work
+offline from then on. The offline install stays at 2MB for everyone else.
+
 **Page breaks.** A line holding only `\newpage` (or `\pagebreak`) starts a new
 page when the document is printed or exported as a PDF. It shows as a faint rule
 while you write and leaves no mark on paper.
