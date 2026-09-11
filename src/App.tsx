@@ -13,7 +13,9 @@ import { MoveDialog } from './components/MoveDialog';
 import { NewFolderDialog } from './components/NewFolderDialog';
 import { folderDoc } from './store/samples';
 import { embedImage, imageLabel, isImage } from './lib/image';
-import { embedFont, isFontFile } from './lib/font';
+import { embedFont, isFontFile, type EmbeddedFont } from './lib/font';
+import { fetchGoogleFont } from './lib/googlefont';
+import { GoogleFontDialog } from './components/GoogleFontDialog';
 import { folderPaths } from './components/DocTree';
 import { redo, undo } from '@codemirror/commands';
 import {
@@ -76,6 +78,11 @@ export default function App({ updateReady, onUpdate }: AppProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fontInputRef = useRef<HTMLInputElement>(null);
+  const [fontSearch, setFontSearch] = useState<{
+    open: boolean;
+    busy: boolean;
+    error: string | null;
+  }>({ open: false, busy: false, error: null });
   const [imageNote, setImageNote] = useState<string | null>(null);
   const scrollLock = useRef(createScrollLock()).current;
 
@@ -222,6 +229,9 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       case 'uploadFont':
         fontInputRef.current?.click();
         break;
+      case 'googleFont':
+        setFontSearch({ open: true, busy: false, error: null });
+        break;
     }
   }, []);
 
@@ -231,24 +241,30 @@ export default function App({ updateReady, onUpdate }: AppProps) {
    * Two keys rather than one: the name is what a reader edits and sees, and the
    * data is what makes the name mean the same thing on someone else's machine.
    */
+
+  /** Writes an embedded face into the document's own style block. */
+  const applyFont = useCallback((font: EmbeddedFont) => {
+    const view = editorRef.current?.view();
+    if (!view) return;
+    const withFamily = upsertFrontmatterKey(view.state.doc.toString(), 'font', font.family);
+    const next = upsertFrontmatterKey(withFamily, 'fontsrc', font.url);
+    view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: next } });
+    setImageNote(
+      `Set in ${font.family} — ${(font.bytes / 1024).toFixed(0)}KB carried in the document.`,
+    );
+  }, []);
+
   const useFont = useCallback(
     async (file: File) => {
-      const view = editorRef.current?.view();
-      if (!view) return;
+      if (!editorRef.current?.view()) return;
       setImageNote(`Reading ${file.name}…`);
       try {
-        const font = await embedFont(file);
-        const withFamily = upsertFrontmatterKey(view.state.doc.toString(), 'font', font.family);
-        const next = upsertFrontmatterKey(withFamily, 'fontsrc', font.url);
-        view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: next } });
-        setImageNote(
-          `Set in ${font.family} — ${(font.bytes / 1024).toFixed(0)}KB carried in the document.`,
-        );
+        applyFont(await embedFont(file));
       } catch (err) {
         setImageNote(err instanceof Error ? err.message : String(err));
       }
     },
-    [],
+    [applyFont],
   );
 
   /**
@@ -745,6 +761,28 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             Export it first if you might want it back.
           </p>
         </ConfirmDialog>
+      )}
+      {fontSearch.open && (
+        <GoogleFontDialog
+          busy={fontSearch.busy}
+          error={fontSearch.error}
+          onCancel={() => setFontSearch({ open: false, busy: false, error: null })}
+          onChoose={(family) => {
+            setFontSearch({ open: true, busy: true, error: null });
+            void fetchGoogleFont(family)
+              .then((font) => {
+                applyFont(font);
+                setFontSearch({ open: false, busy: false, error: null });
+              })
+              .catch((err: unknown) => {
+                setFontSearch({
+                  open: true,
+                  busy: false,
+                  error: err instanceof Error ? err.message : String(err),
+                });
+              });
+          }}
+        />
       )}
       {newFolder && (
         <NewFolderDialog

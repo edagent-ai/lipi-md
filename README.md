@@ -33,9 +33,12 @@ emphasis markers are never touched. 20+ target scripts, 11 input schemes.
 file* embeds a `.woff2`, `.woff`, `.ttf` or `.otf` as a data URL in `fontsrc:`
 and names it in `font:`, so the document looks the same wherever it is opened —
 including offline, in the PDF, and on a machine that has never had the font.
-Nothing is fetched from a font service: a stylesheet link would tell that
-service the reader's address every time the page was opened, and would leave the
-document looking wrong with no network.
+*Typeface from Google Fonts* fetches one by name and embeds it the same way.
+That request is the only one the app ever makes to anyone but itself, it happens
+when you ask for it, and it happens once: reopening the document contacts no
+one, and neither does a reader of the exported page. A stylesheet link, by
+contrast, would report every reader to Google forever and leave the document
+looking wrong with no network.
 
 **Page breaks.** A line holding only `\newpage` (or `\pagebreak`) starts a new
 page when the document is printed or exported as a PDF. It shows as a faint rule
@@ -233,9 +236,10 @@ everything else.
 
 ## Privacy
 
-Nothing is uploaded. The only network request the app makes on its own is
-fetching itself; the optional p5.js download is the sole exception, and only when
-you ask for it. Documents live in this browser's IndexedDB (with a localStorage
+Nothing is uploaded. The only network requests the app makes on its own are for
+itself; fetching the p5.js add-on or a Google font are the exceptions, and both
+happen only when you ask, once. An embedded font is then part of the document,
+so no reader of it ever contacts Google. Documents live in this browser's IndexedDB (with a localStorage
 fallback where IndexedDB is blocked) and never leave the device. If you point the
 app at a folder (see below), it writes copies there too — still on your machine,
 still nowhere else.

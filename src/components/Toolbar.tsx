@@ -15,7 +15,8 @@ export type ToolbarAction =
   | { kind: 'bumpVersion' }
   | { kind: 'theme'; theme: string | null }
   | { kind: 'uploadImage' }
-  | { kind: 'uploadFont' };
+  | { kind: 'uploadFont' }
+  | { kind: 'googleFont' };
 
 interface ToolbarProps {
   onAction(action: ToolbarAction): void;
@@ -162,6 +163,9 @@ export function Toolbar({
       <Menu label="Insert" disabled={readOnly}>
         <MenuItem onClick={() => onAction({ kind: 'uploadImage' })}>Picture from a file…</MenuItem>
         <MenuItem onClick={() => onAction({ kind: 'uploadFont' })}>Typeface from a file…</MenuItem>
+        <MenuItem onClick={() => onAction({ kind: 'googleFont' })}>
+          Typeface from Google Fonts…
+        </MenuItem>
         <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'image' })}>
           Picture from a link
         </MenuItem>

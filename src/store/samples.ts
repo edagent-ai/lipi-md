@@ -335,9 +335,10 @@ spelling you typed, and a romanisation of native script, so *namaskaara* and
 **Typefaces.** *Insert → Typeface from a file* sets the document in a font from
 your own machine, carried inside it as \`fontsrc:\` — so it looks the same in the
 zip, the exported page and the PDF, on a computer that has never had that font
-installed. Nothing is fetched from a font service, which would otherwise tell
-that service who is reading the page. A \`.woff2\` is usually 20–60KB; a \`.ttf\`
-can be ten times that.
+installed. *Typeface from Google Fonts* will fetch one by name and embed it the
+same way: Google is contacted once, when you ask, and never again — not when the
+document is reopened, and not by anyone you send it to. A \`.woff2\` is usually
+20–60KB; a \`.ttf\` can be ten times that.
 
 **Page breaks.** A line holding only \\\\newpage starts a new page when the
 document is printed or exported as a PDF. It shows as a faint rule while you
