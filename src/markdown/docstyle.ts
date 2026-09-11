@@ -27,6 +27,8 @@ export interface DocStyle {
   accent?: string;
   /** Headings, when the theme sets them apart from the body ink. */
   heading?: string;
+  /** A typeface carried in the document, as a data URL, with its family name. */
+  fontFace?: { family: string; url: string; format: string };
   measure?: string;
   size?: string;
   /** Set by a preset only, so code blocks and rules match the page. */
@@ -164,6 +166,37 @@ function isDarkSurface(style: DocStyle): boolean | undefined {
   return 0.2126 * channel(rgb[0]) + 0.7152 * channel(rgb[1]) + 0.0722 * channel(rgb[2]) < 0.4;
 }
 
+/** Only a font the document actually carries; never a URL to fetch. */
+const EMBEDDED_FONT = /^data:(?:font\/(?:woff2?|ttf|otf)|application\/(?:font-woff2?|x-font-ttf|octet-stream));base64,[A-Za-z0-9+/=]+$/;
+
+function formatOf(url: string): string {
+  if (url.startsWith('data:font/woff2')) return 'woff2';
+  if (url.startsWith('data:font/woff')) return 'woff';
+  if (url.startsWith('data:font/ttf')) return 'truetype';
+  if (url.startsWith('data:font/otf')) return 'opentype';
+  return 'woff2';
+}
+
+/** A family name that cannot escape the quotes it will sit inside. */
+function safeFamily(name: string): string | undefined {
+  const cleaned = name.replace(/["\\;{}()<>]/g, '').trim().slice(0, 48);
+  return cleaned || undefined;
+}
+
+/**
+ * The `@font-face` a document needs, or nothing. Kept apart from `styleVars`
+ * because a rule is not a custom property: it has to reach a stylesheet.
+ */
+export function fontFaceCss(style: DocStyle): string {
+  const face = style.fontFace;
+  if (!face) return '';
+  return (
+    `@font-face{font-family:"${face.family}";` +
+    `src:url(${face.url}) format("${face.format}");` +
+    `font-display:swap;font-weight:1 1000;font-style:normal}`
+  );
+}
+
 export function parseDocStyle(front: Frontmatter): DocStyle {
   const raw = front.raw ?? {};
   const pick = (...keys: string[]) => {
@@ -192,8 +225,22 @@ export function parseDocStyle(front: Frontmatter): DocStyle {
       }
     : {};
 
-  const font = pick('font', 'typeface')?.toLowerCase();
+  /* `font:` is either one of the four words the app knows, or the name of a
+     family the document carries with it. A name only takes effect alongside the
+     data that defines it: pointing at a font by name alone would render
+     differently on every machine, which is the opposite of the point. */
+  const rawFont = pick('font', 'typeface');
+  const font = rawFont?.toLowerCase();
   if (font && FONT_STACKS[font]) style.font = FONT_STACKS[font];
+
+  const src = pick('fontsrc', 'font-src');
+  const family = rawFont && !FONT_STACKS[font ?? ''] ? safeFamily(rawFont) : undefined;
+  if (family && src && EMBEDDED_FONT.test(src.trim())) {
+    style.fontFace = { family, url: src.trim(), format: formatOf(src.trim()) };
+    // Named first, with the app's own stack behind it: if the data is ever
+    // stripped the text stays readable instead of falling back to Times.
+    style.font = `"${family}", var(--font-ui)`;
+  }
 
   const align = pick('align', 'text-align')?.toLowerCase();
   if (align && ALIGN.has(align)) style.align = align;

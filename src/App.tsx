@@ -13,6 +13,7 @@ import { MoveDialog } from './components/MoveDialog';
 import { NewFolderDialog } from './components/NewFolderDialog';
 import { folderDoc } from './store/samples';
 import { embedImage, imageLabel, isImage } from './lib/image';
+import { embedFont, isFontFile } from './lib/font';
 import { folderPaths } from './components/DocTree';
 import { redo, undo } from '@codemirror/commands';
 import {
@@ -29,7 +30,7 @@ import {
   wrapMacro,
 } from './editor/commands';
 import { build } from './markdown';
-import { parseFrontmatter } from './markdown/frontmatter';
+import { parseFrontmatter, upsertFrontmatterKey } from './markdown/frontmatter';
 import { resolveScript } from './translit/schemes';
 import { schemeExists } from './translit';
 import { exportHtml } from './export/html';
@@ -40,7 +41,7 @@ import { useSettings } from './store/settings';
 import { useVault } from './store/vault';
 import { countWords, debounce, download, formatDay, slugify } from './lib/util';
 import { createScrollLock } from './preview/scrollSync';
-import { styleVars, withDefaultTheme } from './markdown/docstyle';
+import { fontFaceCss, styleVars, withDefaultTheme } from './markdown/docstyle';
 import { loadMath, looksLikeMath, mathReady } from './math';
 import type { Doc, ViewMode } from './types';
 import logoUrl from './assets/logo.png';
@@ -74,6 +75,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
   const previewRef = useRef<PreviewHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const fontInputRef = useRef<HTMLInputElement>(null);
   const [imageNote, setImageNote] = useState<string | null>(null);
   const scrollLock = useRef(createScrollLock()).current;
 
@@ -217,8 +219,37 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       case 'uploadImage':
         imageInputRef.current?.click();
         break;
+      case 'uploadFont':
+        fontInputRef.current?.click();
+        break;
     }
   }, []);
+
+  /**
+   * Sets the document in a typeface from disk, carried inside it.
+   *
+   * Two keys rather than one: the name is what a reader edits and sees, and the
+   * data is what makes the name mean the same thing on someone else's machine.
+   */
+  const useFont = useCallback(
+    async (file: File) => {
+      const view = editorRef.current?.view();
+      if (!view) return;
+      setImageNote(`Reading ${file.name}…`);
+      try {
+        const font = await embedFont(file);
+        const withFamily = upsertFrontmatterKey(view.state.doc.toString(), 'font', font.family);
+        const next = upsertFrontmatterKey(withFamily, 'fontsrc', font.url);
+        view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: next } });
+        setImageNote(
+          `Set in ${font.family} — ${(font.bytes / 1024).toFixed(0)}KB carried in the document.`,
+        );
+      } catch (err) {
+        setImageNote(err instanceof Error ? err.message : String(err));
+      }
+    },
+    [],
+  );
 
   /**
    * Puts a picture from disk into the document.
@@ -259,6 +290,12 @@ export default function App({ updateReady, onUpdate }: AppProps) {
         return;
       }
 
+      const font = all.find(isFontFile);
+      if (font) {
+        await useFont(font);
+        return;
+      }
+
       const markdown = all.filter(
         (file) => /\.(md|markdown|txt)$/i.test(file.name) || file.type.startsWith('text/'),
       );
@@ -266,7 +303,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
         await docs.create(await file.text());
       }
     },
-    [docs, placeImage],
+    [docs, placeImage, useFont],
   );
 
   const doExportMarkdown = useCallback(() => {
@@ -287,8 +324,31 @@ export default function App({ updateReady, onUpdate }: AppProps) {
   /** Fonts an export must carry itself, since it cannot reach the app's assets. */
   const embeddedFonts = useCallback(async (): Promise<string> => {
     const effective = withDefaultTheme(style, settings.defaultTheme);
-    return effective.font === 'var(--font-reading)' ? openDyslexicFaces() : '';
+    // A typeface the document carries travels with it; OpenDyslexic is ours to
+    // ship, so it is only embedded when the document is actually set in it.
+    const own = fontFaceCss(effective);
+    const dyslexic = effective.font === 'var(--font-reading)' ? await openDyslexicFaces() : '';
+    return [own, dyslexic].filter(Boolean).join('\n');
   }, [settings.defaultTheme, style]);
+
+  /* The preview needs the same rule, and a rule cannot ride in a style
+     attribute the way the custom properties do — so it goes in a stylesheet of
+     its own, replaced whenever the document's font changes. */
+  useEffect(() => {
+    const css = fontFaceCss(withDefaultTheme(style, settings.defaultTheme));
+    const id = 'lipi-doc-font';
+    let tag = document.getElementById(id) as HTMLStyleElement | null;
+    if (!css) {
+      tag?.remove();
+      return;
+    }
+    if (!tag) {
+      tag = document.createElement('style');
+      tag.id = id;
+      document.head.append(tag);
+    }
+    if (tag.textContent !== css) tag.textContent = css;
+  }, [style, settings.defaultTheme]);
 
   const doExportHtml = useCallback(async () => {
     if (!docs.current) return;
@@ -743,6 +803,18 @@ export default function App({ updateReady, onUpdate }: AppProps) {
           {imageNote}
         </div>
       )}
+
+      <input
+        ref={fontInputRef}
+        type="file"
+        accept=".woff2,.woff,.ttf,.otf,font/woff2,font/woff,font/ttf,font/otf"
+        hidden
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = '';
+          if (file) void useFont(file);
+        }}
+      />
 
       <input
         ref={imageInputRef}

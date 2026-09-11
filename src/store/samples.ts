@@ -332,6 +332,13 @@ list searches every document — both match the rendered text, the phonetic
 spelling you typed, and a romanisation of native script, so *namaskaara* and
 *ನಮಸ್ಕಾರ* find each other.
 
+**Typefaces.** *Insert → Typeface from a file* sets the document in a font from
+your own machine, carried inside it as \`fontsrc:\` — so it looks the same in the
+zip, the exported page and the PDF, on a computer that has never had that font
+installed. Nothing is fetched from a font service, which would otherwise tell
+that service who is reading the page. A \`.woff2\` is usually 20–60KB; a \`.ttf\`
+can be ten times that.
+
 **Page breaks.** A line holding only \\\\newpage starts a new page when the
 document is printed or exported as a PDF. It shows as a faint rule while you
 write, and leaves no mark on paper. \\\\pagebreak does the same thing.

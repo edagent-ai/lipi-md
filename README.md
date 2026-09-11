@@ -29,6 +29,14 @@ Inline macros convert one phrase. `:::` blocks convert everything inside them �
 built for lyrics and verse, so line breaks are preserved. Links, code spans and
 emphasis markers are never touched. 20+ target scripts, 11 input schemes.
 
+**Typefaces.** A document can carry its own font. *Insert → Typeface from a
+file* embeds a `.woff2`, `.woff`, `.ttf` or `.otf` as a data URL in `fontsrc:`
+and names it in `font:`, so the document looks the same wherever it is opened —
+including offline, in the PDF, and on a machine that has never had the font.
+Nothing is fetched from a font service: a stylesheet link would tell that
+service the reader's address every time the page was opened, and would leave the
+document looking wrong with no network.
+
 **Page breaks.** A line holding only `\newpage` (or `\pagebreak`) starts a new
 page when the document is printed or exported as a PDF. It shows as a faint rule
 while you write and leaves no mark on paper.
