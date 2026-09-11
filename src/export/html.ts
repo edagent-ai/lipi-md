@@ -113,7 +113,6 @@ figure.sketch img {
   text-align: center;
   color: var(--doc-muted, var(--fg-muted));
 }
-.generated-by a { color: inherit; }
 .doc-footer { font-size: .85em; color: var(--doc-muted, var(--fg-muted)); }
 .doc-footer p:last-child { margin-bottom: 0; }
 p.doc-byline {
@@ -235,9 +234,6 @@ math { font-size: 1.05em; }
 }
 `.trim();
 
-/** Where an exported page says it came from. */
-const APP_URL = 'https://lipi-md.vercel.app';
-
 /**
  * Quotes a value for use inside a CSS `content:` string.
  *
@@ -286,7 +282,7 @@ ${`:root {\n${pdfVars}${docVars ? `\n${docVars}` : ''}\n}`}
 </head>
 <body>
 ${renderStatic(source, translit, sketches, dates)}
-<footer class="generated-by">Generated using <a href="${APP_URL}" target="_blank" rel="noopener noreferrer">LIPI-MD</a> (${APP_URL})</footer>
+<footer class="generated-by">Made with LIPI-MD</footer>
 </body>
 </html>
 `;
