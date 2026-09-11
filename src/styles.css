@@ -2263,7 +2263,35 @@ kbd {
 
 /* --------------------------------- print --------------------------------- */
 
+/* Printing the app itself, which Cmd+P does: the reader sees the page they were
+   reading, not a wall of text against the sheet edge. The export builds its own
+   stylesheet and repeats this there; both have to say it, because neither
+   document can see the other's rules. */
+@page {
+  margin: 20mm 16mm;
+  background: var(--print-page-bg, #fff);
+  @top-left {
+    content: var(--print-page-title, "");
+    font: 9pt ui-sans-serif, system-ui, sans-serif;
+    color: var(--print-page-ink, #555);
+  }
+  @top-right {
+    content: counter(page) " / " counter(pages);
+    font: 9pt ui-sans-serif, system-ui, sans-serif;
+    color: var(--print-page-ink, #555);
+  }
+}
+
 @media print {
+  /* Or the page colour is dropped unless the reader happens to have ticked
+     "Background graphics" in the print dialog. */
+  html,
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    background: transparent;
+  }
+
   .appbar,
   .toolbar,
   .sidebar,

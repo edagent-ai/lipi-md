@@ -115,6 +115,29 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     [style, settings.defaultTheme],
   );
 
+  /* Printing the app itself — Cmd+P rather than Export — has to reach the page
+     colour too, and an @page rule can only read custom properties from the root
+     element. Mirrored under its own name so nothing inside the app picks it up
+     by accident through a `var(--doc-bg, …)` fallback. */
+  useEffect(() => {
+    const root = document.documentElement;
+    const background = docStyle['--doc-bg'];
+    const ink = docStyle['--doc-muted'];
+    if (background) root.style.setProperty('--print-page-bg', background);
+    else root.style.removeProperty('--print-page-bg');
+    if (ink) root.style.setProperty('--print-page-ink', ink);
+    else root.style.removeProperty('--print-page-ink');
+  }, [docStyle]);
+
+  // The running header needs the title as a CSS string, quotes and all.
+  useEffect(() => {
+    const title = docs.current?.title ?? '';
+    document.documentElement.style.setProperty(
+      '--print-page-title',
+      `"${title.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`,
+    );
+  }, [docs]);
+
   // KaTeX is fetched only when a document actually contains maths.
   useEffect(() => {
     if (mathReady() || !looksLikeMath(deferredText)) return;
