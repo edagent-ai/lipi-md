@@ -73,9 +73,11 @@ tappable number when it is not.
 **Themes.** Nine presets — Paper, Manuscript, Slate, Terminal, Blueprint,
 Academic, Technical, High contrast and Dyslexia-friendly — set from the toolbar
 or as a default in Settings. Academic is a justified serif on a short measure,
-the shape a journal article is read in; Technical is a neutral sans on a wide
-one, for documents carrying tables, code and figures that a prose column would
-crush. The dyslexia-friendly one follows the usual guidance: a plain sans
+the shape a journal article is read in; Technical is white on dark grey with
+purple headings, on a wide measure for documents carrying tables, code and
+figures that a prose column would crush; Terminal is green monospace on
+near-black. A theme may colour headings apart from the body ink, and every
+preset is checked for contrast against all of its own elements. The dyslexia-friendly one follows the usual guidance: a plain sans
 face, larger text, loosened line, letter and word spacing, a short measure,
 ragged-right lines and an off-white page. Letter-spacing is suppressed on Indic
 text, where it would break conjuncts.
@@ -223,7 +225,13 @@ so the arrangement travels with the file through export and re-import. The
 sidebar shows them as a collapsible tree, nesting up to eight deep, and a
 document or a whole branch can be dragged onto another folder — or onto the
 empty space below the tree for the top level. The folder button above the
-document list makes a new one by starting its first page. Folders are not stored anywhere of
+document list makes a new one and starts its first page.
+
+A folder made that way is remembered in its own right, so deleting the documents
+inside it leaves it standing; it goes when you remove it, and not before. Empty
+folders are local to the app, since there is no document to carry one into an
+export or the mirrored directory. Nothing the app writes to your own folder is
+ever deleted for being empty. Folders are not stored anywhere of
 their own: they exist exactly as long as something is filed under them.
 
 **Search.** ⌘F searches the open page; the field above the document list
@@ -236,12 +244,21 @@ it was written. A library hit opens the document with the same query running.
 tour of the syntax filed under *Guide*. The example can be reset but not
 deleted; the tour is an ordinary document and can be thrown away.
 
+**A new document** starts with a style block and a few lines of Markdown —
+a heading, a link, a note, a list and a quotation — so the shape of a document is
+visible rather than described.
+
 ## Keeping your documents
 
 Documents live in this browser's IndexedDB, which is convenient and not durable:
 the browser is entitled to evict it under storage pressure, and "clear site data"
 erases it without warning. **Settings → Your data** offers three defences, and
 reports honestly which of them are actually in effect.
+
+The exported page and the PDF both carry the document's own colours. The PDF
+colours the whole sheet, margins included: neither the root background nor a
+fixed element reaches the margin area, but a background on the `@page` rule
+paints all of it and leaves the running header and page numbers in place.
 
 - **Durable storage.** Asks the browser to stop treating the library as
   disposable. Chrome decides from engagement and whether the app is installed and

@@ -25,6 +25,8 @@ export interface DocStyle {
   background?: string;
   color?: string;
   accent?: string;
+  /** Headings, when the theme sets them apart from the body ink. */
+  heading?: string;
   measure?: string;
   size?: string;
   /** Set by a preset only, so code blocks and rules match the page. */
@@ -181,6 +183,7 @@ export function parseDocStyle(front: Frontmatter): DocStyle {
         background: preset.background,
         color: preset.color,
         accent: preset.accent,
+        heading: preset.heading,
         codeBg: preset.codeBg,
         border: preset.border,
         lineHeight: preset.lineHeight,
@@ -225,6 +228,7 @@ export function styleVars(style: DocStyle): Record<string, string> {
   if (style.background) vars['--doc-bg'] = style.background;
   if (style.color) vars['--doc-fg'] = style.color;
   if (style.accent) vars['--doc-accent'] = style.accent;
+  if (style.heading) vars['--doc-heading'] = style.heading;
   if (style.measure) vars['--doc-measure'] = style.measure;
   if (style.size) vars['--doc-size'] = style.size;
   if (style.codeBg) vars['--doc-code-bg'] = style.codeBg;
@@ -278,6 +282,7 @@ export function withDefaultTheme(style: DocStyle, themeName: string): DocStyle {
     background: preset.background,
     color: preset.color,
     accent: preset.accent,
+    heading: preset.heading,
     codeBg: preset.codeBg,
     border: preset.border,
     lineHeight: preset.lineHeight,

@@ -39,9 +39,9 @@ pre, code, table, figcaption { text-align: initial; }
 /* Long URLs and unbroken strings must not force the page to scroll sideways. */
 p, li, blockquote, td, th, figcaption { overflow-wrap: anywhere; }
 h1, h2, h3, h4, h5, h6 {
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--doc-font, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif);
   line-height: 1.25; margin: 2em 0 .6em; font-weight: 700;
-  color: var(--doc-fg, var(--fg));
+  color: var(--doc-heading, var(--doc-fg, var(--fg)));
 }
 /* Headings scale with the viewport, so a phone is not given desktop type. */
 h1 { font-size: clamp(1.55rem, 1.15rem + 1.9vw, 2rem); margin-top: 0; }
@@ -164,16 +164,16 @@ math { font-size: 1.05em; }
 /* Chrome does render @page margin boxes, so the running header and footer can
    be described here rather than faked with fixed elements.
 
-   The margin area itself cannot be coloured: Chrome paints neither the root
-   background nor a fixed element into it, and only a zero page margin fills the
-   sheet -- which would take the page counter with it, since counter(page)
-   resolves nowhere else. So the margin stays the paper's own white on every
-   theme, and the running text is kept a fixed grey to stay legible against it. */
+   The sheet takes its colour from the page rule itself. Neither the root
+   background nor a fixed element reaches the margin area -- both are clipped to
+   the page box -- but a background on @page paints the whole sheet, margins
+   included, and leaves the counters where they are. */
 @page {
   margin: 20mm 16mm;
-  @top-left { content: var(--pdf-title); font: 9pt ui-sans-serif, system-ui, sans-serif; color: #555; }
-  @top-right { content: counter(page) " / " counter(pages); font: 9pt ui-sans-serif, system-ui, sans-serif; color: #555; }
-  @bottom-left { content: var(--pdf-author); font: 9pt ui-sans-serif, system-ui, sans-serif; color: #555; }
+  background: var(--doc-bg, #fff);
+  @top-left { content: var(--pdf-title); font: 9pt ui-sans-serif, system-ui, sans-serif; color: var(--doc-muted, #555); }
+  @top-right { content: counter(page) " / " counter(pages); font: 9pt ui-sans-serif, system-ui, sans-serif; color: var(--doc-muted, #555); }
+  @bottom-left { content: var(--pdf-author); font: 9pt ui-sans-serif, system-ui, sans-serif; color: var(--doc-muted, #555); }
 }
 @media print {
   /* A document that chose a theme is printed as it was designed. Only a
@@ -184,9 +184,8 @@ math { font-size: 1.05em; }
     --fg: #111; --fg-muted: #555; --bg: #fff; --border: #ccc;
     --accent: #14459c; --code-bg: #f4f4f4;
   }
-  /* The page colour goes on the root, not just the body: the body box stops at
-     the @page margins, so colouring only that leaves a dark page sitting in a
-     white frame, with the running header stranded illegibly in it. */
+  /* Belt and braces beside the @page background: if a renderer ignores that,
+     the text still sits on its own colour rather than on bare white. */
   html { background: var(--doc-bg, #fff); }
   body { max-width: none; padding: 0; background: transparent; color: var(--doc-fg, #111); }
   /* Without this Chrome drops every background unless the reader thinks to

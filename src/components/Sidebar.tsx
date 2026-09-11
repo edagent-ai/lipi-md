@@ -25,6 +25,8 @@ interface SidebarProps {
   onOpenMatch(id: string, query: string): void;
   onMoveDoc(id: string, folder: string): void;
   onMoveFolder(from: string, toParent: string): void;
+  folders: string[];
+  onForgetFolder(path: string): void;
 }
 
 export function Sidebar({
@@ -45,6 +47,8 @@ export function Sidebar({
   onOpenMatch,
   onMoveDoc,
   onMoveFolder,
+  folders,
+  onForgetFolder,
 }: SidebarProps) {
   const current = docs.find((d) => d.id === currentId);
   const [query, setQuery] = useState('');
@@ -162,6 +166,8 @@ export function Sidebar({
             onRequestMove={onRequestMove}
             onMoveDoc={onMoveDoc}
             onMoveFolder={onMoveFolder}
+            folders={folders}
+            onForgetFolder={onForgetFolder}
           />
         )}
       </div>

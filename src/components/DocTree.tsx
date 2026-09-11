@@ -14,6 +14,9 @@ interface DocTreeProps {
   onMoveDoc(id: string, folder: string): void;
   /** Moves a whole folder, and everything filed below it, under a new parent. */
   onMoveFolder(from: string, toParent: string): void;
+  /** Folders that exist in their own right, not only through a document. */
+  folders: string[];
+  onForgetFolder(path: string): void;
 }
 
 interface Node {
@@ -29,14 +32,13 @@ const newNode = (name: string, path: string): Node => ({ name, path, children: [
  * Groups documents into a folder tree from their `folder:` paths. Depth is
  * already capped when the path is normalised, so this just walks the segments.
  */
-function buildTree(docs: Doc[]): Node {
+function buildTree(docs: Doc[], extra: string[]): Node {
   const root = newNode('', '');
 
-  for (const doc of docs) {
-    const segments = (doc.folder ?? '').split('/').filter(Boolean);
+  /** Walks a path into the tree, creating the nodes it passes through. */
+  const reach = (segments: string[]): Node => {
     let node = root;
     let path = '';
-
     for (const segment of segments) {
       path = path ? `${path}/${segment}` : segment;
       let child = node.children.find((c) => c.name === segment);
@@ -46,7 +48,15 @@ function buildTree(docs: Doc[]): Node {
       }
       node = child;
     }
-    node.docs.push(doc);
+    return node;
+  };
+
+  // Folders the reader made stand on their own, so one still shows after the
+  // last document in it is deleted.
+  for (const path of extra) reach(path.split('/').filter(Boolean));
+
+  for (const doc of docs) {
+    reach((doc.folder ?? '').split('/').filter(Boolean)).docs.push(doc);
   }
 
   const sortNode = (node: Node) => {
@@ -58,16 +68,17 @@ function buildTree(docs: Doc[]): Node {
 }
 
 /** Every folder path in use, for the move dialog's suggestions. */
-export function folderPaths(docs: Doc[]): string[] {
+export function folderPaths(docs: Doc[], extra: string[] = []): string[] {
   const paths = new Set<string>();
-  for (const doc of docs) {
-    const segments = (doc.folder ?? '').split('/').filter(Boolean);
+  const walk = (folder: string) => {
     let path = '';
-    for (const segment of segments) {
+    for (const segment of folder.split('/').filter(Boolean)) {
       path = path ? `${path}/${segment}` : segment;
       paths.add(path);
     }
-  }
+  };
+  for (const doc of docs) walk(doc.folder ?? '');
+  for (const folder of extra) walk(folder);
   return [...paths].sort();
 }
 
@@ -81,8 +92,10 @@ export function DocTree({
   onRequestMove,
   onMoveDoc,
   onMoveFolder,
+  folders,
+  onForgetFolder,
 }: DocTreeProps) {
-  const tree = useMemo(() => buildTree(docs), [docs]);
+  const tree = useMemo(() => buildTree(docs, folders), [docs, folders]);
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   /** Path of the row a drag is currently over; '' is the top level. */
   const [over, setOver] = useState<string | null>(null);
@@ -215,6 +228,7 @@ export function DocTree({
     const isCollapsed = collapsed.has(node.path);
     return (
       <li key={node.path} className="folder" style={{ ['--depth' as string]: depth }}>
+        <div className="folder-head">
         <button
           type="button"
           className={`folder-row${over === node.path ? ' is-drop' : ''}`}
@@ -231,6 +245,18 @@ export function DocTree({
           <span className="folder-name">{node.name}</span>
           <span className="folder-count">{countIn(node)}</span>
         </button>
+        {countIn(node) === 0 && (
+          <button
+            type="button"
+            className="icon-btn is-danger folder-forget"
+            title={`Remove the empty folder “${node.name}”`}
+            aria-label={`Remove the empty folder ${node.name}`}
+            onClick={() => onForgetFolder(node.path)}
+          >
+            ✕
+          </button>
+        )}
+        </div>
         {!isCollapsed && (
           <ul className="doc-list">
             {node.children.map((child) => renderNode(child, depth + 1))}

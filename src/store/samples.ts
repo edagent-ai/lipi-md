@@ -404,8 +404,36 @@ library as a zip, and ask the browser to hold on to them.
 example beside it can be reset from the sidebar if you edit it.*
 `;
 
-export const BLANK_DOC = `# Untitled
+/**
+ * What a new document starts as.
+ *
+ * A style block and a few lines of ordinary Markdown, so the first thing a
+ * reader meets is an example of the shape rather than an empty page. `width` is
+ * the only presentation key set: anything more would quietly outrank whatever
+ * theme they picked in Settings, which is the sort of thing that looks like a
+ * bug from the outside.
+ */
+export const BLANK_DOC = `---
+title: Untitled
+width: normal
+---
 
+# Untitled
+
+Start writing here. The block at the top sets how the page is presented — add
+\`theme: paper\`, \`font: serif\` or \`accent: "#bf5700"\` to it and the page
+follows.
+
+## A section
+
+A **bold** word, some *emphasis*, and a [link](https://example.com). A note can
+ride alongside the sentence it belongs to.^[Notes show in the margin when the
+pane is wide enough for them.]
+
+- something
+- something else
+
+> A quotation, for the rule beside it.
 `;
 
 /** A first page for a new folder, carrying the path that makes the folder real. */

@@ -20,6 +20,8 @@ export interface ThemePreset {
   background: string;
   color: string;
   accent: string;
+  /** Headings, when they should not simply follow the body ink. */
+  heading?: string;
   codeBg: string;
   border: string;
 }
@@ -58,14 +60,15 @@ export const THEMES: Record<string, ThemePreset> = {
   },
   terminal: {
     label: 'Terminal',
-    blurb: 'Monospace on near-black',
+    blurb: 'Green monospace on near-black',
     font: 'mono',
     size: '15px',
     background: '#0d1117',
-    color: '#c9d1d9',
-    accent: '#3fb950',
+    // Headings are left to follow the body, so the whole page is one green.
+    color: '#7ee787',
+    accent: '#39d353',
     codeBg: '#161b22',
-    border: '#232b34',
+    border: '#28412e',
   },
   blueprint: {
     label: 'Blueprint',
@@ -95,7 +98,7 @@ export const THEMES: Record<string, ThemePreset> = {
   },
   technical: {
     label: 'Technical',
-    blurb: 'Neutral sans, wide measure — specifications and reports',
+    blurb: 'Dark grey page, white text, purple headings — specifications and reports',
     font: 'sans',
     // Wider than prose wants, because this is the theme for documents carrying
     // tables, code and figures that a 46rem column would crush.
@@ -103,11 +106,12 @@ export const THEMES: Record<string, ThemePreset> = {
     measure: '52rem',
     size: '15.5px',
     lineHeight: '1.62',
-    background: '#fcfcfd',
-    color: '#1b2126',
-    accent: '#0d5f6b',
-    codeBg: '#eef1f5',
-    border: '#dde2e8',
+    background: '#22262c',
+    color: '#ffffff',
+    heading: '#c4a7ff',
+    accent: '#6fd3e6',
+    codeBg: '#1a1e23',
+    border: '#3a424c',
   },
   dyslexic: {
     label: 'Dyslexia-friendly',

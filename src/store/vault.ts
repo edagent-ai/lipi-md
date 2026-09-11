@@ -6,7 +6,6 @@ import {
   listMarkdown,
   permissionFor,
   pickDirectory,
-  pruneEmptyDirs,
   readFile,
   removeFile,
   safeSegment,
@@ -262,7 +261,6 @@ export async function mirror(root: DirHandle, docs: Doc[]): Promise<MirrorResult
     // A retitled or refiled document leaves its old file behind otherwise.
     if (prior && prior.path !== path) {
       await removeFile(root, prior.path);
-      await pruneEmptyDirs(root, prior.path);
       result.removed++;
     }
     if (prior && prior.path === path && prior.updatedAt === doc.updatedAt) continue;
@@ -279,7 +277,6 @@ export async function mirror(root: DirHandle, docs: Doc[]): Promise<MirrorResult
   for (const [id, entry] of before) {
     if (!live.has(id)) {
       await removeFile(root, entry.path);
-      await pruneEmptyDirs(root, entry.path);
       result.removed++;
     }
   }

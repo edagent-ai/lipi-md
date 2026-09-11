@@ -225,6 +225,24 @@ body.is-resizing iframe {
   outline-offset: -2px;
 }
 
+/* The row and its remove button share a line; the folder's contents stack
+   beneath them. */
+.folder-head {
+  display: flex;
+  align-items: center;
+}
+
+.folder-forget {
+  flex: none;
+  opacity: 0;
+  margin-right: 4px;
+}
+
+.folder-head:hover .folder-forget,
+.folder-forget:focus-visible {
+  opacity: 1;
+}
+
 .folder-row.is-drop {
   background: var(--accent-soft);
   box-shadow: inset 0 0 0 1px var(--accent);
@@ -1063,7 +1081,9 @@ body.is-resizing iframe {
   font-weight: 680;
   line-height: 1.25;
   letter-spacing: -0.015em;
-  color: var(--doc-fg, var(--fg-strong));
+  /* Falls through to the body ink, so a theme only names this when its
+     headings are meant to differ. */
+  color: var(--doc-heading, var(--doc-fg, var(--fg-strong)));
   margin: 1.9em 0 0.55em;
 }
 

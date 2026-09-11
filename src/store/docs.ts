@@ -12,6 +12,16 @@ import { BLANK_DOC, TOUR_DOC, WELCOME_DOC } from './samples';
 export type SaveState = 'saved' | 'saving' | 'dirty';
 
 const CURRENT_KEY = 'current-doc';
+/**
+ * Folders the reader made, kept apart from the documents in them.
+ *
+ * A folder used to exist only as a path some document declared, so deleting the
+ * last document in one silently took the folder with it. Recording them means a
+ * folder someone made on purpose stays until they remove it on purpose. They
+ * are still app-local: an empty folder has no document to carry it into an
+ * export or the mirrored directory.
+ */
+const FOLDERS_KEY = 'folders';
 const AUTOSAVE_MS = 500;
 
 /** Frontmatter title wins, then the first heading, then the first line. */
@@ -93,6 +103,7 @@ export function useDocs() {
   const [docs, setDocs] = useState<Doc[]>([]);
   const [currentId, setCurrentId] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [folders, setFolders] = useState<string[]>([]);
   const [saveState, setSaveState] = useState<SaveState>('saved');
 
   /* The autosave debouncer must survive re-renders, and needs the latest doc
@@ -122,7 +133,9 @@ export function useDocs() {
         // no migration write is needed.
         .map((d) => (d.folder === undefined ? { ...d, folder: deriveFolder(d.text) } : d));
       const savedId = await idbGet<string>('kv', CURRENT_KEY);
+      const savedFolders = await idbGet<string[]>('kv', FOLDERS_KEY);
       if (cancelled) return;
+      if (Array.isArray(savedFolders)) setFolders(savedFolders.filter((f) => typeof f === 'string'));
 
       if (!stored.length) {
         // Two documents: the example to read, and a tour of how it was written.
@@ -377,6 +390,41 @@ export function useDocs() {
     [currentId, flush, scheduleSave],
   );
 
+  /**
+   * Records a folder and every level above it. Naming `Papers/Drafts` makes two
+   * folders, not one path — otherwise removing the child would take the parent
+   * with it, since nothing else would be holding the parent up.
+   */
+  const addFolder = useCallback((rawPath: string) => {
+    const path = normalizeFolder(rawPath);
+    if (!path) return;
+
+    const levels: string[] = [];
+    let at = '';
+    for (const segment of path.split('/')) {
+      at = at ? `${at}/${segment}` : segment;
+      levels.push(at);
+    }
+
+    setFolders((prev) => {
+      const missing = levels.filter((f) => !prev.includes(f));
+      if (!missing.length) return prev;
+      const next = [...prev, ...missing].sort();
+      void idbSet('kv', FOLDERS_KEY, next);
+      return next;
+    });
+  }, []);
+
+  /** Forgets a folder and everything nested under it. */
+  const removeFolder = useCallback((path: string) => {
+    setFolders((prev) => {
+      const next = prev.filter((f) => f !== path && !f.startsWith(`${path}/`));
+      if (next.length === prev.length) return prev;
+      void idbSet('kv', FOLDERS_KEY, next);
+      return next;
+    });
+  }, []);
+
   const sorted = useMemo(() => docs.slice().sort(byRecency), [docs]);
 
   return {
@@ -393,6 +441,9 @@ export function useDocs() {
     move,
     duplicate,
     importDocs,
+    folders,
+    addFolder,
+    removeFolder,
     saveNow: flush,
   };
 }

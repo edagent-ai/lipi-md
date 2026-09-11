@@ -541,7 +541,12 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             onNewFolder={() => setNewFolder(true)}
             onJumpToLine={jumpToLine}
             sourceScheme={translitEnv.sourceScheme}
-            onMoveDoc={(id, folder) => void docs.move(id, folder)}
+            folders={docs.folders}
+            onForgetFolder={docs.removeFolder}
+            onMoveDoc={(id, folder) => {
+              docs.addFolder(folder);
+              void docs.move(id, folder);
+            }}
             onMoveFolder={(from, toParent) => void moveFolder(from, toParent)}
             onOpenMatch={(id, query) => {
               selectDoc(id);
@@ -621,10 +626,11 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       )}
       {newFolder && (
         <NewFolderDialog
-          folders={folderPaths(docs.docs)}
+          folders={folderPaths(docs.docs, docs.folders)}
           onCancel={() => setNewFolder(false)}
           onCreate={(path) => {
             setNewFolder(false);
+            docs.addFolder(path);
             void docs.create(folderDoc(path));
           }}
         />
@@ -632,9 +638,10 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       {pendingMove && (
         <MoveDialog
           doc={pendingMove}
-          folders={folderPaths(docs.docs)}
+          folders={folderPaths(docs.docs, docs.folders)}
           onCancel={() => setPendingMove(null)}
           onMove={(path) => {
+            docs.addFolder(path);
             void docs.move(pendingMove.id, path);
             setPendingMove(null);
           }}
