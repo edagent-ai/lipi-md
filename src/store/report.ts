@@ -58,8 +58,28 @@ export function bindableCount(folder: string, docs: Doc[]): number {
   return n;
 }
 
+/**
+ * Frontmatter key holding a document out of its folder's report.
+ *
+ * A folder is not always all one thing: it collects the working notes and the
+ * abandoned draft alongside the chapters. Rather than make someone move those
+ * elsewhere to keep them out of the report, a document can say it is not part
+ * of one — and say it in its own frontmatter, so the decision is visible in the
+ * file and survives an export like everything else about it.
+ */
+export const BIND_KEY = 'bind';
+
+/** The spellings a reader might reach for to mean no. */
+const REFUSALS = new Set(['no', 'false', 'off', 'none', '0']);
+
+/** False only for a document that has asked to be left out. */
+export const isBound = (doc: Doc): boolean => {
+  const said = parseFrontmatter(doc.text).raw[BIND_KEY];
+  return said === undefined || !REFUSALS.has(said.trim().toLowerCase());
+};
+
 /** Keys that describe one document rather than how a page looks. */
-const PERSONAL = new Set(['title', 'folder', 'order', 'version', REPORT_KEY]);
+const PERSONAL = new Set(['title', 'folder', 'order', 'version', BIND_KEY, REPORT_KEY]);
 
 /**
  * The byline, which is taken from one chapter or none.
@@ -88,7 +108,9 @@ function orderOf(doc: Doc): number {
 }
 
 /**
- * The documents a report of `folder` would be built from, in reading order.
+ * Every document a report of `folder` could draw on, in reading order —
+ * including the ones currently held out, because the dialog has to offer them
+ * back. `assembleReport` is given only the ones that are in.
  *
  * Whatever asks for a place gets it: a document with `order:` sorts by it,
  * ahead of everything that has not asked. The rest follow folder by folder,
@@ -251,6 +273,6 @@ export function assembleReport(folder: string, sources: Doc[]): string | null {
   return `${frontmatterFor(folder, sources)}\n\n${lines.join('\n').trimEnd()}\n`;
 }
 
-/** The report a folder would produce if nobody reordered anything. */
+/** The report a folder would produce if nobody reordered or held anything out. */
 export const buildReport = (folder: string, docs: Doc[]): string | null =>
-  assembleReport(folder, reportSources(folder, docs));
+  assembleReport(folder, reportSources(folder, docs).filter(isBound));

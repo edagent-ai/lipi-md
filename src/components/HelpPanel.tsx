@@ -245,11 +245,19 @@ scheme: optitrans
         </p>
         <p className="field-hint">
           A report wears the same stacked-pages mark in the document list, in a colour of its
-          own, so it is never mistaken for one of the chapters it was built from. The button asks
-          for the running order first — reading order is the one thing the app
-          cannot work out for itself. Whatever you settle on is written into each document as
-          <code> order:</code>, so the next rebuild opens on the order you chose, and the order
-          travels with the files through an export.
+          own, so it is never mistaken for one of the chapters it was built from.
+        </p>
+        <p className="field-hint">
+          The button asks what goes in and in what order, because neither is something the app can
+          work out for itself: alphabetical is a filing order, and a folder keeps the working notes
+          and the abandoned draft alongside the chapters. Untick a document to leave it out — it
+          stays in the folder, and keeps its place in the list, so letting it back in returns it to
+          where it was.
+        </p>
+        <p className="field-hint">
+          Whatever you settle on is written into each document as <code>order:</code> and{' '}
+          <code>bind: no</code>, so the next rebuild opens on the arrangement you chose and it
+          travels with the files through an export. Either can be edited by hand.
         </p>
         <pre className="cheat-block">{`---
 title: The rope and the peg
@@ -258,7 +266,7 @@ order: 2
 ---`}</pre>
         <p className="field-hint">
           Documents that name a place come first, in the order they ask for; the rest follow folder
-          by folder, by title.
+          by folder, by title. <code>bind: no</code> keeps one out of the report altogether.
         </p>
       </section>
 

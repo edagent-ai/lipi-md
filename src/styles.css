@@ -400,6 +400,29 @@ body.is-resizing iframe {
   font-style: normal;
 }
 
+.report-order-take {
+  flex: none;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.report-order-take input {
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Held out of the report, but still in its place in the run: faded rather than
+   removed, so letting it back in is one click and the order is not disturbed. */
+.report-order li.is-held {
+  opacity: 0.55;
+}
+
+.report-order li.is-held .report-order-name {
+  text-decoration: line-through;
+  text-decoration-color: var(--fg-faint);
+}
+
 .report-order-move {
   flex: none;
   display: flex;

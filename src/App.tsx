@@ -614,16 +614,20 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     if (sources.length > 1) setPendingReport({ folder, sources });
   };
 
-  const bindReport = async (folder: string, orderedIds: string[]) => {
+  const bindReport = async (folder: string, orderedIds: string[], heldOutIds: string[]) => {
     const byId = new Map(docs.docs.map((doc) => [doc.id, doc]));
-    const ordered = orderedIds.map((id) => byId.get(id)).filter((doc): doc is Doc => !!doc);
+    const out = new Set(heldOutIds);
+    const taking = orderedIds
+      .filter((id) => !out.has(id))
+      .map((id) => byId.get(id))
+      .filter((doc): doc is Doc => !!doc);
 
-    const text = assembleReport(folder, ordered);
+    const text = assembleReport(folder, taking);
     if (!text) return;
 
-    // The order is recorded before the report is written, so a rebuild opens
-    // showing the order this build used rather than the filing order again.
-    await docs.setReadingOrder(orderedIds);
+    // Recorded before the report is written, so a rebuild opens on the
+    // arrangement this build used rather than the filing order again.
+    await docs.setReportPlan(orderedIds, heldOutIds);
 
     const existing = findReport(folder, docs.docs);
     if (existing) {
@@ -843,9 +847,9 @@ export default function App({ updateReady, onUpdate }: AppProps) {
           sources={pendingReport.sources}
           existing={findReport(pendingReport.folder, docs.docs) ?? null}
           onCancel={() => setPendingReport(null)}
-          onBuild={(orderedIds) => {
+          onBuild={(orderedIds, heldOutIds) => {
             setPendingReport(null);
-            void bindReport(pendingReport.folder, orderedIds);
+            void bindReport(pendingReport.folder, orderedIds, heldOutIds);
           }}
         />
       )}

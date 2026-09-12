@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { Modal } from './Modal';
+import { isBound } from '../store/report';
 import type { Doc } from '../types';
 
 interface ReportDialogProps {
   folder: string;
-  /** The documents that will be bound, in the order they are filed. */
+  /** Every document the folder could contribute, in the order last settled on. */
   sources: Doc[];
   /** The report this will replace, when one has been built before. */
   existing: Doc | null;
   onCancel(): void;
-  onBuild(orderedIds: string[]): void;
+  /** The whole run in order, and which of it to leave out of the report. */
+  onBuild(orderedIds: string[], heldOutIds: string[]): void;
 }
 
 /**
@@ -21,6 +23,12 @@ interface ReportDialogProps {
  * into each document as `order:` — which keeps it where the rest of a
  * document's metadata lives, visible in the source, editable by hand, and
  * carried through an export and back.
+ *
+ * Which documents take part is asked the same way and for the same reason: a
+ * folder collects the working notes and the abandoned draft alongside the
+ * chapters, and keeping one out of the report should not mean filing it
+ * somewhere it does not belong. A document held out keeps its place in this
+ * list, so letting it back in returns it to where it was.
  */
 export function ReportDialog({
   folder,
@@ -30,6 +38,23 @@ export function ReportDialog({
   onBuild,
 }: ReportDialogProps) {
   const [order, setOrder] = useState<Doc[]>(sources);
+  const [out, setOut] = useState<Set<string>>(
+    () => new Set(sources.filter((doc) => !isBound(doc)).map((doc) => doc.id)),
+  );
+
+  const taking = order.filter((doc) => !out.has(doc.id));
+  /* A report of one document is not a report of anything, so the button waits
+     for a second. The folder still offers the dialog either way — otherwise
+     holding everything out would hide the only way to let it back in. */
+  const enough = taking.length > 1;
+
+  const toggle = (id: string) =>
+    setOut((now) => {
+      const next = new Set(now);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   const swap = (index: number, by: number) => {
     const to = index + by;
@@ -48,14 +73,26 @@ export function ReportDialog({
     <Modal title={existing ? 'Rebuild the report' : 'Build a report'} onClose={onCancel}>
       <section className="settings-group">
         <p>
-          These {order.length} documents become one report, in this order, with a contents list at
-          the front and a page break between them.
+          {taking.length === order.length
+            ? `These ${order.length} documents become one report, in this order, with a contents list at the front and a page break between them.`
+            : `${taking.length} of these ${order.length} documents become one report, in this order, with a contents list at the front and a page break between them.`}
         </p>
 
         <ol className="report-order">
-          {order.map((doc, index) => (
-            <li key={doc.id}>
-              <span className="report-order-at">{index + 1}</span>
+          {order.map((doc, index) => {
+            const held = out.has(doc.id);
+            const at = taking.indexOf(doc);
+            return (
+            <li key={doc.id} className={held ? 'is-held' : undefined}>
+              <span className="report-order-at">{held ? '—' : at + 1}</span>
+              <label className="report-order-take">
+                <input
+                  type="checkbox"
+                  checked={!held}
+                  aria-label={`Include ${doc.title || 'Untitled'} in the report`}
+                  onChange={() => toggle(doc.id)}
+                />
+              </label>
               <span className="report-order-name">
                 {doc.title || 'Untitled'}
                 {relative(doc) && <em> · {relative(doc)}</em>}
@@ -83,12 +120,14 @@ export function ReportDialog({
                 </button>
               </span>
             </li>
-          ))}
+            );
+          })}
         </ol>
 
         <p className="field-hint">
-          The order is saved into each document as <code>order:</code>, so it holds for the next
-          rebuild and travels with the files.{' '}
+          Unticking a document leaves it out without moving it — the folder keeps it, the report
+          does not. The arrangement is saved into each document as <code>order:</code> and{' '}
+          <code>bind: no</code>, so it holds for the next rebuild and travels with the files.{' '}
           <button
             type="button"
             className="link-btn"
@@ -114,7 +153,14 @@ export function ReportDialog({
           <button
             type="button"
             className="btn btn-primary"
-            onClick={() => onBuild(order.map((doc) => doc.id))}
+            disabled={!enough}
+            title={enough ? undefined : 'A report needs at least two documents'}
+            onClick={() =>
+              onBuild(
+                order.map((doc) => doc.id),
+                order.filter((doc) => out.has(doc.id)).map((doc) => doc.id),
+              )
+            }
           >
             {existing ? 'Rebuild' : 'Build report'}
           </button>

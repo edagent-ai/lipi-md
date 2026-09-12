@@ -272,14 +272,22 @@ over. Each row in the tree carries the mark of what it is — a folder, a
 document, or a report — and a report is drawn in a colour of its own, so it is
 not mistaken for one of the chapters beside it.
 
-The button asks for the running order before it builds, because reading order is
-the one thing the app cannot work out for itself — alphabetical is a filing
-order, and nothing in a folder says that the rope comes before the altar. What
-you settle on is written into each document as `order:` in its frontmatter,
-which is where the rest of a document's metadata lives: visible in the source,
-editable by hand, carried through an export and back, and picked up again the
-next time the dialog opens. Documents that name a place come first, in the order
-they ask for; the rest follow folder by folder, by title.
+The button asks what goes in and in what order before it builds, because
+neither is something the app can work out for itself — alphabetical is a filing
+order, nothing in a folder says that the rope comes before the altar, and a
+folder keeps the working notes and the abandoned draft alongside the chapters.
+Unticking a document leaves it out without moving it: the folder keeps it, and
+it holds its place in the list, so letting it back in returns it to where it
+was.
+
+What you settle on is written into each document as `order:` and `bind: no` in
+its frontmatter, which is where the rest of a document's metadata lives: visible
+in the source, editable by hand, carried through an export and back, and picked
+up again the next time the dialog opens. Documents that name a place come first,
+in the order they ask for; the rest follow folder by folder, by title. A folder
+always offers the dialog once it holds two documents, whatever their `bind:`
+says — otherwise holding everything out would hide the only way to let it back
+in.
 
 The result is an ordinary Markdown document, filed in the folder it was built
 from and marked `report:` in its frontmatter. That marker does two jobs: a report

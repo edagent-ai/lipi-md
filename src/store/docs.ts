@@ -342,26 +342,36 @@ export function useDocs() {
   );
 
   /**
-   * Numbers a run of documents with `order: 1`, `order: 2`, … so a reading
-   * order settled in the UI is recorded where the rest of a document's
-   * metadata lives, and survives an export and re-import.
+   * Records a report's plan on the documents themselves: `order: 1`, `order: 2`,
+   * … down the whole run, and `bind: no` on the ones being held out.
    *
-   * One state update for the whole run rather than one per document: a report
-   * of thirty chapters should not re-render the tree thirty times.
+   * Written into the files rather than kept beside the report, so the plan is
+   * visible in the source, editable by hand, and survives an export and
+   * re-import — and so the dialog opens next time on the arrangement that was
+   * last chosen rather than guessing at it again. Held-out documents are
+   * numbered too, which is what lets one come back to its old place when it is
+   * let in again.
+   *
+   * One state update for the whole run rather than one per document: a report of
+   * thirty chapters should not re-render the tree thirty times.
    */
-  const setReadingOrder = useCallback(
-    async (ids: string[]) => {
-      if (!ids.length) return;
+  const setReportPlan = useCallback(
+    async (ordered: string[], heldOut: string[]) => {
+      if (!ordered.length) return;
       scheduleSave.cancel();
       await flush();
 
+      const out = new Set(heldOut);
       const byId = new Map(docsRef.current.map((d) => [d.id, d]));
       const written: Doc[] = [];
 
-      for (const [index, id] of ids.entries()) {
+      for (const [index, id] of ordered.entries()) {
         const target = byId.get(id);
         if (!target) continue;
-        const text = upsertFrontmatterKey(target.text, 'order', String(index + 1));
+        let text = upsertFrontmatterKey(target.text, 'order', String(index + 1));
+        // Absent rather than `bind: yes` for the ones that are in: being part of
+        // the folder's report is the ordinary case and needs no saying.
+        text = upsertFrontmatterKey(text, 'bind', out.has(id) ? 'no' : null);
         if (text === target.text) continue;
         const updated: Doc = { ...target, text, updatedAt: Date.now() };
         byId.set(id, updated);
@@ -508,7 +518,7 @@ export function useDocs() {
     reset,
     move,
     replace,
-    setReadingOrder,
+    setReportPlan,
     duplicate,
     importDocs,
     folders,
