@@ -50,6 +50,10 @@ not precached: it is fetched the first time a document asks for a diagram —
 about 640KB over the wire — and the service worker keeps it, so diagrams work
 offline from then on. The offline install stays at 2MB for everyone else.
 
+**Reports from a folder.** A folder of documents can be bound into one report —
+contents list, page breaks, inherited styling — with the ▤ button beside its name
+in the sidebar. See *Folders* below.
+
 **Page breaks.** A line holding only `\newpage` (or `\pagebreak`) starts a new
 page when the document is printed or exported as a PDF. It shows as a faint rule
 while you write and leaves no mark on paper.
@@ -252,8 +256,21 @@ A folder made that way is remembered in its own right, so deleting the documents
 inside it leaves it standing; it goes when you remove it, and not before. Empty
 folders are local to the app, since there is no document to carry one into an
 export or the mirrored directory. Nothing the app writes to your own folder is
-ever deleted for being empty. Folders are not stored anywhere of
-their own: they exist exactly as long as something is filed under them.
+ever deleted for being empty.
+
+**Reports.** A folder holding two or more documents offers a ▤ button beside its
+name, which binds everything filed under it — subfolders included, depth first —
+into one report document: a contents list linking each chapter, a `\newpage`
+between them, and the folder's theme, typeface and byline carried over. Chapters
+run alphabetically unless they name their own place with `order:` in their
+frontmatter; ones that do come first, in the order they ask for.
+
+The result is an ordinary Markdown document, filed in the folder it was built
+from and marked `report:` in its frontmatter. That marker does two jobs: a report
+is never bound into another report, and pressing ▤ again rebuilds the existing
+one in place instead of leaving a trail of copies. Because it is an ordinary
+document, every other feature already works on it — editing, searching, printing,
+and export to Markdown, HTML or PDF.
 
 **Search.** ⌘F searches the open page; the field above the document list
 searches the whole library. Both match three ways — the text as rendered, the

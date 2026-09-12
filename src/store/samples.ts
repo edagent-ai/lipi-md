@@ -143,6 +143,14 @@ list searches every document — both match the rendered text, the phonetic
 spelling you typed, and a romanisation of native script, so *namaskaara* and
 *ನಮಸ್ಕಾರ* find each other.
 
+**Reports.** A folder holding two or more documents offers a ▤ button beside
+its name. It binds everything filed under it — subfolders included — into one
+report: a contents list at the front, a page break between the chapters, and
+the folder's own look carried over. Chapters run alphabetically unless they say
+otherwise with \`order: 1\`, \`order: 2\` in their frontmatter. The report is an
+ordinary document, so edit it, print it, export it. Press ▤ again and it is
+rebuilt from whatever the folder holds now.
+
 **Typefaces.** *Insert → Typeface from a file* sets the document in a font from
 your own machine, carried inside it as \`fontsrc:\` — so it looks the same in the
 zip, the exported page and the PDF, on a computer that has never had that font

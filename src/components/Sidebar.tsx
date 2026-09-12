@@ -27,6 +27,7 @@ interface SidebarProps {
   onMoveFolder(from: string, toParent: string): void;
   folders: string[];
   onForgetFolder(path: string): void;
+  onBuildReport(path: string): void;
 }
 
 export function Sidebar({
@@ -49,6 +50,7 @@ export function Sidebar({
   onMoveFolder,
   folders,
   onForgetFolder,
+  onBuildReport,
 }: SidebarProps) {
   const current = docs.find((d) => d.id === currentId);
   const [query, setQuery] = useState('');
@@ -168,6 +170,7 @@ export function Sidebar({
             onMoveFolder={onMoveFolder}
             folders={folders}
             onForgetFolder={onForgetFolder}
+            onBuildReport={onBuildReport}
           />
         )}
       </div>

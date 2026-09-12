@@ -12,6 +12,7 @@ import { ConfirmDialog } from './components/ConfirmDialog';
 import { MoveDialog } from './components/MoveDialog';
 import { NewFolderDialog } from './components/NewFolderDialog';
 import { folderDoc } from './store/samples';
+import { buildReport, findReport, reportSources } from './store/report';
 import { embedImage, imageLabel, isImage } from './lib/image';
 import { embedFont, isFontFile, type EmbeddedFont } from './lib/font';
 import { fetchGoogleFont } from './lib/googlefont';
@@ -68,6 +69,8 @@ export default function App({ updateReady, onUpdate }: AppProps) {
   const [pendingReset, setPendingReset] = useState<Doc | null>(null);
   const [pendingMove, setPendingMove] = useState<Doc | null>(null);
   const [newFolder, setNewFolder] = useState(false);
+  /** A folder whose report already exists, waiting on the go-ahead to rebuild. */
+  const [pendingReport, setPendingReport] = useState<{ folder: string; report: Doc } | null>(null);
   const [history, setHistory] = useState({ canUndo: false, canRedo: false });
   // Bumped when KaTeX finishes loading, to re-render maths that first rendered
   // as raw TeX.
@@ -598,6 +601,21 @@ export default function App({ updateReady, onUpdate }: AppProps) {
     if (window.innerWidth <= 900) updateSettings({ sidebarOpen: false });
   };
 
+  /**
+   * Binds a folder into one document, or asks first when there is already a
+   * report to overwrite — a rebuild replaces the whole thing, including
+   * anything written into it by hand since.
+   */
+  const buildFolderReport = (folder: string) => {
+    const existing = findReport(folder, docs.docs);
+    if (existing) {
+      setPendingReport({ folder, report: existing });
+      return;
+    }
+    const text = buildReport(folder, docs.docs);
+    if (text) void docs.create(text);
+  };
+
   const previewPane = (
     <Preview
       ref={previewRef}
@@ -681,6 +699,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             sourceScheme={translitEnv.sourceScheme}
             folders={docs.folders}
             onForgetFolder={docs.removeFolder}
+            onBuildReport={buildFolderReport}
             onMoveDoc={(id, folder) => {
               docs.addFolder(folder);
               void docs.move(id, folder);
@@ -794,6 +813,31 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             void docs.create(folderDoc(path));
           }}
         />
+      )}
+      {pendingReport && (
+        <ConfirmDialog
+          title="Rebuild the report"
+          confirmLabel="Rebuild"
+          onCancel={() => setPendingReport(null)}
+          onConfirm={() => {
+            const text = buildReport(pendingReport.folder, docs.docs);
+            if (text) {
+              void docs.replace(pendingReport.report.id, text);
+              selectDoc(pendingReport.report.id);
+            }
+            setPendingReport(null);
+          }}
+        >
+          <p>
+            <strong>{pendingReport.report.title || 'Untitled'}</strong> is rebuilt from the{' '}
+            {reportSources(pendingReport.folder, docs.docs).length} documents filed under{' '}
+            <strong>{pendingReport.folder}</strong>, replacing everything in it — including anything
+            you have written into the report itself.
+          </p>
+          <p className="field-hint">
+            The documents it is built from are not touched. To keep this version, duplicate it first.
+          </p>
+        </ConfirmDialog>
       )}
       {pendingMove && (
         <MoveDialog

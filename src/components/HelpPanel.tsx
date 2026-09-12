@@ -228,6 +228,31 @@ scheme: optitrans
       </section>
 
       <section className="settings-group">
+        <h3>Folders and reports</h3>
+        <p className="field-hint">
+          <code>folder: Papers/Drafts</code> files a document; folders nest, and a document or a
+          whole branch can be dragged onto another in the sidebar.
+        </p>
+        <p className="field-hint">
+          A folder holding two or more documents shows a <strong>▤</strong> button beside its name.
+          It binds everything filed under it — subfolders included — into one report, with a
+          contents list at the front and a page break between the chapters, and takes the folder's
+          own theme, typeface and byline along with it. The result is an ordinary document: edit
+          it, print it, export it. Pressing <strong>▤</strong> again rebuilds it from whatever the
+          folder holds now, replacing what was there.
+        </p>
+        <pre className="cheat-block">{`---
+title: The rope and the peg
+folder: Sulbasutra
+order: 2
+---`}</pre>
+        <p className="field-hint">
+          Chapters run alphabetically unless they name their own place with <code>order:</code>.
+          Ones that do come first, in the order they ask for.
+        </p>
+      </section>
+
+      <section className="settings-group">
         <h3>Keyboard</h3>
         <table className="cheat">
           <tbody>

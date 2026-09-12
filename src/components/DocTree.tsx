@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { countWords, formatWhen } from '../lib/util';
+import { bindableCount, docReport } from '../store/report';
 import type { Doc } from '../types';
 
 interface DocTreeProps {
@@ -17,6 +18,8 @@ interface DocTreeProps {
   /** Folders that exist in their own right, not only through a document. */
   folders: string[];
   onForgetFolder(path: string): void;
+  /** Binds every document filed under a folder into one report document. */
+  onBuildReport(path: string): void;
 }
 
 interface Node {
@@ -94,6 +97,7 @@ export function DocTree({
   onMoveFolder,
   folders,
   onForgetFolder,
+  onBuildReport,
 }: DocTreeProps) {
   const tree = useMemo(() => buildTree(docs, folders), [docs, folders]);
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
@@ -165,6 +169,11 @@ export function DocTree({
   const countIn = (node: Node): number =>
     node.docs.length + node.children.reduce((sum, child) => sum + countIn(child), 0);
 
+  /* Offered from two documents up. One document is not a report of anything,
+     and a previous report is not a chapter of the next one — so this counts
+     what would actually be bound, not what the folder holds. */
+  const bindable = (path: string) => bindableCount(path, docs);
+
   const renderDoc = (doc: Doc, depth: number) => (
     <li key={doc.id} style={{ ['--depth' as string]: depth }}>
       <button
@@ -175,7 +184,14 @@ export function DocTree({
         onDragEnd={endDrag}
         onClick={() => onSelect(doc.id)}
       >
-        <span className="doc-title">{doc.title || 'Untitled'}</span>
+        <span className="doc-title">
+          {docReport(doc) && (
+            <span className="doc-badge" title="Built from the documents in this folder">
+              ▤{' '}
+            </span>
+          )}
+          {doc.title || 'Untitled'}
+        </span>
         <span className="doc-meta">
           {formatWhen(doc.updatedAt)} · {countWords(doc.text)} words
         </span>
@@ -254,6 +270,17 @@ export function DocTree({
             onClick={() => onForgetFolder(node.path)}
           >
             ✕
+          </button>
+        )}
+        {bindable(node.path) > 1 && (
+          <button
+            type="button"
+            className="icon-btn folder-report"
+            title={`Build one report from the ${bindable(node.path)} documents in “${node.name}”`}
+            aria-label={`Build a report from ${node.name}`}
+            onClick={() => onBuildReport(node.path)}
+          >
+            ▤
           </button>
         )}
         </div>

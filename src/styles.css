@@ -336,6 +336,32 @@ body.is-resizing iframe {
   opacity: 1;
 }
 
+/* Hidden until the row is reached for, like the actions on a document: a tree
+   of folders should read as names, not as a column of buttons. */
+.folder-report {
+  flex: none;
+  opacity: 0;
+  margin-right: 4px;
+}
+
+.folder-head:hover .folder-report,
+.folder-report:focus-visible {
+  opacity: 1;
+}
+
+.doc-badge {
+  color: var(--fg-muted);
+  font-size: 11px;
+}
+
+/* Touch has no hover to reveal them with. */
+@media (hover: none) {
+  .folder-report,
+  .folder-forget {
+    opacity: 1;
+  }
+}
+
 .folder-row.is-drop {
   background: var(--accent-soft);
   box-shadow: inset 0 0 0 1px var(--accent);
@@ -939,7 +965,10 @@ body.is-resizing iframe {
   display: flex;
   align-items: center;
   gap: 6px;
-  width: 100%;
+  /* Grows into the row rather than claiming all of it: `width: 100%` made the
+     row as wide as its container and pushed the buttons beside it off the edge. */
+  flex: 1 1 auto;
+  min-width: 0;
   padding: 5px 8px 5px calc(8px + var(--depth, 0) * 13px);
   border: none;
   border-radius: var(--radius-sm);

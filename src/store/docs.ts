@@ -308,6 +308,40 @@ export function useDocs() {
   );
 
   /**
+   * Replaces a document's text outright, from outside the editor.
+   *
+   * Distinct from `setText`, which edits whatever is open and debounces the
+   * write: this targets a document by id and lands immediately, because the
+   * caller has just generated the whole thing and there is nothing to coalesce.
+   */
+  const replace = useCallback(
+    async (id: string, text: string) => {
+      const target = docsRef.current.find((d) => d.id === id);
+      if (!target) return;
+
+      // A queued autosave for this document would otherwise land afterwards and
+      // put the old text straight back.
+      scheduleSave.cancel();
+      if (pending.current?.id === id) pending.current = null;
+
+      const updated: Doc = {
+        ...target,
+        text,
+        title: deriveTitle(text),
+        folder: deriveFolder(text),
+        updatedAt: Date.now(),
+      };
+      await idbSet('docs', id, updated);
+
+      const next = docsRef.current.map((d) => (d.id === id ? updated : d));
+      docsRef.current = next;
+      setDocs(next);
+      setSaveState('saved');
+    },
+    [scheduleSave],
+  );
+
+  /**
    * Files a document under a folder path by rewriting its frontmatter, so the
    * placement travels with the document through export and re-import.
    */
@@ -435,6 +469,7 @@ export function useDocs() {
     remove,
     reset,
     move,
+    replace,
     duplicate,
     importDocs,
     folders,
