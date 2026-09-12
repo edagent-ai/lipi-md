@@ -231,7 +231,9 @@ scheme: optitrans
         <h3>Folders and reports</h3>
         <p className="field-hint">
           <code>folder: Papers/Drafts</code> files a document; folders nest, and a document or a
-          whole branch can be dragged onto another in the sidebar.
+          whole branch can be dragged onto another in the sidebar. Inside a folder, documents are
+          listed by name with the report at the top; the loose ones above the folders stay newest
+          first.
         </p>
         <p className="field-hint">
           A folder holding two or more documents shows a <strong>▤</strong> button beside its name.

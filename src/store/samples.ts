@@ -139,7 +139,9 @@ The nine themes are **Paper**, **Manuscript**, **Slate**, **Terminal**,
 **Filing and finding.** \`folder:\` decides where a document sits; folders
 nest, and a document or a whole branch can be dragged onto another in the
 sidebar. The folder button above the document list makes an empty one to file
-into. ⌘F searches the page you are reading and the field above the document
+into. Inside a folder, documents are listed by name, with the report — if there
+is one — at the top; the loose documents above the folders stay newest first.
+⌘F searches the page you are reading and the field above the document
 list searches every document — both match the rendered text, the phonetic
 spelling you typed, and a romanisation of native script, so *namaskaara* and
 *ನಮಸ್ಕಾರ* find each other.

@@ -252,6 +252,12 @@ document or a whole branch can be dragged onto another folder — or onto the
 empty space below the tree for the top level. The folder button above the
 document list makes a new one, empty, ready to file documents into.
 
+Inside a folder, documents are listed alphabetically, with the folder's report
+at the top above the subfolders — a filed thing should stay where it was put,
+and an order that reshuffled on every edit could never be learned. The loose
+documents above the tree keep the newest-first order, which is what that level
+is for: it is where documents are before anyone has decided where they go.
+
 A folder made that way is remembered in its own right, so deleting the documents
 inside it leaves it standing; it goes when you remove it, and not before. Empty
 folders are local to the app, since there is no document to carry one into an

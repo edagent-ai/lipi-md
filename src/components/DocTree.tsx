@@ -62,11 +62,17 @@ function buildTree(docs: Doc[], extra: string[]): Node {
     reach((doc.folder ?? '').split('/').filter(Boolean)).docs.push(doc);
   }
 
-  const sortNode = (node: Node) => {
+  /* Inside a folder, by name. A folder is somewhere things are filed, and a
+     filed thing should be where it was put — an order that reshuffled itself
+     every time a document was edited would make it impossible to learn.
+     The top level keeps the recency order, which is what it is good for: it is
+     where documents are before anyone has decided where they go. */
+  const sortNode = (node: Node, isRoot: boolean) => {
     node.children.sort((a, b) => a.name.localeCompare(b.name));
-    node.children.forEach(sortNode);
+    if (!isRoot) node.docs.sort((a, b) => a.title.localeCompare(b.title));
+    node.children.forEach((child) => sortNode(child, false));
   };
-  sortNode(root);
+  sortNode(root, true);
   return root;
 }
 
@@ -286,8 +292,12 @@ export function DocTree({
         </div>
         {!isCollapsed && (
           <ul className="doc-list">
+            {/* The report first, above the subfolders it was built from: it is
+                what the folder amounts to, so it reads as the folder's cover
+                rather than as one more document filed in it. */}
+            {node.docs.filter((doc) => docReport(doc)).map((doc) => renderDoc(doc, depth + 1))}
             {node.children.map((child) => renderNode(child, depth + 1))}
-            {node.docs.map((doc) => renderDoc(doc, depth + 1))}
+            {node.docs.filter((doc) => !docReport(doc)).map((doc) => renderDoc(doc, depth + 1))}
           </ul>
         )}
       </li>
