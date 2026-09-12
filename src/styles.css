@@ -56,6 +56,9 @@ html[data-theme='dark'] {
   --danger: #ff7b72;
   --ok: #56d364;
   --warn: #e3b341;
+  /* Whatever the app produced rather than a person typed. Its own hue, because
+     the accent already means "selected" here and would say the wrong thing. */
+  --fg-derived: #d2a8ff;
 
   --selection: #2f5fa733;
   --selection-match: #6ea8fe26;
@@ -97,6 +100,7 @@ html[data-theme='light'] {
   --accent: #2f6feb;
   --accent-soft: #2f6feb1f;
   --accent-fg: #ffffff;
+  --fg-derived: #8250df;
   --danger: #cf222e;
   --ok: #1a7f37;
   --warn: #9a6700;
@@ -407,11 +411,6 @@ body.is-resizing iframe {
   cursor: default;
 }
 
-.doc-badge {
-  color: var(--fg-muted);
-  font-size: 11px;
-}
-
 /* Touch has no hover to reveal them with. */
 @media (hover: none) {
   .folder-report,
@@ -673,6 +672,14 @@ body.is-resizing iframe {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.doc-name.is-report {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--fg-derived);
+}
+
 
 .workspace {
   display: flex;
@@ -1054,6 +1061,10 @@ body.is-resizing iframe {
   transform: rotate(90deg);
 }
 
+.folder-row .row-icon {
+  color: var(--fg-muted);
+}
+
 .folder-name {
   flex: 1;
   min-width: 0;
@@ -1094,12 +1105,33 @@ body.is-resizing iframe {
 }
 
 .doc-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
   font-size: 13px;
   font-weight: 500;
   color: var(--fg-strong);
+}
+
+.doc-name-text {
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* The type of the row, at the size of the type beside it. Faint by default so a
+   tree of documents still reads as names first. */
+.row-icon {
+  flex: none;
+  color: var(--fg-faint);
+}
+
+/* A built report, in the colour of things the app made. */
+.doc-item.is-report .doc-title,
+.doc-item.is-report .row-icon {
+  color: var(--fg-derived);
 }
 
 .doc-meta {

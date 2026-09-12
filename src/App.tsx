@@ -11,8 +11,9 @@ import { AboutPopover } from './components/AboutPopover';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { MoveDialog } from './components/MoveDialog';
 import { NewFolderDialog } from './components/NewFolderDialog';
-import { assembleReport, findReport, reportSources } from './store/report';
+import { assembleReport, docReport, findReport, reportSources } from './store/report';
 import { ReportDialog } from './components/ReportDialog';
+import { ReportIcon } from './components/icons';
 import { embedImage, imageLabel, isImage } from './lib/image';
 import { embedFont, isFontFile, type EmbeddedFont } from './lib/font';
 import { fetchGoogleFont } from './lib/googlefont';
@@ -662,7 +663,13 @@ export default function App({ updateReady, onUpdate }: AppProps) {
           </p>
         </div>
         <div className="appbar-end">
-          <h1 className="doc-name" title={docs.current?.title}>
+          {/* A report says so up here too, so it is clear while editing that
+              this is the built document and not one of its chapters. */}
+          <h1
+            className={`doc-name${docs.current && docReport(docs.current) ? ' is-report' : ''}`}
+            title={docs.current?.title}
+          >
+            {docs.current && docReport(docs.current) && <ReportIcon size={12} />}
             {docs.current?.title || 'Untitled'}
           </h1>
           <button

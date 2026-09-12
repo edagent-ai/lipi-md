@@ -2,6 +2,7 @@ import { useDeferredValue, useMemo, useState } from 'react';
 import type { Doc } from '../types';
 import type { Heading } from '../markdown';
 import { DocTree } from './DocTree';
+import { NewFolderIcon } from './icons';
 import { countWords } from '../lib/util';
 import { searchLibrary } from '../search/library';
 
@@ -86,23 +87,7 @@ export function Sidebar({
               title="New folder"
               aria-label="New folder"
             >
-              {/* Drawn rather than typed: there is no folder character that can
-                  be relied on to have a glyph, and the nearest one renders as a
-                  placeholder box on this very machine. */}
-              <svg
-                viewBox="0 0 16 16"
-                width="13"
-                height="13"
-                aria-hidden="true"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M1.9 12.6V3.7a.8.8 0 0 1 .8-.8h3l1.4 1.6h5.2a.8.8 0 0 1 .8.8v7.3a.8.8 0 0 1-.8.8H2.7a.8.8 0 0 1-.8-.8Z" />
-                <path d="M8 7.6v3.1M6.5 9.2h3" />
-              </svg>
+              <NewFolderIcon />
             </button>
             <button
               type="button"

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { countWords, formatWhen } from '../lib/util';
 import { bindableCount, docReport } from '../store/report';
+import { DocIcon, FolderIcon, ReportIcon } from './icons';
 import type { Doc } from '../types';
 
 interface DocTreeProps {
@@ -180,23 +181,22 @@ export function DocTree({
      what would actually be bound, not what the folder holds. */
   const bindable = (path: string) => bindableCount(path, docs);
 
-  const renderDoc = (doc: Doc, depth: number) => (
+  const renderDoc = (doc: Doc, depth: number) => {
+    const report = docReport(doc);
+    return (
     <li key={doc.id} style={{ ['--depth' as string]: depth }}>
       <button
         type="button"
-        className={`doc-item${doc.id === currentId ? ' is-active' : ''}`}
+        className={`doc-item${doc.id === currentId ? ' is-active' : ''}${report ? ' is-report' : ''}`}
+        title={report ? `Built from the documents in ${report}` : undefined}
         draggable
         onDragStart={(event) => startDrag(event, 'doc', doc.id)}
         onDragEnd={endDrag}
         onClick={() => onSelect(doc.id)}
       >
         <span className="doc-title">
-          {docReport(doc) && (
-            <span className="doc-badge" title="Built from the documents in this folder">
-              ▤{' '}
-            </span>
-          )}
-          {doc.title || 'Untitled'}
+          {report ? <ReportIcon className="row-icon" /> : <DocIcon className="row-icon" />}
+          <span className="doc-name-text">{doc.title || 'Untitled'}</span>
         </span>
         <span className="doc-meta">
           {formatWhen(doc.updatedAt)} · {countWords(doc.text)} words
@@ -244,7 +244,8 @@ export function DocTree({
         )}
       </div>
     </li>
-  );
+    );
+  };
 
   const renderNode = (node: Node, depth: number): React.ReactNode => {
     const isCollapsed = collapsed.has(node.path);
@@ -264,6 +265,7 @@ export function DocTree({
           <span className={`folder-chevron${isCollapsed ? '' : ' is-open'}`} aria-hidden="true">
             ▸
           </span>
+          <FolderIcon className="row-icon" />
           <span className="folder-name">{node.name}</span>
           <span className="folder-count">{countIn(node)}</span>
         </button>
@@ -286,7 +288,7 @@ export function DocTree({
             aria-label={`Build a report from ${node.name}`}
             onClick={() => onBuildReport(node.path)}
           >
-            ▤
+            <ReportIcon size={12} />
           </button>
         )}
         </div>

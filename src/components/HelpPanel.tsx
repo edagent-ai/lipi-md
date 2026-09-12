@@ -236,15 +236,17 @@ scheme: optitrans
           first.
         </p>
         <p className="field-hint">
-          A folder holding two or more documents shows a <strong>▤</strong> button beside its name.
-          It binds everything filed under it — subfolders included — into one report, with a
-          contents list at the front and a page break between the chapters, and takes the folder's
-          own theme, typeface and byline along with it. The result is an ordinary document: edit
-          it, print it, export it. Pressing <strong>▤</strong> again rebuilds it, replacing what
-          was there.
+          A folder holding two or more documents shows a <strong>stacked-pages</strong> button
+          beside its name. It binds everything filed under it — subfolders included — into one
+          report, with a contents list at the front and a page break between the chapters, and
+          takes the folder's own theme, typeface and byline along with it. The result is an
+          ordinary document: edit it, print it, export it. Pressing the button again rebuilds it,
+          replacing what was there.
         </p>
         <p className="field-hint">
-          The button asks for the running order first — reading order is the one thing the app
+          A report wears the same stacked-pages mark in the document list, in a colour of its
+          own, so it is never mistaken for one of the chapters it was built from. The button asks
+          for the running order first — reading order is the one thing the app
           cannot work out for itself. Whatever you settle on is written into each document as
           <code> order:</code>, so the next rebuild opens on the order you chose, and the order
           travels with the files through an export.

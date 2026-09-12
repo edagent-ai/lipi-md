@@ -51,8 +51,8 @@ about 640KB over the wire — and the service worker keeps it, so diagrams work
 offline from then on. The offline install stays at 2MB for everyone else.
 
 **Reports from a folder.** A folder of documents can be bound into one report —
-contents list, page breaks, inherited styling — with the ▤ button beside its name
-in the sidebar. See *Folders* below.
+contents list, page breaks, inherited styling — with the stacked-pages button
+beside its name in the sidebar. See *Folders* below.
 
 **Page breaks.** A line holding only `\newpage` (or `\pagebreak`) starts a new
 page when the document is printed or exported as a PDF. It shows as a faint rule
@@ -264,10 +264,13 @@ folders are local to the app, since there is no document to carry one into an
 export or the mirrored directory. Nothing the app writes to your own folder is
 ever deleted for being empty.
 
-**Reports.** A folder holding two or more documents offers a ▤ button beside its
-name, which binds everything filed under it — subfolders included — into one
-report document: a contents list linking each chapter, a `\newpage` between
-them, and the folder's theme, typeface and byline carried over.
+**Reports.** A folder holding two or more documents offers a stacked-pages
+button beside its name, which binds everything filed under it — subfolders
+included — into one report document: a contents list linking each chapter, a
+`\newpage` between them, and the folder's theme, typeface and byline carried
+over. Each row in the tree carries the mark of what it is — a folder, a
+document, or a report — and a report is drawn in a colour of its own, so it is
+not mistaken for one of the chapters beside it.
 
 The button asks for the running order before it builds, because reading order is
 the one thing the app cannot work out for itself — alphabetical is a filing
@@ -280,8 +283,8 @@ they ask for; the rest follow folder by folder, by title.
 
 The result is an ordinary Markdown document, filed in the folder it was built
 from and marked `report:` in its frontmatter. That marker does two jobs: a report
-is never bound into another report, and pressing ▤ again rebuilds the existing
-one in place instead of leaving a trail of copies. Because it is an ordinary
+is never bound into another report, and pressing the button again rebuilds the
+existing one in place instead of leaving a trail of copies. Because it is an ordinary
 document, every other feature already works on it — editing, searching, printing,
 and export to Markdown, HTML or PDF.
 
