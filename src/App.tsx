@@ -11,6 +11,8 @@ import { AboutPopover } from './components/AboutPopover';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { MoveDialog } from './components/MoveDialog';
 import { NewFolderDialog } from './components/NewFolderDialog';
+import { NewDocDialog } from './components/NewDocDialog';
+import { newDocText, type DocDetails } from './store/samples';
 import { assembleReport, docReport, findReport, reportSources } from './store/report';
 import { ReportDialog } from './components/ReportDialog';
 import { ReportIcon } from './components/icons';
@@ -70,6 +72,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
   const [pendingReset, setPendingReset] = useState<Doc | null>(null);
   const [pendingMove, setPendingMove] = useState<Doc | null>(null);
   const [newFolder, setNewFolder] = useState(false);
+  const [newDoc, setNewDoc] = useState(false);
   /** A folder waiting on a running order before its report is bound. */
   const [pendingReport, setPendingReport] = useState<{ folder: string; sources: Doc[] } | null>(
     null,
@@ -451,7 +454,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
         void docs.saveNow();
       } else if (key === 'n' && event.shiftKey) {
         event.preventDefault();
-        void docs.create();
+        setNewDoc(true);
       } else if (key === '\\') {
         event.preventDefault();
         const next = VIEW_ORDER[(VIEW_ORDER.indexOf(settings.viewMode) + 1) % VIEW_ORDER.length];
@@ -716,7 +719,7 @@ export default function App({ updateReady, onUpdate }: AppProps) {
             headings={headings}
             activeHeading={activeHeading}
             onSelect={selectDoc}
-            onCreate={() => void docs.create()}
+            onCreate={() => setNewDoc(true)}
             onRequestDelete={setPendingDelete}
             onRequestReset={setPendingReset}
             onRequestMove={setPendingMove}
@@ -828,6 +831,19 @@ export default function App({ updateReady, onUpdate }: AppProps) {
                   error: err instanceof Error ? err.message : String(err),
                 });
               });
+          }}
+        />
+      )}
+      {newDoc && (
+        <NewDocDialog
+          folders={folderPaths(docs.docs, docs.folders)}
+          currentFolder={docs.current?.folder ?? ''}
+          docs={docs.docs}
+          onCancel={() => setNewDoc(false)}
+          onCreate={(details: DocDetails) => {
+            setNewDoc(false);
+            if (details.folder) docs.addFolder(details.folder);
+            void docs.create(newDocText(details));
           }}
         />
       )}

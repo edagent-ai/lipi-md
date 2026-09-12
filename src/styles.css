@@ -2161,6 +2161,19 @@ output {
   gap: 12px;
 }
 
+/* A select sits in the same column as the inputs beside it, so a form of mixed
+   controls still reads as one column rather than a ragged edge. */
+.delete-confirm select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--fg);
+  font: inherit;
+  font-size: 13px;
+}
+
 .delete-confirm input {
   width: 100%;
   padding: 8px 10px;

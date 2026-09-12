@@ -225,6 +225,11 @@ scheme: optitrans
           Optional, and only at the very top. Sets the title in the sidebar and the default script
           and input scheme for this document.
         </p>
+        <p className="field-hint">
+          <strong>New document</strong> (or <kbd>{MOD}</kbd> <kbd>Shift</kbd> <kbd>N</kbd>) asks
+          for the title, folder, author, date and theme and writes them here for you. Anything left
+          blank is left out, and a key left out is one the page takes from Settings.
+        </p>
       </section>
 
       <section className="settings-group">

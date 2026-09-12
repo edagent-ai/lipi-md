@@ -245,6 +245,15 @@ fallback where IndexedDB is blocked) and never leave the device. If you point th
 app at a folder (see below), it writes copies there too — still on your machine,
 still nowhere else.
 
+**Making one.** The **+** button, or ⌘⇧N, asks what the document is before
+opening it: a title, a folder, an author, a date, a theme, and whether to start
+from the example page or an empty one. None of it is compulsory — every field
+left blank is a key left out of the file, and a key left out is one the page
+takes from Settings. It is asked at that moment because that is when the answers
+are known: a library of pages called Untitled, filed nowhere, is what happens
+otherwise. The folder is prefilled from wherever you are working and the author
+from the last document that named one.
+
 **Folders.** Documents are filed by the `folder:` path in their own frontmatter,
 so the arrangement travels with the file through export and re-import. The
 sidebar shows them as a collapsible tree, nesting up to eight deep, and a

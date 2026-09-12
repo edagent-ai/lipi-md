@@ -290,30 +290,20 @@ width: normal
 only **reset** from the sidebar, so it is always here to come back to.*
 `;
 
-export const BLANK_DOC = `---
-title: Untitled
-author:
-date:
-version: 1.0
-folder:
-script: kannada
-scheme: optitrans
-theme: paper
-font: serif
-size: 17px
-width: normal
-align: left
-background: "#fdf9f2"
-color: "#2c2924"
-heading: "#2c2924"
-accent: "#8f4100"
----
+/**
+ * The body a new document starts with.
+ *
+ * Sample rather than empty: a blank page is a worse first move than one that
+ * shows what the file can do, and every line of it is meant to be typed over.
+ * The frontmatter is not here — it is composed from what the reader entered
+ * when they made the document.
+ */
+const BLANK_BODY = `# Untitled
 
-# Untitled
-
-Start writing here. Everything above the second \`---\` is the page style block:
-delete a line and that decision goes back to \`theme:\`, delete \`theme:\` too and
-it follows whatever you chose in **Settings**.
+Start writing here. Everything above the second \`---\` belongs to this page
+alone: \`theme:\` picks one of the nine presets, and \`font:\`, \`size:\`,
+\`width:\`, \`align:\`, \`background:\`, \`color:\` or \`accent:\` set by hand
+overrule it. Take them all out and the page follows **Settings**.
 
 ## A section
 
@@ -341,6 +331,52 @@ console.log(greet('world'));
 An image takes a caption in quotes. This one is drawn into the file itself, so
 it needs nothing from the network:
 
-![A small figure](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAABQCAIAAACoK28rAAABoklEQVR42u3dvW3CQBiA4cNiEyrqTEEGyAK0jEObBTJAMgV1KiZIxwQUNDQg4dyvv+dpI2HFeXO6O2N7dfk7J1iKySlA0CBoEDQIGkGDoEHQIGgQNIIGQYOgQdAgaAQNggZBg6DhkXWdw5wOm0c/eju6qZFsVkVvkn3SsbIZKeiXUpY1/QY9O2VZ092iMEvNGT8HQfdSoaZpGXSJ/jRNm6DLladpagddujlNUy/oOrVpmtTVlcLmPj/8S3Rn/3Xuax+68sA5b3NayqGy9uUkzKEbzWtnHNHwHG02aITGCA0LC7rVPtqrxy2xjsaiEJJ96JwDgNVhkH3otXOHOTQIGgQNgkbQEDnoVndluxscIzSChhTvQTNDfMH/5vfnPdqfdrv7Ti59L0/AlO9/8WhZT6Ms0SwHMYeOOzyHPQPTEAOn4Zl6I3Tp2tRM7SlHueb++ckxV/qRz8DU8zhqbCa1feB5xp3pvDXbhxa0J/gjaO9YwVuwpMwYQXtPIcsMGpJL3yBoBA2CBkGDoEHQCBoEDYIGQYOgETQIGgQNggZBI2gY0BUzYo9zZfYyWAAAAABJRU5ErkJggg== "Replace this with your own picture")
-`;
+![A small figure](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAABQCAIAAACoK28rAAABoklEQVR42u3dvW3CQBiA4cNiEyrqTEEGyAK0jEObBTJAMgV1KiZIxwQUNDQg4dyvv+dpI2HFeXO6O2N7dfk7J1iKySlA0CBoEDQIGkGDoEHQIGgQNIIGQYOgQdAgaAQNggZBg6DhkXWdw5wOm0c/eju6qZFsVkVvkn3SsbIZKeiXUpY1/QY9O2VZ092iMEvNGT8HQfdSoaZpGXSJ/jRNm6DLladpagddujlNUy/oOrVpmtTVlcLmPj/8S3Rn/3Xuax+68sA5b3NayqGy9uUkzKEbzWtnHNHwHG02aITGCA0LC7rVPtqrxy2xjsaiEJJ96JwDgNVhkH3otXOHOTQIGgQNgkbQEDnoVndluxscIzSChhTvQTNDfMH/5vfnPdqfdrv7Ti59L0/AlO9/8WhZT6Ms0SwHMYeOOzyHPQPTEAOn4Zl6I3Tp2tRM7SlHueb++ckxV/qRz8DU8zhqbCa1feB5xp3pvDXbhxa0J/gjaO9YwVuwpMwYQXtPIcsMGpJL3yBoBA2CBkGDoEHQCBoEDYIGQYOgETQIGgQNggZBI2gY0BUzYo9zZfYyWAAAAABJRU5ErkJggg== "Replace this with your own picture")`;
+
+/** What a new document records about itself, as far as anyone has said. */
+export interface DocDetails {
+  title?: string;
+  folder?: string;
+  author?: string;
+  date?: string;
+  /** A preset name, or empty to follow the app.  */
+  theme?: string;
+  /** False for a page with nothing on it yet. */
+  sample?: boolean;
+}
+
+/** Frontmatter splits on the first colon, so a value carrying one is quoted. */
+const quote = (value: string) => (/[:#]/.test(value) ? JSON.stringify(value) : value);
+
+/**
+ * Composes a new document from the details given for it.
+ *
+ * Only what was actually filled in is written. An empty `author:` line would be
+ * a promise the document does not keep — and every key left out is one the page
+ * takes from Settings instead, which is the behaviour worth defaulting to.
+ */
+export function newDocText(details: DocDetails = {}): string {
+  const title = details.title?.trim() || 'Untitled';
+  const front: string[] = [`title: ${quote(title)}`];
+
+  for (const [key, value] of [
+    ['author', details.author],
+    ['date', details.date],
+    ['folder', details.folder],
+    ['theme', details.theme],
+  ] as const) {
+    if (value?.trim()) front.push(`${key}: ${quote(value.trim())}`);
+  }
+  front.push('version: 1.0');
+
+  const body = details.sample === false ? '' : BLANK_BODY;
+  // The heading carries the title too, so renaming one renames the page.
+  const opening = `# ${title}`;
+  const rest = body ? body.replace('# Untitled', opening) : `${opening}\n`;
+
+  return `---\n${front.join('\n')}\n---\n\n${rest}`;
+}
+
+/** What the library falls back to when it has been emptied. */
+export const BLANK_DOC = newDocText();
 
