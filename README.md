@@ -250,7 +250,7 @@ so the arrangement travels with the file through export and re-import. The
 sidebar shows them as a collapsible tree, nesting up to eight deep, and a
 document or a whole branch can be dragged onto another folder — or onto the
 empty space below the tree for the top level. The folder button above the
-document list makes a new one and starts its first page.
+document list makes a new one, empty, ready to file documents into.
 
 A folder made that way is remembered in its own right, so deleting the documents
 inside it leaves it standing; it goes when you remove it, and not before. Empty

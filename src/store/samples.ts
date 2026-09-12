@@ -138,7 +138,8 @@ The nine themes are **Paper**, **Manuscript**, **Slate**, **Terminal**,
 
 **Filing and finding.** \`folder:\` decides where a document sits; folders
 nest, and a document or a whole branch can be dragged onto another in the
-sidebar. ⌘F searches the page you are reading and the field above the document
+sidebar. The folder button above the document list makes an empty one to file
+into. ⌘F searches the page you are reading and the field above the document
 list searches every document — both match the rendered text, the phonetic
 spelling you typed, and a romanisation of native script, so *namaskaara* and
 *ನಮಸ್ಕಾರ* find each other.
@@ -448,6 +449,3 @@ it needs nothing from the network:
 ![A small figure](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAABQCAIAAACoK28rAAABoklEQVR42u3dvW3CQBiA4cNiEyrqTEEGyAK0jEObBTJAMgV1KiZIxwQUNDQg4dyvv+dpI2HFeXO6O2N7dfk7J1iKySlA0CBoEDQIGkGDoEHQIGgQNIIGQYOgQdAgaAQNggZBg6DhkXWdw5wOm0c/eju6qZFsVkVvkn3SsbIZKeiXUpY1/QY9O2VZ092iMEvNGT8HQfdSoaZpGXSJ/jRNm6DLladpagddujlNUy/oOrVpmtTVlcLmPj/8S3Rn/3Xuax+68sA5b3NayqGy9uUkzKEbzWtnHNHwHG02aITGCA0LC7rVPtqrxy2xjsaiEJJ96JwDgNVhkH3otXOHOTQIGgQNgkbQEDnoVndluxscIzSChhTvQTNDfMH/5vfnPdqfdrv7Ti59L0/AlO9/8WhZT6Ms0SwHMYeOOzyHPQPTEAOn4Zl6I3Tp2tRM7SlHueb++ckxV/qRz8DU8zhqbCa1feB5xp3pvDXbhxa0J/gjaO9YwVuwpMwYQXtPIcsMGpJL3yBoBA2CBkGDoEHQCBoEDYIGQYOgETQIGgQNggZBI2gY0BUzYo9zZfYyWAAAAABJRU5ErkJggg== "Replace this with your own picture")
 `;
 
-/** A first page for a new folder, carrying the path that makes the folder real. */
-export const folderDoc = (folder: string): string =>
-  `---\nfolder: ${folder}\n---\n\n# Untitled\n\n`;

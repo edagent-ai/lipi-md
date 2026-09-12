@@ -6,17 +6,18 @@ interface NewFolderDialogProps {
   /** Every folder path already in use, for the suggestion list. */
   folders: string[];
   onCancel(): void;
-  /** Called with the normalised path; the caller creates the first document. */
+  /** Called with the normalised path. */
   onCreate(path: string): void;
 }
 
 /**
- * Makes a folder by making its first document.
+ * Makes an empty folder.
  *
- * A folder is not a thing that can be stored on its own: it exists exactly as
- * long as a document declares it, which is what lets the arrangement travel
- * with the files through export and re-import. So an empty one would vanish the
- * moment it was made, and this asks for a name and then puts a page in it.
+ * It used to make a document too, because a folder existed only as a path some
+ * document declared and an empty one would have vanished the moment it was
+ * made. Folders are recorded in their own right now, so the page is no longer
+ * needed to hold one up — and a folder someone made to file existing documents
+ * into should not come with a stray Untitled already in it.
  */
 export function NewFolderDialog({ folders, onCancel, onCreate }: NewFolderDialogProps) {
   const [path, setPath] = useState('');
@@ -42,7 +43,7 @@ export function NewFolderDialog({ folders, onCancel, onCreate }: NewFolderDialog
     <Modal title="New folder" onClose={onCancel}>
       <section className="settings-group">
         <p>
-          Name the folder, and a new document will be started inside it. Separate levels with
+          Name the folder and it is made empty, ready to file documents into. Separate levels with
           <code> / </code> to nest — up to {MAX_FOLDER_DEPTH} deep.
         </p>
 
@@ -72,9 +73,9 @@ export function NewFolderDialog({ folders, onCancel, onCreate }: NewFolderDialog
         <p className="field-hint">
           {normalized ? (
             <>
-              A document will be created in <strong>{normalized.split('/').join(' › ')}</strong> (
-              {depth} level{depth === 1 ? '' : 's'}).
-              {exists && ' That folder already exists — the document joins it.'}
+              Makes <strong>{normalized.split('/').join(' › ')}</strong> ({depth} level
+              {depth === 1 ? '' : 's'}).
+              {exists && ' That folder already exists — nothing will change.'}
             </>
           ) : (
             <>Type a name to continue.</>

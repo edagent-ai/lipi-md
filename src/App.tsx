@@ -11,7 +11,6 @@ import { AboutPopover } from './components/AboutPopover';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { MoveDialog } from './components/MoveDialog';
 import { NewFolderDialog } from './components/NewFolderDialog';
-import { folderDoc } from './store/samples';
 import { buildReport, findReport, reportSources } from './store/report';
 import { embedImage, imageLabel, isImage } from './lib/image';
 import { embedFont, isFontFile, type EmbeddedFont } from './lib/font';
@@ -810,7 +809,6 @@ export default function App({ updateReady, onUpdate }: AppProps) {
           onCreate={(path) => {
             setNewFolder(false);
             docs.addFolder(path);
-            void docs.create(folderDoc(path));
           }}
         />
       )}
