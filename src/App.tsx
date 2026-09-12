@@ -603,7 +603,6 @@ export default function App({ updateReady, onUpdate }: AppProps) {
       ref={previewRef}
       segments={segments}
       autoRun={settings.autoRun}
-      onInstallP5={() => setPanel('settings')}
       onScroll={onPreviewScroll}
       docStyle={docStyle}
       onActiveHeading={setActiveHeading}

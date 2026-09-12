@@ -31,7 +31,7 @@ import { editorTheme } from './theme';
 const codeLanguages = [
   LanguageDescription.of({
     name: 'javascript',
-    alias: ['js', 'jsx', 'mjs', 'p5', 'p5js', 'anime', 'animejs', 'canvas', 'sketch'],
+    alias: ['js', 'jsx', 'mjs', 'canvas', 'sketch'],
     load: async () => javascript({ jsx: true }),
   }),
   LanguageDescription.of({
@@ -63,7 +63,7 @@ interface EditorProps {
 const PLACEHOLDER = `# Start typing
 
 Write Markdown. Add @kannada(namaskaara) to render native script,
-or a \`\`\`p5 block to run a live sketch.`;
+or a \`\`\`canvas block to run a live sketch.`;
 
 export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
   { docId, value, onChange, onScroll, onHistoryChange, fontSize, showLineNumbers, dark },

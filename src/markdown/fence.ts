@@ -2,13 +2,12 @@
  * Fence info-string parsing — the surface that decides whether a code block is
  * documentation or a live sketch.
  *
- *   ```p5 height=420 title="Bouncing ball"
+ *   ```canvas height=420 title="Bouncing ball"
  *   ```js run
- *   ```anime
  *   ```canvas height=auto
  */
 
-export type RuntimeId = 'p5' | 'anime' | 'canvas' | 'js';
+export type RuntimeId = 'canvas' | 'js';
 
 export interface RunSpec {
   runtime: RuntimeId;
@@ -48,12 +47,6 @@ export function parseInfo(info: string): FenceInfo {
 }
 
 const RUNTIME_BY_LANG: Record<string, RuntimeId> = {
-  p5: 'p5',
-  p5js: 'p5',
-  'p5.js': 'p5',
-  anime: 'anime',
-  animejs: 'anime',
-  'anime.js': 'anime',
   canvas: 'canvas',
   sketch: 'canvas',
 };
@@ -61,9 +54,7 @@ const RUNTIME_BY_LANG: Record<string, RuntimeId> = {
 const PLAIN_JS = new Set(['js', 'javascript', 'mjs']);
 
 const DEFAULT_HEIGHT: Record<RuntimeId, number | 'auto'> = {
-  p5: 320,
   canvas: 320,
-  anime: 260,
   js: 'auto',
 };
 
@@ -98,8 +89,6 @@ export function runSpecFor(info: string): RunSpec | null {
 }
 
 export const RUNTIME_LABEL: Record<RuntimeId, string> = {
-  p5: 'p5.js',
-  anime: 'Anime.js',
   canvas: 'Canvas 2D',
   js: 'JavaScript',
 };

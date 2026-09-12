@@ -4,32 +4,11 @@ import type { RuntimeId } from '../markdown/fence';
 export interface RuntimeDescriptor {
   id: RuntimeId;
   label: string;
-  /** Same-origin classic script loaded inside the sandbox, if any. */
-  libUrl?: string;
-  /** True when the library ships separately as an opt-in add-on. */
-  addon?: boolean;
   license: string;
   blurb: string;
 }
 
-const base = import.meta.env.BASE_URL || '/';
-const asset = (path: string) => new URL(base + path, location.href).href;
-
 export const RUNTIMES: Record<RuntimeId, RuntimeDescriptor> = {
-  p5: {
-    id: 'p5',
-    label: 'p5.js',
-    addon: true,
-    license: 'LGPL-2.1',
-    blurb: 'Creative-coding sketches with setup() and draw().',
-  },
-  anime: {
-    id: 'anime',
-    label: 'Anime.js',
-    libUrl: asset('runtimes/anime.iife.js'),
-    license: 'MIT',
-    blurb: 'Timeline-driven DOM and SVG animation.',
-  },
   canvas: {
     id: 'canvas',
     label: 'Canvas 2D',
@@ -66,46 +45,14 @@ canvas{display:block;max-width:100%;}
 `.trim();
 }
 
-/**
- * Sandboxes have an opaque origin, so the service worker does not control them
- * and a `<script src>` from inside one bypasses the cache and goes to the
- * network — which fails offline. Fetching the source here in the parent, where
- * the service worker *does* apply, and injecting it inline is what makes the
- * bundled runtimes genuinely offline-capable.
- */
-const sourceCache = new Map<string, Promise<string | undefined>>();
-
-export function loadRuntimeSource(runtime: RuntimeId): Promise<string | undefined> {
-  const { libUrl } = RUNTIMES[runtime];
-  if (!libUrl) return Promise.resolve(undefined);
-
-  let pending = sourceCache.get(libUrl);
-  if (!pending) {
-    pending = fetch(libUrl)
-      .then((response) => (response.ok ? response.text() : undefined))
-      .catch(() => undefined);
-    sourceCache.set(libUrl, pending);
-  }
-  return pending;
-}
-
 export interface SrcdocOptions {
   channel: string;
   runtime: RuntimeId;
   height: number | 'auto';
-  /** Inline library source, used by the p5 add-on. */
-  libSource?: string;
 }
 
-export function buildSrcdoc({ channel, runtime, height, libSource }: SrcdocOptions): string {
-  const descriptor = RUNTIMES[runtime];
-  const config = {
-    channel,
-    runtime,
-    height,
-    libUrl: libSource ? undefined : descriptor.libUrl,
-    libSource,
-  };
+export function buildSrcdoc({ channel, runtime, height }: SrcdocOptions): string {
+  const config = { channel, runtime, height };
 
   // `</script>` inside the JSON payload would close the tag early.
   const configJson = JSON.stringify(config).replace(/<\//g, '<\\/');

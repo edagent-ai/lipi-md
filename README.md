@@ -71,9 +71,7 @@ loop((t) => {
 | Fence | Runs on | Ships with the app |
 | --- | --- | --- |
 | `canvas` | 2D canvas with `ctx`, `width`, `height`, `loop()` | yes |
-| `anime` | Anime.js against a `stage` element | yes |
-| `js run` | plain JavaScript against `stage` | yes |
-| `p5` | p5.js `setup()` / `draw()` | optional add-on |
+| `js run` | plain JavaScript against a `stage` element | yes |
 
 Options follow the name: `height=420`, `height=auto`, `title="…"`, `manual`
 (wait for a click), `code` (show source), `norun` (keep as documentation).
@@ -164,9 +162,6 @@ npm run preview   # serve the production build
 npm run typecheck
 ```
 
-`npm run build:runtimes` (wired into `dev` and `build`) pre-bundles the sandbox
-animation runtimes into `public/runtimes/` — see the note on sandboxing below.
-
 ---
 
 ## Design notes
@@ -177,13 +172,14 @@ document, its IndexedDB, or its service worker. User code never travels in the
 frame's markup — it arrives over `postMessage`, which sidesteps HTML escaping and
 lets a sketch re-run without a reload.
 
-That opaque origin also dictates how runtimes load. A sandboxed frame cannot
-import ES modules from our origin (a static host sends no CORS headers), and it
-is not controlled by the service worker either — so a `<script src>` from inside
-one bypasses the offline cache and goes to the network. Runtimes are therefore
-pre-built as IIFE bundles into `public/runtimes/`, fetched by the *parent* where
-the service worker does apply, and injected as inline source. The p5 add-on
-takes the same path out of IndexedDB.
+That opaque origin is also why the sketch runtimes carry no library. A sandboxed
+frame cannot import ES modules from our origin (a static host sends no CORS
+headers), and it is not controlled by the service worker either — so a
+`<script src>` from inside one bypasses the offline cache and goes to the
+network. Every runtime is therefore self-contained: `canvas` and `js run` are a
+few dozen lines of the bootstrap itself, and work offline because there is
+nothing to fetch. Diagrams take the other route — Mermaid renders in the *parent*
+page, where the service worker does apply.
 
 **No CSP header is set,** deliberately. `srcdoc` frames inherit the parent
 document's CSP, so a strict `script-src` would break every sandbox. Isolation is
@@ -218,8 +214,8 @@ lipi.md is **MIT** licensed, and every library it ships is MIT too:
 | markdown-it | MIT |
 | CodeMirror 6 (`@codemirror/*`, `@lezer/*`) | MIT |
 | `@indic-transliteration/sanscript` | MIT |
-| Anime.js | MIT |
 | KaTeX | MIT |
+| Mermaid | MIT |
 | OpenDyslexic (bundled font) | SIL OFL-1.1 |
 | React | MIT |
 | Vite, `vite-plugin-pwa` | MIT |
@@ -233,22 +229,13 @@ is derived from Noto Serif Kannada (SIL Open Font License 1.1) and converted to
 a path — so the mark needs no font installed to render, and no proprietary font
 is embedded.
 
-### Why p5.js is an add-on
-
-p5.js is **LGPL-2.1**, not MIT, so bundling it would break the "100% MIT
-dependencies" property. It is instead an opt-in add-on: installed once from
-**Settings → p5.js add-on**, stored unmodified and separately in IndexedDB, and
-replaceable at any time with your own build ("Install from file" also works
-fully offline). After the one-time install, p5 sketches run offline like
-everything else.
-
 ---
 
 ## Privacy
 
 Nothing is uploaded. The only network requests the app makes on its own are for
-itself; fetching the p5.js add-on or a Google font are the exceptions, and both
-happen only when you ask, once. An embedded font is then part of the document,
+itself; fetching a Google font, or the diagram library the first time a document
+draws one, are the exceptions, and both happen only when you ask, once. An embedded font is then part of the document,
 so no reader of it ever contacts Google. Documents live in this browser's IndexedDB (with a localStorage
 fallback where IndexedDB is blocked) and never leave the device. If you point the
 app at a folder (see below), it writes copies there too — still on your machine,

@@ -26,12 +26,7 @@ export async function captureSketches(segments: Segment[]): Promise<Record<strin
   try {
     const shots = await Promise.all(
       runs.map(async (segment) => {
-        const host = new SandboxHost(segment.spec, segment.code, {
-          autoRun: () => true,
-          // A missing p5 add-on just yields no still; nothing to prompt about
-          // in the middle of an export.
-          onInstallP5: () => {},
-        });
+        const host = new SandboxHost(segment.spec, segment.code, { autoRun: () => true });
         hosts.push(host);
         stage.appendChild(host.el);
         return [segment.key, await host.snapshot(6000)] as const;

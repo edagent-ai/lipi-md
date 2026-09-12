@@ -45,7 +45,7 @@ export default defineConfig({
     dropLegacyFontFormats(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/*.png', 'icons/*.svg', 'runtimes/*.js'],
+      includeAssets: ['icons/*.png', 'icons/*.svg'],
       manifest: {
         name: 'lipi.md — Type text. Render worlds.',
         short_name: 'lipi.md',

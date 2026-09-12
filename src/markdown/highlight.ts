@@ -19,10 +19,6 @@ function parserFor(lang: string): Parser | undefined {
     case 'javascript':
     case 'mjs':
     case 'cjs':
-    case 'p5':
-    case 'p5js':
-    case 'anime':
-    case 'animejs':
     case 'canvas':
     case 'json':
       return (jsParser ??= javascript({ jsx: true }).language.parser);

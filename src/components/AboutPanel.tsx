@@ -12,7 +12,8 @@ const CREDITS = [
   ['markdown-it', 'MIT', 'Markdown parsing and the plugin hooks the macros ride on'],
   ['CodeMirror 6', 'MIT', 'The editor, its Markdown grammar, and code highlighting'],
   ['@indic-transliteration/sanscript', 'MIT', 'The transliteration engine'],
-  ['Anime.js', 'MIT', 'Bundled animation runtime'],
+  ['KaTeX', 'MIT', 'Formula typesetting'],
+  ['Mermaid', 'MIT', 'Diagrams, fetched the first time one is drawn'],
   ['React', 'MIT', 'Application shell'],
   ['Vite + vite-plugin-pwa', 'MIT', 'Build tooling and the offline service worker'],
   ['OpenDyslexic', 'OFL-1.1', 'The typeface used by the dyslexia-friendly theme'],
@@ -79,19 +80,15 @@ export function AboutPanel({ onClose, onUpdate, updateReady }: AboutPanelProps) 
             ))}
           </tbody>
         </table>
-        <p className="field-hint">
-          p5.js is the one exception, and the reason it is an opt-in add-on rather than a bundled
-          dependency: it is licensed LGPL-2.1. It is downloaded unmodified, kept in a separate file,
-          and can be replaced by you at any time — see <strong>Settings → p5.js add-on</strong>.
-        </p>
       </section>
 
       <section className="settings-group">
         <h3>Privacy</h3>
         <p className="field-hint">
-          Nothing is uploaded anywhere. The only network request lipi.md ever makes on its own is
-          fetching the app itself; the optional p5.js download is the sole exception, and only when
-          you ask for it. Sketches run in sandboxed frames that cannot read your documents.
+          Nothing is uploaded anywhere. The only network requests lipi.md makes on its own are for
+          the app itself; everything else happens when you ask for it by name — fetching a Google
+          font, or the diagram library the first time a document draws one. Sketches run in sandboxed
+          frames that cannot read your documents.
         </p>
       </section>
     </Modal>

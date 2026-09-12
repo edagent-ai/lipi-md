@@ -42,35 +42,38 @@ margin when there is room — the citations in the example below are all notes. 
 printed on paper, since a reader cannot click one open.
 
 **Sketches.** A fence naming a runtime runs instead of sitting there as code.
-The geometry in the example below is \`canvas\`; \`anime\` animates ordinary
-elements:
+A \`canvas\` fence hands you \`ctx\`, \`width\`, \`height\` and a \`loop()\` that is
+called once a frame:
 
-\`\`\`anime height=130 title="Twelve knots in a rope"
-const row = document.createElement('div');
-row.style.cssText = 'display:flex;gap:9px;justify-content:center;padding:42px 0';
-for (let i = 0; i < 12; i++) {
-  const knot = document.createElement('span');
-  knot.style.cssText =
-    'width:13px;height:13px;border-radius:50%;background:' +
-    (i % 4 === 0 ? '#bf5700' : '#c9b8a0');
-  row.appendChild(knot);
-}
-stage.appendChild(row);
+\`\`\`canvas height=130 title="Twelve knots in a rope"
+loop((t) => {
+  ctx.clearRect(0, 0, width, height);
+  const gap = Math.min(34, width / 14);
+  const left = (width - gap * 11) / 2;
 
-animate(row.children, {
-  y: [0, -14, 0],
-  delay: stagger(70),
-  duration: 1000,
-  loop: true,
-  ease: 'inOutSine',
+  ctx.strokeStyle = '#c9b8a0';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(left, height / 2);
+  ctx.lineTo(left + gap * 11, height / 2);
+  ctx.stroke();
+
+  for (let i = 0; i < 12; i++) {
+    // A knot lifts, then the one after it, so the rope reads left to right.
+    const lift = Math.sin(t / 160 - i * 0.5);
+    const y = height / 2 - Math.max(0, lift) * 14;
+    ctx.fillStyle = i % 4 === 0 ? '#bf5700' : '#c9b8a0';
+    ctx.beginPath();
+    ctx.arc(left + i * gap, y, 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
 });
 \`\`\`
 
 Each sketch has its own bar: pause, restart, read what it logged, or show the
 source. Add \`bare\` to the fence — \`\`\`canvas height=200 bare\`\`\` — and the bar
-goes, leaving the drawing alone as a figure. They run sandboxed and cannot read
-your documents. \`p5\` works too, but p5.js is LGPL rather than MIT, so it is an
-opt-in download in **Settings**.
+goes, leaving the drawing alone as a figure. \`js run\` does the same against a
+plain \`stage\` element. They run sandboxed and cannot read your documents.
 
 **Diagrams.** A \`mermaid\` fence is drawn as a diagram — flowcharts, sequences,
 state machines, Gantt charts and the rest:
@@ -424,7 +427,7 @@ Type phonetically to get another script: @lipi(namaskaara).
 ## Code and pictures
 
 A fence with a language name is highlighted and left as code; naming a runtime
-instead — \`canvas\`, \`anime\` — runs it:
+instead — \`canvas\`, or \`js run\` — runs it:
 
 \`\`\`js
 const greet = (name) => \`namaskaara, \${name}\`;

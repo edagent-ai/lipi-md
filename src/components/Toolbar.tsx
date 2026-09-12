@@ -200,12 +200,6 @@ export function Toolbar({
         <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'canvas' })}>
           Canvas 2D sketch
         </MenuItem>
-        <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'anime' })}>
-          Anime.js animation
-        </MenuItem>
-        <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'p5' })}>
-          p5.js sketch
-        </MenuItem>
         <hr />
         <MenuItem onClick={() => onAction({ kind: 'block', snippet: 'mermaid' })}>
           Mermaid diagram

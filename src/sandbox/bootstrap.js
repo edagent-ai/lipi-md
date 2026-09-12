@@ -230,8 +230,8 @@
   }
 
   function evalUserCode(code) {
-    // Indirect eval keeps user code at global scope so `function setup()` and
-    // friends become window properties, which is what p5's global mode reads.
+    // Indirect eval, so user code runs at global scope: a `function` or `var`
+    // it declares becomes a window property, visible to the next run.
     (0, eval)(code + '\n//# sourceURL=sketch.js');
   }
 
@@ -239,100 +239,7 @@
    * Runtimes
    * ------------------------------------------------------------------ */
 
-  var P5_HOOKS = [
-    'preload',
-    'setup',
-    'draw',
-    'windowResized',
-    'mousePressed',
-    'mouseReleased',
-    'mouseMoved',
-    'mouseDragged',
-    'mouseClicked',
-    'doubleClicked',
-    'mouseWheel',
-    'keyPressed',
-    'keyReleased',
-    'keyTyped',
-    'touchStarted',
-    'touchMoved',
-    'touchEnded',
-    'deviceMoved',
-    'deviceTurned',
-    'deviceShaken',
-  ];
-
   var runtimes = {
-    p5: {
-      instance: null,
-      watcher: null,
-      /**
-       * p5's global mode appends its canvas straight to <body>, where it lands
-       * *after* the full-height #stage and gets clipped away by overflow:hidden.
-       * Adopting stray body children into the stage keeps one layout model —
-       * and unlike an iframe, moving a canvas preserves what it has drawn.
-       * An observer rather than a one-shot sweep, because preload() defers
-       * setup() and therefore canvas creation.
-       */
-      adopt: function () {
-        var children = document.body.children;
-        for (var i = children.length - 1; i >= 0; i--) {
-          var node = children[i];
-          if (node !== stage && node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE') {
-            stage.appendChild(node);
-          }
-        }
-      },
-      run: function (code) {
-        var self = this;
-        this.watcher = new MutationObserver(function () {
-          self.adopt();
-        });
-        this.watcher.observe(document.body, { childList: true });
-
-        evalUserCode(code);
-        if (typeof window.setup !== 'function' && typeof window.draw !== 'function') {
-          post({
-            type: 'console',
-            level: 'warn',
-            text: 'No setup() or draw() found — a p5 sketch needs at least one.',
-          });
-        }
-        self.instance = new window.p5();
-        self.adopt();
-      },
-      teardown: function () {
-        if (this.watcher) {
-          this.watcher.disconnect();
-          this.watcher = null;
-        }
-        if (this.instance) {
-          try {
-            this.instance.remove();
-          } catch (err) {
-            /* ignore */
-          }
-          this.instance = null;
-        }
-        for (var i = 0; i < P5_HOOKS.length; i++) {
-          try {
-            delete window[P5_HOOKS[i]];
-          } catch (err) {
-            window[P5_HOOKS[i]] = undefined;
-          }
-        }
-      },
-      pause: function () {
-        if (this.instance && this.instance.noLoop) this.instance.noLoop();
-      },
-      resume: function () {
-        if (this.instance && this.instance.loop) this.instance.loop();
-      },
-      renderOnce: function () {
-        if (this.instance && this.instance.redraw) this.instance.redraw();
-      },
-    },
-
     canvas: {
       /**
        * Match the canvas to the stage. A freshly inserted iframe can run its
@@ -410,41 +317,6 @@
       /* Draw a frame synchronously — see the snapshot handler. */
       renderOnce: function () {
         if (this.frame) this.frame(performance.now() - this.start);
-      },
-    },
-
-    anime: {
-      scope: null,
-      run: function (code) {
-        var lib = window.__lipiAnime;
-        if (lib && lib.default) lib = lib.default;
-        if (!lib) throw new Error('Anime.js runtime failed to load');
-
-        window.anime = lib;
-        for (var key in lib) {
-          if (key !== 'default' && !(key in window)) window[key] = lib[key];
-        }
-
-        // `createScope` is Anime's own teardown unit — reverting it undoes
-        // every animation and inline style the sketch created.
-        if (typeof lib.createScope === 'function') {
-          this.scope = lib.createScope({ root: stage });
-          this.scope.add(function () {
-            evalUserCode(code);
-          });
-        } else {
-          evalUserCode(code);
-        }
-      },
-      teardown: function () {
-        if (this.scope) {
-          try {
-            this.scope.revert();
-          } catch (err) {
-            /* ignore */
-          }
-          this.scope = null;
-        }
       },
     },
 
@@ -553,7 +425,7 @@
   });
 
   /* ------------------------------------------------------------------ *
-   * Library loading, then announce readiness
+   * Announce readiness
    * ------------------------------------------------------------------ */
 
   function ready() {
@@ -561,40 +433,5 @@
     post({ type: 'ready' });
   }
 
-  function loadLibrary(done) {
-    if (cfg.libSource) {
-      // Inline source (the p5 add-on, served from IndexedDB) executes
-      // synchronously on append.
-      var inline = document.createElement('script');
-      inline.textContent = cfg.libSource;
-      document.head.appendChild(inline);
-      done();
-      return;
-    }
-    if (cfg.libUrl) {
-      var tag = document.createElement('script');
-      tag.src = cfg.libUrl;
-      tag.onload = function () {
-        done();
-      };
-      tag.onerror = function () {
-        post({
-          type: 'console',
-          level: 'error',
-          text: 'Could not load the ' + cfg.runtime + ' runtime.',
-        });
-        done();
-      };
-      document.head.appendChild(tag);
-      return;
-    }
-    done();
-  }
-
-  try {
-    loadLibrary(ready);
-  } catch (err) {
-    reportError(err, 'runtime load');
-    ready();
-  }
+  ready();
 })();

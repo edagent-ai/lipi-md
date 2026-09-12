@@ -1,5 +1,4 @@
-import { buildSrcdoc, loadRuntimeSource, RUNTIMES } from '../sandbox/runtime';
-import { getP5Source } from '../sandbox/p5addon';
+import { buildSrcdoc } from '../sandbox/runtime';
 import { RUNTIME_LABEL, type RunSpec } from '../markdown/fence';
 import { highlightCode } from '../markdown/highlight';
 import { uid } from '../lib/util';
@@ -20,8 +19,6 @@ interface SandboxMessage {
 export interface SandboxDeps {
   /** Re-run automatically as the user types. */
   autoRun: () => boolean;
-  /** Invoked when a p5 block is present but the add-on is not installed. */
-  onInstallP5: () => void;
 }
 
 const MAX_LOG_LINES = 200;
@@ -260,7 +257,7 @@ export class SandboxHost {
 
   private onOverlayClick(): void {
     if (!this.started) {
-      void this.start();
+      this.start();
       return;
     }
     this.send({ type: 'run', code: this.code });
@@ -271,29 +268,11 @@ export class SandboxHost {
 
   /* ------------------------------------------------------------------ */
 
-  private async start(): Promise<void> {
+  private start(): void {
     if (this.started || this.destroyed) return;
     this.started = true;
     this.status = 'loading';
     this.renderChrome();
-
-    let libSource: string | undefined;
-    if (RUNTIMES[this.spec.runtime].addon) {
-      const source = await getP5Source();
-      if (this.destroyed) return;
-      if (!source) {
-        this.started = false;
-        this.status = 'idle';
-        this.showInstallPrompt();
-        this.renderChrome();
-        return;
-      }
-      libSource = source;
-    } else {
-      // Inlined rather than linked, so the service worker's cache is used.
-      libSource = await loadRuntimeSource(this.spec.runtime);
-      if (this.destroyed) return;
-    }
 
     const frame = document.createElement('iframe');
     frame.className = 'sandbox-frame';
@@ -309,26 +288,11 @@ export class SandboxHost {
       channel: this.channel,
       runtime: this.spec.runtime,
       height: this.spec.height,
-      libSource,
     });
 
     this.iframe = frame;
     this.showOverlay(null);
     this.stage.append(frame);
-  }
-
-  private showInstallPrompt(): void {
-    const prompt = el('div', 'sandbox-install');
-    prompt.append(
-      el('p', '', 'This sketch needs the p5.js add-on, which is not installed yet.'),
-    );
-    const btn = el('button', 'btn btn-primary', 'Install p5.js');
-    btn.type = 'button';
-    btn.addEventListener('click', () => this.deps.onInstallP5());
-    prompt.append(btn);
-    this.showOverlay(null);
-    this.stage.querySelector('.sandbox-install')?.remove();
-    this.stage.append(prompt);
   }
 
   private send(message: Record<string, unknown>): void {
@@ -460,7 +424,7 @@ export class SandboxHost {
 
   private restart(): void {
     if (!this.started) {
-      void this.start();
+      this.start();
       return;
     }
     this.stale = false;
@@ -482,10 +446,7 @@ export class SandboxHost {
     if (wasCold) {
       this.observer?.disconnect();
       this.observer = null;
-      await this.start();
-      // start() bails without a frame when the p5 add-on is missing; do not
-      // sit through the ready timeout for something that will never arrive.
-      if (!this.started) return null;
+      this.start();
     }
 
     if (!(await this.whenReady(5000))) return null;

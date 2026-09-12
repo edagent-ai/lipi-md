@@ -232,27 +232,6 @@ export function wrapMacro(view: EditorView, script: string): void {
 export const SNIPPETS = {
   /** Only means anything on paper; see the page-break plugin. */
   pagebreak: '\\newpage',
-  p5: `\`\`\`p5 height=340
-let angle = 0;
-
-function setup() {
-  createCanvas(400, 320);
-}
-
-function draw() {
-  background(14, 16, 22);
-  translate(width / 2, height / 2);
-  noFill();
-  stroke(120, 180, 255);
-  strokeWeight(2);
-  for (let i = 0; i < 24; i++) {
-    rotate(angle / 40 + i);
-    ellipse(0, 60, 140, 60);
-  }
-  angle += 1;
-}
-\`\`\``,
-
   mermaid: `\`\`\`mermaid
 flowchart LR
   A[Write] --> B{Render}
@@ -271,30 +250,6 @@ loop((t) => {
     ctx.arc(x, y, 5, 0, Math.PI * 2);
     ctx.fill();
   }
-});
-\`\`\``,
-
-  anime: `\`\`\`anime height=200
-stage.innerHTML = Array.from(
-  { length: 12 },
-  () => '<div class="dot"></div>'
-).join('');
-
-const style = document.createElement('style');
-style.textContent = \`
-  #stage { display: flex; gap: 8px; align-items: center; justify-content: center; }
-  .dot { width: 18px; height: 18px; border-radius: 50%; background: #6ea8fe; }
-\`;
-document.head.appendChild(style);
-
-animate('.dot', {
-  translateY: [0, -40],
-  scale: [1, 1.4],
-  alternate: true,
-  loop: true,
-  duration: 900,
-  ease: 'inOutSine',
-  delay: stagger(80),
 });
 \`\`\``,
 

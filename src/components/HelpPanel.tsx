@@ -76,23 +76,6 @@ export function HelpPanel({ onClose }: HelpPanelProps) {
             </tr>
             <tr>
               <td>
-                <code>```anime</code>
-              </td>
-              <td>
-                Anime.js — <code>animate</code>, <code>stagger</code>, <code>createTimeline</code>,
-                plus a <code>stage</code> element
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <code>```p5</code>
-              </td>
-              <td>
-                p5.js <code>setup()</code> / <code>draw()</code> (needs the add-on)
-              </td>
-            </tr>
-            <tr>
-              <td>
                 <code>```js run</code>
               </td>
               <td>plain JavaScript against a <code>stage</code> element</td>

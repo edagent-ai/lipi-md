@@ -141,7 +141,6 @@ export interface PreviewHandle {
 interface PreviewProps {
   segments: Segment[];
   autoRun: boolean;
-  onInstallP5: () => void;
   onScroll: () => void;
   /** CSS custom properties from the document's frontmatter. */
   docStyle: Record<string, string>;
@@ -152,7 +151,7 @@ interface PreviewProps {
 }
 
 export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
-  { segments, autoRun, onInstallP5, onScroll, docStyle, onActiveHeading, sourceScheme },
+  { segments, autoRun, onScroll, docStyle, onActiveHeading, sourceScheme },
   ref,
 ) {
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -172,8 +171,6 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
   // setting changes — rebuilding would drop every running sketch.
   const autoRunRef = useRef(autoRun);
   autoRunRef.current = autoRun;
-  const installRef = useRef(onInstallP5);
-  installRef.current = onInstallP5;
 
   /* Which heading sits at the top right now — drives the outline highlight.
    * Recomputed behind a rAF, since scroll fires far more often than the sidebar
@@ -224,10 +221,7 @@ export const Preview = forwardRef<PreviewHandle, PreviewProps>(function Preview(
   useEffect(() => {
     const host = bodyRef.current;
     if (!host) return;
-    const renderer = new SegmentRenderer(host, {
-      autoRun: () => autoRunRef.current,
-      onInstallP5: () => installRef.current(),
-    });
+    const renderer = new SegmentRenderer(host, { autoRun: () => autoRunRef.current });
     rendererRef.current = renderer;
     setRendererEpoch((epoch) => epoch + 1);
     return () => {
