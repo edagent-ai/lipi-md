@@ -240,8 +240,14 @@ scheme: optitrans
           It binds everything filed under it — subfolders included — into one report, with a
           contents list at the front and a page break between the chapters, and takes the folder's
           own theme, typeface and byline along with it. The result is an ordinary document: edit
-          it, print it, export it. Pressing <strong>▤</strong> again rebuilds it from whatever the
-          folder holds now, replacing what was there.
+          it, print it, export it. Pressing <strong>▤</strong> again rebuilds it, replacing what
+          was there.
+        </p>
+        <p className="field-hint">
+          The button asks for the running order first — reading order is the one thing the app
+          cannot work out for itself. Whatever you settle on is written into each document as
+          <code> order:</code>, so the next rebuild opens on the order you chose, and the order
+          travels with the files through an export.
         </p>
         <pre className="cheat-block">{`---
 title: The rope and the peg
@@ -249,8 +255,8 @@ folder: Sulbasutra
 order: 2
 ---`}</pre>
         <p className="field-hint">
-          Chapters run alphabetically unless they name their own place with <code>order:</code>.
-          Ones that do come first, in the order they ask for.
+          Documents that name a place come first, in the order they ask for; the rest follow folder
+          by folder, by title.
         </p>
       </section>
 

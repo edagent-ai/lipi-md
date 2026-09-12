@@ -349,6 +349,64 @@ body.is-resizing iframe {
   opacity: 1;
 }
 
+/* The running order in the report dialog. Numbered, because the number is the
+   thing being set — a plain list would leave the reader counting rows. */
+.report-order {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+
+.report-order li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-raised);
+}
+
+.report-order-at {
+  flex: none;
+  min-width: 1.6em;
+  color: var(--fg-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.report-order-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report-order-name em {
+  color: var(--fg-muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.report-order-move {
+  flex: none;
+  display: flex;
+  gap: 2px;
+}
+
+.report-order-move .icon-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
 .doc-badge {
   color: var(--fg-muted);
   font-size: 11px;

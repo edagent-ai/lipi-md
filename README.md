@@ -265,11 +265,18 @@ export or the mirrored directory. Nothing the app writes to your own folder is
 ever deleted for being empty.
 
 **Reports.** A folder holding two or more documents offers a ▤ button beside its
-name, which binds everything filed under it — subfolders included, depth first —
-into one report document: a contents list linking each chapter, a `\newpage`
-between them, and the folder's theme, typeface and byline carried over. Chapters
-run alphabetically unless they name their own place with `order:` in their
-frontmatter; ones that do come first, in the order they ask for.
+name, which binds everything filed under it — subfolders included — into one
+report document: a contents list linking each chapter, a `\newpage` between
+them, and the folder's theme, typeface and byline carried over.
+
+The button asks for the running order before it builds, because reading order is
+the one thing the app cannot work out for itself — alphabetical is a filing
+order, and nothing in a folder says that the rope comes before the altar. What
+you settle on is written into each document as `order:` in its frontmatter,
+which is where the rest of a document's metadata lives: visible in the source,
+editable by hand, carried through an export and back, and picked up again the
+next time the dialog opens. Documents that name a place come first, in the order
+they ask for; the rest follow folder by folder, by title.
 
 The result is an ordinary Markdown document, filed in the folder it was built
 from and marked `report:` in its frontmatter. That marker does two jobs: a report

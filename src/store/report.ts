@@ -88,8 +88,12 @@ function orderOf(doc: Doc): number {
 }
 
 /**
- * The documents a report of `folder` would be built from, in reading order:
- * the folder's own documents first, then each subfolder, depth first.
+ * The documents a report of `folder` would be built from, in reading order.
+ *
+ * Whatever asks for a place gets it: a document with `order:` sorts by it,
+ * ahead of everything that has not asked. The rest follow folder by folder,
+ * depth first, alphabetically — a filing order, which is the best guess
+ * available when nobody has said otherwise.
  *
  * A previous report is never a chapter — it is the thing being rebuilt.
  */
@@ -97,10 +101,10 @@ export function reportSources(folder: string, docs: Doc[]): Doc[] {
   return docs
     .filter((doc) => under(doc.folder ?? '', folder) && !docReport(doc))
     .sort((a, b) => {
-      const place = (a.folder ?? '').localeCompare(b.folder ?? '');
-      if (place) return place;
       const [x, y] = [orderOf(a), orderOf(b)];
       if (x !== y) return x - y;
+      const place = (a.folder ?? '').localeCompare(b.folder ?? '');
+      if (place) return place;
       return a.title.localeCompare(b.title);
     });
 }
@@ -196,11 +200,11 @@ function frontmatterFor(folder: string, sources: Doc[]): string {
 }
 
 /**
- * Assembles the report. Returns null when there is nothing to bind — one
- * document is not a report of anything.
+ * Assembles the report from documents already in the order they should read in.
+ * Returns null when there is nothing to bind — one document is not a report of
+ * anything.
  */
-export function buildReport(folder: string, docs: Doc[]): string | null {
-  const sources = reportSources(folder, docs);
+export function assembleReport(folder: string, sources: Doc[]): string | null {
   if (sources.length < 2) return null;
 
   const name = folder.split('/').pop() || folder;
@@ -246,3 +250,7 @@ export function buildReport(folder: string, docs: Doc[]): string | null {
 
   return `${frontmatterFor(folder, sources)}\n\n${lines.join('\n').trimEnd()}\n`;
 }
+
+/** The report a folder would produce if nobody reordered anything. */
+export const buildReport = (folder: string, docs: Doc[]): string | null =>
+  assembleReport(folder, reportSources(folder, docs));

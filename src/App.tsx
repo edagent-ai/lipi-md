@@ -11,7 +11,8 @@ import { AboutPopover } from './components/AboutPopover';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { MoveDialog } from './components/MoveDialog';
 import { NewFolderDialog } from './components/NewFolderDialog';
-import { buildReport, findReport, reportSources } from './store/report';
+import { assembleReport, findReport, reportSources } from './store/report';
+import { ReportDialog } from './components/ReportDialog';
 import { embedImage, imageLabel, isImage } from './lib/image';
 import { embedFont, isFontFile, type EmbeddedFont } from './lib/font';
 import { fetchGoogleFont } from './lib/googlefont';
@@ -68,8 +69,10 @@ export default function App({ updateReady, onUpdate }: AppProps) {
   const [pendingReset, setPendingReset] = useState<Doc | null>(null);
   const [pendingMove, setPendingMove] = useState<Doc | null>(null);
   const [newFolder, setNewFolder] = useState(false);
-  /** A folder whose report already exists, waiting on the go-ahead to rebuild. */
-  const [pendingReport, setPendingReport] = useState<{ folder: string; report: Doc } | null>(null);
+  /** A folder waiting on a running order before its report is bound. */
+  const [pendingReport, setPendingReport] = useState<{ folder: string; sources: Doc[] } | null>(
+    null,
+  );
   const [history, setHistory] = useState({ canUndo: false, canRedo: false });
   // Bumped when KaTeX finishes loading, to re-render maths that first rendered
   // as raw TeX.
@@ -601,18 +604,33 @@ export default function App({ updateReady, onUpdate }: AppProps) {
   };
 
   /**
-   * Binds a folder into one document, or asks first when there is already a
-   * report to overwrite — a rebuild replaces the whole thing, including
-   * anything written into it by hand since.
+   * Binds a folder into one document, after asking for the running order —
+   * which is the one thing the app cannot work out for itself, and which a
+   * rebuild would otherwise have to guess at again every time.
    */
   const buildFolderReport = (folder: string) => {
+    const sources = reportSources(folder, docs.docs);
+    if (sources.length > 1) setPendingReport({ folder, sources });
+  };
+
+  const bindReport = async (folder: string, orderedIds: string[]) => {
+    const byId = new Map(docs.docs.map((doc) => [doc.id, doc]));
+    const ordered = orderedIds.map((id) => byId.get(id)).filter((doc): doc is Doc => !!doc);
+
+    const text = assembleReport(folder, ordered);
+    if (!text) return;
+
+    // The order is recorded before the report is written, so a rebuild opens
+    // showing the order this build used rather than the filing order again.
+    await docs.setReadingOrder(orderedIds);
+
     const existing = findReport(folder, docs.docs);
     if (existing) {
-      setPendingReport({ folder, report: existing });
-      return;
+      await docs.replace(existing.id, text);
+      selectDoc(existing.id);
+    } else {
+      await docs.create(text);
     }
-    const text = buildReport(folder, docs.docs);
-    if (text) void docs.create(text);
   };
 
   const previewPane = (
@@ -813,29 +831,16 @@ export default function App({ updateReady, onUpdate }: AppProps) {
         />
       )}
       {pendingReport && (
-        <ConfirmDialog
-          title="Rebuild the report"
-          confirmLabel="Rebuild"
+        <ReportDialog
+          folder={pendingReport.folder}
+          sources={pendingReport.sources}
+          existing={findReport(pendingReport.folder, docs.docs) ?? null}
           onCancel={() => setPendingReport(null)}
-          onConfirm={() => {
-            const text = buildReport(pendingReport.folder, docs.docs);
-            if (text) {
-              void docs.replace(pendingReport.report.id, text);
-              selectDoc(pendingReport.report.id);
-            }
+          onBuild={(orderedIds) => {
             setPendingReport(null);
+            void bindReport(pendingReport.folder, orderedIds);
           }}
-        >
-          <p>
-            <strong>{pendingReport.report.title || 'Untitled'}</strong> is rebuilt from the{' '}
-            {reportSources(pendingReport.folder, docs.docs).length} documents filed under{' '}
-            <strong>{pendingReport.folder}</strong>, replacing everything in it — including anything
-            you have written into the report itself.
-          </p>
-          <p className="field-hint">
-            The documents it is built from are not touched. To keep this version, duplicate it first.
-          </p>
-        </ConfirmDialog>
+        />
       )}
       {pendingMove && (
         <MoveDialog
