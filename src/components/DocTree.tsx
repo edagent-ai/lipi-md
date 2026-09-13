@@ -280,17 +280,24 @@ export function DocTree({
             ✕
           </button>
         )}
-        {bindable(node.path) > 1 && (
-          <button
-            type="button"
-            className="icon-btn folder-report"
-            title={`Build one report from the ${bindable(node.path)} documents in “${node.name}”`}
-            aria-label={`Build a report from ${node.name}`}
-            onClick={() => onBuildReport(node.path)}
-          >
-            <ReportIcon size={12} />
-          </button>
-        )}
+        {/* Always on the row, and never faded in on hover: a folder that can be
+            bound should say so before it is reached for. Below two documents it
+            stays, disabled, rather than disappearing — an affordance that comes
+            and goes as documents are filed is one nobody learns. */}
+        <button
+          type="button"
+          className="icon-btn folder-report"
+          disabled={bindable(node.path) < 2}
+          title={
+            bindable(node.path) > 1
+              ? `Build one report from the ${bindable(node.path)} documents in “${node.name}”`
+              : `“${node.name}” needs two documents before it can be bound into a report`
+          }
+          aria-label={`Build a report from ${node.name}`}
+          onClick={() => onBuildReport(node.path)}
+        >
+          <ReportIcon size={12} />
+        </button>
         </div>
         {!isCollapsed && (
           <ul className="doc-list">

@@ -340,17 +340,27 @@ body.is-resizing iframe {
   opacity: 1;
 }
 
-/* Hidden until the row is reached for, like the actions on a document: a tree
-   of folders should read as names, not as a column of buttons. */
+/* Always on the row, never faded in on hover: a folder that can be bound into a
+   report should say so before it is reached for. Faint, so a tree of folders
+   still reads as names first. */
 .folder-report {
   flex: none;
-  opacity: 0;
   margin-right: 4px;
+  color: var(--fg-faint);
 }
 
-.folder-head:hover .folder-report,
-.folder-report:focus-visible {
-  opacity: 1;
+.folder-head:hover .folder-report {
+  color: var(--fg-muted);
+}
+
+/* Still on the row, but plainly not offering anything yet. */
+.folder-report:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.folder-head:hover .folder-report:disabled {
+  color: var(--fg-faint);
 }
 
 /* The running order in the report dialog. Numbered, because the number is the
@@ -434,9 +444,8 @@ body.is-resizing iframe {
   cursor: default;
 }
 
-/* Touch has no hover to reveal them with. */
+/* Touch has no hover to reveal it with. */
 @media (hover: none) {
-  .folder-report,
   .folder-forget {
     opacity: 1;
   }

@@ -241,12 +241,13 @@ scheme: optitrans
           first.
         </p>
         <p className="field-hint">
-          A folder holding two or more documents shows a <strong>stacked-pages</strong> button
-          beside its name. It binds everything filed under it — subfolders included — into one
-          report, with a contents list at the front and a page break between the chapters, and
-          takes the folder's own theme, typeface and byline along with it. The result is an
-          ordinary document: edit it, print it, export it. Pressing the button again rebuilds it,
-          replacing what was there.
+Every folder carries a <strong>stacked-pages</strong> button beside its name, which binds
+          everything filed under it — subfolders included — into one report, with a contents list
+          at the front and a page break between the chapters, and takes the folder's own theme,
+          typeface and byline along with it. It waits, greyed, until the folder holds two
+          documents, since a report of one is not a report of anything. The result is an ordinary
+          document: edit it, print it, export it. Pressing the button again rebuilds it, replacing
+          what was there.
         </p>
         <p className="field-hint">
           A report wears the same stacked-pages mark in the document list, in a colour of its

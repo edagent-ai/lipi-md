@@ -273,11 +273,14 @@ folders are local to the app, since there is no document to carry one into an
 export or the mirrored directory. Nothing the app writes to your own folder is
 ever deleted for being empty.
 
-**Reports.** A folder holding two or more documents offers a stacked-pages
-button beside its name, which binds everything filed under it — subfolders
-included — into one report document: a contents list linking each chapter, a
+**Reports.** Every folder carries a stacked-pages button beside its name, which
+binds everything filed under it — subfolders included — into one report
+document: a contents list linking each chapter, a
 `\newpage` between them, and the folder's theme, typeface and byline carried
-over. Each row in the tree carries the mark of what it is — a folder, a
+over. The button is always on the row rather than appearing on hover — an
+affordance that comes and goes is one nobody learns — and waits, greyed, until
+the folder holds two documents, since a report of one is not a report of
+anything. Each row in the tree carries the mark of what it is — a folder, a
 document, or a report — and a report is drawn in a colour of its own, so it is
 not mistaken for one of the chapters beside it.
 
@@ -293,10 +296,9 @@ What you settle on is written into each document as `order:` and `bind: no` in
 its frontmatter, which is where the rest of a document's metadata lives: visible
 in the source, editable by hand, carried through an export and back, and picked
 up again the next time the dialog opens. Documents that name a place come first,
-in the order they ask for; the rest follow folder by folder, by title. A folder
-always offers the dialog once it holds two documents, whatever their `bind:`
-says — otherwise holding everything out would hide the only way to let it back
-in.
+in the order they ask for; the rest follow folder by folder, by title. The button stays live once a folder holds two
+documents, whatever their `bind:` says — otherwise holding everything out would
+take away the only way to let it back in.
 
 The result is an ordinary Markdown document, filed in the folder it was built
 from and marked `report:` in its frontmatter. That marker does two jobs: a report
